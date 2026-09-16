@@ -188,6 +188,17 @@
         <button id="auto" class="small" title="Set floor and ceiling from the level distribution">auto</button>
       </div>
       <div class="group">
+        <span class="lbl">Background</span>
+        <select id="bgmode" title="Estimate the constant background and show only what rises above it">
+          <option value="off">keep</option>
+          <option value="steady">remove steady noise</option>
+          <option value="loop">remove repeating loop</option>
+        </select>
+        <label id="bgperiodwrap" style="display:none" title="Loop length in seconds. Leave blank to detect it.">loop <input id="bgperiod" type="number" min="0.5" step="0.01" placeholder="auto" style="width:64px" /> s</label>
+        <label title="3 x 3 smoothing of the result, to calm noise speckle"><input id="bgsmooth" type="checkbox" checked /> smooth</label>
+        <span id="bginfo" class="val" style="max-width:260px;overflow:hidden;text-overflow:ellipsis"></span>
+      </div>
+      <div class="group">
         <span class="lbl">Analysis</span>
         <label title="Audio is resampled to this rate before analysis. 16 kHz shows up to 8 kHz.">rate <select id="sr">
           <option value="8000">8 kHz</option>
@@ -251,6 +262,11 @@
           <p class="hint">
             Each breath is a broadband smear in the spectrogram and a bump on the loudness strip. Regular breathing looks like a picket fence at a 1 or 5 second zoom.
             Snoring is a low buzz with harmonics under about 500 Hz. A stretch with no bumps followed by a loud gasp is what you are looking for.
+          </p>
+          <p class="hint">
+            A white-noise machine adds a constant wash, and if it plays a recorded loop the wash has a pattern that repeats every few seconds.
+            <b>Background → remove repeating loop</b> finds the loop length, builds a template of it and shows only what rises above it, so breaths stay and the machine goes.
+            Use <b>remove steady noise</b> for a fan or a machine with no loop. Levels are then in dB above the background.
           </p>
         </section>
       </aside>
@@ -322,6 +338,11 @@
           rms[f] = cnt ? 10 * Math.log(ss / cnt + eps) / LN10 : -140;
           if ((f & 511) === 0) yield f / frames;
         }
+        return { sr: sr, fftSize: fftSize, hop: hop, bins: bins, frames: frames, levels: buildPyramid(level0, frames, bins), rms: rms, hist: hist };
+      }
+
+      // Max-pooled time pyramid: level L has frames / 2^L frames.
+      function buildPyramid(level0, frames, bins) {
         var levels = [level0], prev = level0, pf = frames;
         while (pf > 256) {
           var nf = (pf + 1) >> 1, next = new Uint8Array(nf * bins);
@@ -332,7 +353,148 @@
           }
           levels.push(next); prev = next; pf = nf;
         }
-        return { sr: sr, fftSize: fftSize, hop: hop, bins: bins, frames: frames, levels: levels, rms: rms, hist: hist };
+        return levels;
+      }
+
+      function percentileHist(h, off, count, q) {
+        var target = q * count, acc = 0;
+        for (var v = 0; v < 256; v++) { acc += h[off + v]; if (acc >= target) return v; }
+        return 255;
+      }
+
+      // Period of a looped background recording: autocorrelation of the spectrogram texture
+      // over time, summed across frequency bands. A digital loop repeats its fine texture
+      // exactly, so it gives a sharp peak; breathing is jittery and gives a broad, weak one.
+      // Returns the lag in level-0 frames, or null.
+      function findPeriod(raw, frames, bins, fd, minSec, maxSec) {
+        var sh = 1; while (Math.ceil(frames / sh) > 65536) sh *= 2;
+        var n = Math.ceil(frames / sh), nb = Math.min(128, bins), bw = Math.floor(bins / nb);
+        var series = new Float32Array(n * nb);
+        for (var f = 0; f < frames; f++) {
+          var g = (f / sh) | 0, o = f * bins, so = g * nb;
+          for (var b = 0; b < nb; b++) { var s = 0, ko = o + b * bw; for (var k = 0; k < bw; k++) s += raw[ko + k]; series[so + b] += s; }
+        }
+        for (var g2 = 0; g2 < n; g2++) { var cnt = Math.min(sh, frames - g2 * sh) * bw; for (var b1 = 0; b1 < nb; b1++) series[g2 * nb + b1] /= cnt; }
+        var N2 = 1; while (N2 < 2 * n) N2 *= 2;
+        var fft = makeFFT(N2), re = new Float32Array(N2), im = new Float32Array(N2), ac = new Float64Array(n);
+        for (var b2 = 0; b2 < nb; b2++) {
+          var mean = 0; for (var i = 0; i < n; i++) mean += series[i * nb + b2]; mean /= n;
+          re.fill(0); im.fill(0);
+          for (var i2 = 0; i2 < n; i2++) re[i2] = series[i2 * nb + b2] - mean;
+          fft(re, im);
+          for (var j = 0; j < N2; j++) { re[j] = re[j] * re[j] + im[j] * im[j]; im[j] = 0; }
+          fft(re, im); // FFT of the power spectrum = N2 x autocorrelation (real, since power is symmetric)
+          var v0 = re[0] / n; if (v0 <= 0) continue;
+          for (var lag = 1; lag < n; lag++) ac[lag] += re[lag] / (n - lag) / v0;
+        }
+        for (var l = 1; l < n; l++) ac[l] /= nb;
+        var fdL = fd * sh, minLag = Math.max(2, Math.ceil(minSec / fdL)), maxLag = Math.min(n - 3, Math.floor(maxSec / fdL));
+        if (maxLag <= minLag) return null;
+        var w = Math.max(1, Math.round(0.5 / fdL)), cands = [], maxScore = -Infinity;
+        for (var lg = minLag; lg <= maxLag; lg++) {
+          if (ac[lg] < ac[lg - 1] || ac[lg] < ac[lg + 1]) continue;
+          var lo = Math.max(1, lg - w), hi = Math.min(n - 1, lg + w);
+          var score = ac[lg] - 0.5 * (ac[lo] + ac[hi]); // sharpness: peak height above its shoulders
+          cands.push([lg, score]); if (score > maxScore) maxScore = score;
+        }
+        if (!cands.length || maxScore <= 0) return null;
+        var pick = cands[0]; // smallest lag that is nearly as sharp as the best, so 2x and 3x the period lose
+        for (var c = 0; c < cands.length; c++) if (cands[c][1] >= 0.8 * maxScore) { pick = cands[c]; break; }
+        return { lag: pick[0] * sh, strength: ac[pick[0]], step: sh };
+      }
+
+      // Estimate the background at every (frame, bin) and return the spectrogram of what rises
+      // above it, in the same 8-bit units (0 = at the background).
+      //   'steady': per bin, the 30th percentile over 30 s blocks, interpolated between blocks.
+      //   'loop':   find the loop period, align each repetition to the first one, and take the
+      //             30th percentile across repetitions at each loop position and bin.
+      // A low percentile rather than a mean, so breaths (which are not locked to the loop and
+      // are silent a good fraction of the time) stay out of the template.
+      function* background(raw, frames, bins, fd, mode, periodSec, smooth) {
+        var Q = 0.3, hist = new Uint32Array(bins * 256), bgRow = new Float32Array(bins);
+        var info = { mode: mode, period: null, strength: null, reps: 0, note: '' };
+        var P0 = 0, D0 = 0, Pt = 0, bgAt;
+        if (mode === 'loop') {
+          if (periodSec > 0) { P0 = periodSec / fd; D0 = Math.max(3, Math.round(0.1 / fd)); info.note = 'period set by hand'; }
+          else {
+            var found = findPeriod(raw, frames, bins, fd, 1.0, Math.min(900, frames * fd / 4));
+            yield 0.15;
+            if (!found || found.strength < 0.03) { mode = 'steady'; info.note = 'no clear loop found, removed the steady floor instead'; }
+            else { P0 = found.lag; D0 = found.step + 2; info.strength = found.strength; }
+          }
+          if (mode === 'loop') { Pt = Math.round(P0); if (Pt < 4 || Pt * 3 > frames) { mode = 'steady'; info.note = 'loop too short or too long, removed the steady floor instead'; } }
+          info.mode = mode;
+        }
+        if (mode === 'loop') {
+          // Track where each repetition starts by matching it against the first one, searching a
+          // few frames either side of where the running period estimate predicts.
+          var Lseg = Math.min(Pt, 1500, frames), fstep = Lseg > 600 ? 2 : 1, bstep = bins > 256 ? 2 : 1;
+          var starts = [0], P = P0, k = 1;
+          while (true) {
+            var nominal = Math.round(k * P); if (nominal + Lseg > frames) break;
+            var D = k === 1 ? D0 : 3, bestD = 0, bestS = Infinity;
+            for (var d = -D; d <= D; d++) {
+              var st = nominal + d; if (st < 0 || st + Lseg > frames) continue;
+              var sad = 0;
+              for (var i3 = 0; i3 < Lseg; i3 += fstep) { var oa = i3 * bins, ob = (st + i3) * bins; for (var b3 = 0; b3 < bins; b3 += bstep) { var df = raw[oa + b3] - raw[ob + b3]; sad += df < 0 ? -df : df; } }
+              if (sad < bestS) { bestS = sad; bestD = d; }
+            }
+            var fnd = nominal + bestD; starts.push(fnd); P = fnd / k; k++;
+            if ((k & 15) === 0) yield 0.15 + 0.25 * (fnd / frames);
+          }
+          Pt = Math.round(P); info.period = P * fd; info.reps = starts.length;
+          while (starts[starts.length - 1] + Pt < frames) starts.push(starts[starts.length - 1] + Pt);
+          var template = new Uint8Array(Pt * bins);
+          for (var p = 0; p < Pt; p++) {
+            hist.fill(0); var cnt2 = 0;
+            for (var r = 0; r < starts.length; r++) { var fr = starts[r] + p; if (fr >= frames) break; var orr = fr * bins; for (var b4 = 0; b4 < bins; b4++) hist[b4 * 256 + raw[orr + b4]]++; cnt2++; }
+            var to = p * bins; for (var b5 = 0; b5 < bins; b5++) template[to + b5] = percentileHist(hist, b5 * 256, cnt2, Q);
+            if ((p & 31) === 0) yield 0.4 + 0.3 * (p / Pt);
+          }
+          var rep = 0;
+          bgAt = function (f) { while (rep + 1 < starts.length && starts[rep + 1] <= f) rep++; var ph = (f - starts[rep]) % Pt, o = ph * bins; for (var b = 0; b < bins; b++) bgRow[b] = template[o + b]; };
+        } else {
+          var B = Math.max(1, Math.round(30 / fd)), nbk = Math.ceil(frames / B), block = new Uint8Array(nbk * bins);
+          for (var bi = 0; bi < nbk; bi++) {
+            hist.fill(0); var f0 = bi * B, f1 = Math.min(frames, f0 + B);
+            for (var f2 = f0; f2 < f1; f2++) { var o2 = f2 * bins; for (var b6 = 0; b6 < bins; b6++) hist[b6 * 256 + raw[o2 + b6]]++; }
+            var bo = bi * bins; for (var b7 = 0; b7 < bins; b7++) block[bo + b7] = percentileHist(hist, b7 * 256, f1 - f0, Q);
+            yield 0.1 + 0.5 * (bi / nbk);
+          }
+          bgAt = function (f) {
+            var c = (f + 0.5) / B - 0.5, b0 = Math.floor(c); if (b0 < 0) b0 = 0; if (b0 > nbk - 1) b0 = nbk - 1;
+            var b1 = Math.min(nbk - 1, b0 + 1), t = c - b0; if (t < 0) t = 0; if (t > 1) t = 1;
+            var o0 = b0 * bins, o1 = b1 * bins; for (var b = 0; b < bins; b++) bgRow[b] = block[o0 + b] * (1 - t) + block[o1 + b] * t;
+          };
+        }
+        // residual, and the loudness of what is above the background
+        var res = new Uint8Array(frames * bins), rms = new Float32Array(frames), pow = new Float64Array(256);
+        for (var v = 0; v < 256; v++) pow[v] = Math.pow(10, (v * 120 / 255 - 120) / 10);
+        for (var f3 = 0; f3 < frames; f3++) {
+          bgAt(f3); var o3 = f3 * bins, E = 0;
+          for (var b8 = 0; b8 < bins; b8++) {
+            var rv = raw[o3 + b8], bg = bgRow[b8], dlt = rv - bg;
+            res[o3 + b8] = dlt > 0 ? (dlt + 0.5) | 0 : 0;
+            var pe = pow[rv] - pow[(bg + 0.5) | 0]; if (pe > 0) E += pe;
+          }
+          rms[f3] = 10 * Math.log(E / bins + 1e-14) / Math.LN10;
+          if ((f3 & 1023) === 0) yield 0.7 + 0.15 * (f3 / frames);
+        }
+        if (smooth) { // 3 x 3 box, to calm the speckle a noise background leaves behind
+          var tmp = new Uint8Array(bins), prev = new Uint8Array(bins), cur = new Uint8Array(bins);
+          for (var f4 = 0; f4 < frames; f4++) {
+            var o4 = f4 * bins; tmp.set(res.subarray(o4, o4 + bins));
+            for (var b9 = 0; b9 < bins; b9++) res[o4 + b9] = ((tmp[b9 > 0 ? b9 - 1 : 0] + tmp[b9] + tmp[b9 < bins - 1 ? b9 + 1 : bins - 1]) / 3 + 0.5) | 0;
+          }
+          prev.set(res.subarray(0, bins));
+          for (var f5 = 0; f5 < frames; f5++) {
+            var o5 = f5 * bins, on = f5 < frames - 1 ? o5 + bins : o5; cur.set(res.subarray(o5, o5 + bins));
+            for (var b10 = 0; b10 < bins; b10++) res[o5 + b10] = ((prev[b10] + cur[b10] + res[on + b10]) / 3 + 0.5) | 0;
+            prev.set(cur);
+          }
+        }
+        var hist2 = new Uint32Array(256); for (var i4 = 0; i4 < res.length; i4++) hist2[res[i4]]++;
+        return { levels: buildPyramid(res, frames, bins), rms: rms, hist: hist2, info: info };
       }
     </script>
 
@@ -343,20 +505,20 @@
 
       // ---------- DSP: worker with a main-thread fallback (blob workers are blocked on file:// in some browsers)
       const dspSrc = $('dsp-src').textContent;
-      const dsp = new Function(dspSrc + '\nreturn { analyze: analyze };')();
+      const dsp = new Function(dspSrc + '\nreturn { analyze: analyze, background: background, buildPyramid: buildPyramid };')();
       const workerSrc = dspSrc + '\nself.onmessage = function (e) {\n' +
-        '  var d = e.data, gen = analyze(d.samples, d.sr, d.fftSize, d.hop), r;\n' +
+        '  var d = e.data, r, gen = d.job === "background" ? background(d.raw, d.frames, d.bins, d.fd, d.mode, d.period, d.smooth) : analyze(d.samples, d.sr, d.fftSize, d.hop);\n' +
         '  while (!(r = gen.next()).done) postMessage({ type: "progress", p: r.value });\n' +
         '  var A = r.value, tr = A.levels.map(function (l) { return l.buffer; }); tr.push(A.rms.buffer, A.hist.buffer);\n' +
         '  postMessage({ type: "done", result: A }, tr);\n};';
       let workerURL = null;
       try { workerURL = URL.createObjectURL(new Blob([workerSrc], { type: 'text/javascript' })); } catch (e) { /* no blob URLs */ }
 
-      function runAnalysis(samples, sr, fftSize, hop, onProgress) {
+      function runJob(msg, onProgress) {
         return new Promise((resolve, reject) => {
           const fallback = async () => {
             try {
-              const gen = dsp.analyze(samples, sr, fftSize, hop);
+              const gen = msg.job === 'background' ? dsp.background(msg.raw, msg.frames, msg.bins, msg.fd, msg.mode, msg.period, msg.smooth) : dsp.analyze(msg.samples, msg.sr, msg.fftSize, msg.hop);
               let r;
               while (!(r = gen.next()).done) { onProgress(r.value); await new Promise((t) => setTimeout(t, 0)); }
               resolve(r.value);
@@ -371,7 +533,7 @@
             if (e.data.type === 'progress') onProgress(e.data.p);
             else if (e.data.type === 'done') { settled = true; w.terminate(); resolve(e.data.result); }
           };
-          w.postMessage({ samples, sr, fftSize, hop });
+          w.postMessage(msg);
         });
       }
 
@@ -406,7 +568,10 @@
         t0: 0, t1: 1, fMax: 4000, logF: false, floorDb: -90, ceilDb: -30, cmap: 'inferno',
         playhead: 0, playing: false, sel: null, markers: [], hover: null,
         gaps: [], gapThr: -60, gapMin: 8, envLo: -100, envHi: 0, follow: true,
+        bgMode: 'off', bgPeriod: null, bgSmooth: true, rel: false, // rel: levels are dB above the removed background
       };
+      const dbOf = (v) => (v / 255) * 120 - (S.rel ? 0 : 120);
+      const fmtDb = (x) => (S.rel ? '+' : '') + Math.round(x) + ' dB';
       let LUT = null;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const BG = '#0d1117';
@@ -449,7 +614,7 @@
         const f = CMAPS[S.cmap];
         LUT = new Uint32Array(256);
         for (let v = 0; v < 256; v++) {
-          const db = (v / 255) * 120 - 120;
+          const db = dbOf(v);
           const u = clamp((db - S.floorDb) / Math.max(1, S.ceilDb - S.floorDb), 0, 1);
           const [r, g, b] = f(u);
           LUT[v] = (255 << 24) | (Math.round(b) << 16) | (Math.round(g) << 8) | Math.round(r);
@@ -699,8 +864,8 @@
           const f = freqAtRow(S.hover.y, H);
           const fi = clamp(Math.floor((S.hover.t - A.fftSize / 2 / A.sr) / (A.hop / A.sr) + 0.5), 0, A.frames - 1);
           const bi = clamp(Math.floor(f / (A.sr / A.fftSize)), 0, A.bins - 1);
-          const db = (A.levels[0][fi * A.bins + bi] / 255) * 120 - 120;
-          s += ` · cursor ${fmtTime(S.hover.t)} · ${Math.round(f)} Hz · ${db.toFixed(0)} dB · loud ${A.rms[fi].toFixed(0)} dB`;
+          const db = dbOf(A.levels[0][fi * A.bins + bi]);
+          s += ` · cursor ${fmtTime(S.hover.t)} · ${Math.round(f)} Hz · ${fmtDb(db)}${S.rel ? ' over bg' : ''} · loud ${A.rms[fi].toFixed(0)} dB`;
         }
         r.textContent = s;
         $('selinfo').textContent = S.sel ? `selection ${(Math.abs(S.sel.b - S.sel.a)).toFixed(2)} s (space plays it)` : '';
@@ -855,14 +1020,18 @@
       }
       function autoContrast() {
         if (!S.A) return;
-        const lo = percentileFromHist(S.A.hist, 0.4), hi = percentileFromHist(S.A.hist, 0.997);
-        S.floorDb = Math.round((lo / 255) * 120 - 120);
-        S.ceilDb = Math.round(Math.max(S.floorDb + 15, (hi / 255) * 120 - 120));
+        const lo = percentileFromHist(S.A.hist, S.rel ? 0.55 : 0.4), hi = percentileFromHist(S.A.hist, 0.997);
+        S.floorDb = Math.round(dbOf(lo));
+        S.ceilDb = Math.round(Math.max(S.floorDb + 10, dbOf(hi)));
         $('floor').value = S.floorDb; $('ceil').value = S.ceilDb; syncLabels();
         buildLUT(); requestRender(R_SPEC | R_MINI);
       }
+      function setSliderScale() {
+        const fl = $('floor'), ce = $('ceil');
+        if (S.rel) { fl.min = 0; fl.max = 60; ce.min = 3; ce.max = 100; } else { fl.min = -120; fl.max = -10; ce.min = -110; ce.max = 0; }
+      }
       function syncLabels() {
-        $('floorv').textContent = `${S.floorDb} dB`; $('ceilv').textContent = `${S.ceilDb} dB`;
+        $('floorv').textContent = fmtDb(S.floorDb); $('ceilv').textContent = fmtDb(S.ceilDb);
         $('gainv').textContent = `+${$('gain').value} dB`; $('gapthrv').textContent = `${(+$('gapthr').value).toFixed(1)} dB`;
       }
 
@@ -925,27 +1094,64 @@
         S.A = null; requestRender(R_ALL);
         setStatus('Analysing…', 0);
         const t = performance.now();
-        const A = await runAnalysis(S.samples, S.sr, fftSize, hop, (p) => setStatus(`Analysing… ${Math.round(p * 100)}%`, p));
-        S.A = A;
-        // loudness range and default threshold from the RMS distribution
+        const A = await runJob({ job: 'analyze', samples: S.samples, sr: S.sr, fftSize, hop }, (p) => setStatus(`Analysing… ${Math.round(p * 100)}%`, p));
+        A.raw = A.levels[0]; A.rmsRaw = A.rms; A.histRaw = A.hist; A.bgInfo = null;
+        S.A = A; S.rel = false;
+        const mb = (A.levels.reduce((s, l) => s + l.length, 0) / 1048576).toFixed(0);
+        analysisStatus = `${A.frames.toLocaleString()} frames × ${A.bins} bins (${(A.hop / A.sr * 1000).toFixed(0)} ms steps, ${(A.sr / A.fftSize).toFixed(1)} Hz bins, ${mb} MB) in ${((performance.now() - t) / 1000).toFixed(1)} s`;
+        analysing = false;
+        if (S.bgMode !== 'off') await applyBackground(keepView);
+        else finishAnalysis({ keepView, reset: !keepView });
+      }
+      let analysisStatus = '';
+
+      // Common tail after the displayed levels change (fresh analysis or background toggle).
+      // reset: recompute contrast and the quiet threshold, since the dB scale may have changed.
+      function finishAnalysis({ keepView, reset }) {
+        const A = S.A;
         const sorted = Float32Array.from(A.rms).sort();
         const pct = (q) => sorted[clamp(Math.floor(q * (sorted.length - 1)), 0, sorted.length - 1)];
         S.envLo = Math.floor(pct(0.005)) - 2; S.envHi = Math.ceil(sorted[sorted.length - 1]) + 2;
         const thr = $('gapthr'); thr.min = S.envLo; thr.max = S.envHi;
         // default threshold: part-way from the quiet baseline (p20) up towards breath peaks (p95)
-        if (!keepView) { S.gapThr = Math.round((pct(0.2) + 0.4 * (pct(0.95) - pct(0.2))) * 2) / 2; thr.value = S.gapThr; }
+        if (reset) { S.gapThr = Math.round((pct(0.2) + 0.4 * (pct(0.95) - pct(0.2))) * 2) / 2; thr.value = S.gapThr; }
         else S.gapThr = clamp(S.gapThr, S.envLo, S.envHi);
         S.fMax = Math.min(+$('fmax').value, A.sr / 2);
-        if (!keepView) autoContrast(); else buildLUT();
+        setSliderScale();
+        if (reset) autoContrast(); else buildLUT();
         syncLabels();
         miniCache = null; specImg = null;
         for (const k in cv) fit(cv[k]);
         if (keepView) setView(keepView[0], keepView[1]); else setView(0, S.duration);
         findGaps();
         requestRender(R_ALL);
-        const mb = (A.levels.reduce((s, l) => s + l.length, 0) / 1048576).toFixed(0);
-        setStatus(`Ready · ${A.frames.toLocaleString()} frames × ${A.bins} bins (${(A.hop / A.sr * 1000).toFixed(0)} ms steps, ${(A.sr / A.fftSize).toFixed(1)} Hz bins, ${mb} MB) in ${((performance.now() - t) / 1000).toFixed(1)} s`);
-        analysing = false;
+        const bg = A.bgInfo;
+        $('bginfo').textContent = !bg ? '' : bg.mode === 'loop'
+          ? `loop ${bg.period.toFixed(2)} s, ${bg.reps} repeats${bg.strength != null ? `, match ${bg.strength.toFixed(2)}` : ''}${bg.note ? ` (${bg.note})` : ''}`
+          : `steady floor${bg.note ? ` (${bg.note})` : ''}`;
+        $('bginfo').title = $('bginfo').textContent;
+        setStatus(`Ready · ${analysisStatus}`);
+      }
+
+      let bgBusy = false, bgPending = false;
+      async function applyBackground(keepView) {
+        const A = S.A; if (!A) return;
+        if (bgBusy) { bgPending = true; return; }
+        keepView = keepView || [S.t0, S.t1];
+        if (S.bgMode === 'off') {
+          A.levels = dsp.buildPyramid(A.raw, A.frames, A.bins); A.rms = A.rmsRaw; A.hist = A.histRaw; A.bgInfo = null; S.rel = false;
+          finishAnalysis({ keepView, reset: true });
+          return;
+        }
+        bgBusy = true;
+        setStatus('Removing background…', 0);
+        try {
+          const R = await runJob({ job: 'background', raw: A.raw, frames: A.frames, bins: A.bins, fd: A.hop / A.sr, mode: S.bgMode, period: S.bgPeriod, smooth: S.bgSmooth },
+            (p) => setStatus(`Removing background… ${Math.round(p * 100)}%`, p));
+          if (S.A === A) { A.levels = R.levels; A.rms = R.rms; A.hist = R.hist; A.bgInfo = R.info; S.rel = true; finishAnalysis({ keepView, reset: true }); }
+        } catch (err) { console.error(err); setStatus('Background removal failed: ' + err.message); }
+        bgBusy = false;
+        if (bgPending) { bgPending = false; applyBackground(); }
       }
 
       // ---------- interaction
@@ -1047,6 +1253,9 @@
       $('auto').onclick = autoContrast;
       $('sr').onchange = () => { if (S.file) openFile(S.file); };
       $('fft').onchange = analyze; $('ov').onchange = analyze;
+      $('bgmode').onchange = () => { S.bgMode = $('bgmode').value; $('bgperiodwrap').style.display = S.bgMode === 'loop' ? '' : 'none'; applyBackground(); };
+      $('bgperiod').onchange = () => { const v = parseFloat($('bgperiod').value); S.bgPeriod = v > 0 ? v : null; if (S.bgMode === 'loop') applyBackground(); };
+      $('bgsmooth').onchange = () => { S.bgSmooth = $('bgsmooth').checked; if (S.bgMode !== 'off') applyBackground(); };
       $('gapthr').oninput = () => { S.gapThr = +$('gapthr').value; syncLabels(); findGaps(); requestRender(R_ENV | R_MINI | R_OVER); };
       $('gapmin').onchange = () => { S.gapMin = Math.max(0.5, +$('gapmin').value || 8); findGaps(); requestRender(R_ENV | R_MINI | R_OVER); };
 

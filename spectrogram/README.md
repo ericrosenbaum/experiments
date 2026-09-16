@@ -31,6 +31,17 @@ file works; no server or build step). Drop in the recording or use
   `space` plays just that selection.
 - **Markers.** Double-click or press `M` to drop a marker, label it in the
   side panel, export as CSV. Markers are remembered per file in the browser.
+- **Background removal.** A white-noise machine adds a constant wash, and
+  one that plays a recorded loop adds a pattern that repeats every few
+  seconds. *Background → remove repeating loop* finds the loop length from
+  the autocorrelation of the spectrogram texture, aligns every repetition,
+  builds a template from the 30th percentile across repetitions at each loop
+  position, and shows only what rises above it. Breaths are not locked to the
+  loop, so they stay; the machine goes. *Remove steady noise* does the same
+  with a per-band floor over 30 s blocks, for a fan or a machine without a
+  loop. The detected loop length is shown and can be overridden. Levels are
+  then in dB above the background, and the quiet-stretch finder works on the
+  residual loudness, which is what makes gaps visible through the noise.
 - **Display controls.** Colormap, frequency range (500 Hz to 8 kHz), linear
   or log frequency axis, dB floor/ceiling with an *auto* button.
 - **Analysis controls.** Sample rate (default 16 kHz, shows up to 8 kHz),
