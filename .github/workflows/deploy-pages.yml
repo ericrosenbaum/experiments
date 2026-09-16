@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/molecular-self-assembly-sim-l4vmkk
+      - claude/stoic-knuth-euajx1
       - main
   workflow_dispatch:
 

@@ -4,7 +4,9 @@ A single-file, browser-only spectrogram viewer for long overnight audio
 recordings, built for scanning a recording of a sleeping child for breathing
 pauses, snoring, and other irregularities.
 
-**Run it:** open `index.html` in Chrome, Edge or Safari (double-clicking the
+**Live: https://ericrosenbaum.github.io/experiments/spectrogram/**
+
+**Run it locally:** open `index.html` in Chrome, Edge or Safari (double-clicking the
 file works; no server or build step). Drop in the recording or use
 *Open audio…*. Anything the browser can decode works, including `.m4a`.
 
