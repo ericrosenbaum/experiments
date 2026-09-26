@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiments</title>
+<style>
+  :root { --bg: #fbfaf7; --ink: #1d1d1f; --soft: #5d5d63; --line: #e3e0d8; --accent: #1c4fd8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141518; --ink: #ececef; --soft: #9a9aa3; --line: #2b2c31; --accent: #8fb0ff; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 56px 16px; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { color: var(--soft); margin: 0 0 32px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { border-top: 1px solid var(--line); }
+  li:last-child { border-bottom: 1px solid var(--line); }
+  a { display: block; padding: 18px 0; color: inherit; text-decoration: none; }
+  a:hover .name, a:focus-visible .name { color: var(--accent); }
+  .name { font-weight: 600; font-size: 19px; }
+  .desc { color: var(--soft); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Experiments</h1>
+  <p class="lede">Small things built to try out an idea. Each one lives on its own branch of
+    <a href="https://github.com/ericrosenbaum/experiments" style="display:inline;padding:0;color:var(--accent)">ericrosenbaum/experiments</a>.</p>
+  <ul>
+    <li><a href="assemble/">
+      <div class="name">assemble</div>
+      <div class="desc">2D molecular self-assembly: charged polygons in a heat bath form rings, chains and lattices.</div>
+    </a></li>
+    <li><a href="spectrogram/">
+      <div class="name">sleep spectrogram</div>
+      <div class="desc">A browser spectrogram viewer for scanning long overnight audio recordings.</div>
+    </a></li>
+    <li><a href="oh-my-eyes/">
+      <div class="name">Oh My Eyes</div>
+      <div class="desc">A party game: draw a picture card, roll letter dice, describe it before the timer runs out.</div>
+    </a></li>
+  </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,65 @@
+name: Deploy landing page
+
+# Publishes site/ (the index of experiments) to the root of gh-pages.
+# Experiment folders (those carrying a .experiment marker) are left alone;
+# anything else at the root is replaced.
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', '.github/workflows/deploy-site.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-landing
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Publish to gh-pages root
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$remote" gh-pages >/dev/null; then
+            git clone -q --depth 1 --branch gh-pages "$remote" site
+          else
+            git init -q -b gh-pages site
+            git -C site remote add origin "$remote"
+          fi
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          publish() {
+            for entry in * .[!.]*; do
+              [ -e "$entry" ] || continue
+              [ "$entry" = .git ] && continue
+              [ -d "$entry" ] && [ -f "$entry/.experiment" ] && continue
+              rm -rf "$entry"
+            done
+            cp -a ../src/site/. .
+            touch .nojekyll
+            git add -A
+          }
+          publish
+          if git diff --cached --quiet; then echo "No changes to publish"; exit 0; fi
+          git commit -q -m "Deploy landing page from ${GITHUB_SHA:0:7}"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:gh-pages && exit 0
+            sleep $((i * 3))
+            git fetch -q --depth 1 origin gh-pages
+            git reset -q --hard origin/gh-pages
+            publish
+            git diff --cached --quiet && exit 0
+            git commit -q -m "Deploy landing page from ${GITHUB_SHA:0:7}"
+          done
+          echo "Could not push to gh-pages"; exit 1

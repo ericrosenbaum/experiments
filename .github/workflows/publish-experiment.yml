@@ -1,0 +1,91 @@
+name: Publish experiment
+
+# Reusable workflow: each experiment branch calls this to publish its build
+# into its own folder of the gh-pages branch, e.g. gh-pages/assemble/ ->
+# https://ericrosenbaum.github.io/experiments/assemble/
+#
+# Only that folder is replaced, so experiments deploy independently. The
+# folder gets a .experiment marker, which tells the landing-page deploy on
+# main to keep it (everything unmarked at the gh-pages root belongs to main).
+#
+# Publishing is a plain push to gh-pages, which is the Pages source. The
+# artifact-based deploy (actions/deploy-pages) is not usable here: creating a
+# Pages site needs administration:write, which GITHUB_TOKEN can never hold.
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Folder name under the site root (the URL path)
+        required: true
+        type: string
+      build:
+        description: Build command; empty means publish the files as they are
+        required: false
+        type: string
+        default: ''
+      dist:
+        description: Directory to publish, relative to the repo root
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - uses: actions/setup-node@v4
+        if: inputs.build != ''
+        with:
+          node-version: 22 # Vite 8 requires Node >= 20.19
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Build
+        if: inputs.build != ''
+        working-directory: src
+        run: |
+          npm ci
+          ${{ inputs.build }}
+
+      - name: Publish to gh-pages/${{ inputs.name }}/
+        env:
+          NAME: ${{ inputs.name }}
+          DIST: ${{ inputs.dist }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          case "$NAME" in ''|*/*|.*) echo "bad experiment name: $NAME"; exit 1;; esac
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$remote" gh-pages >/dev/null; then
+            git clone -q --depth 1 --branch gh-pages "$remote" site
+          else
+            git init -q -b gh-pages site
+            git -C site remote add origin "$remote"
+          fi
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf "$NAME"
+          mkdir -p "$NAME"
+          cp -a "../src/$DIST/." "$NAME/"
+          rm -rf "$NAME/.git" "$NAME/.github" "$NAME/node_modules"
+          echo "${GITHUB_REF_NAME}@${GITHUB_SHA}" > "$NAME/.experiment"
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then echo "No changes to publish"; exit 0; fi
+          git commit -q -m "Deploy $NAME from ${GITHUB_REF_NAME}@${GITHUB_SHA:0:7}"
+          # Other experiments may publish at the same time; they touch other
+          # folders, so rebasing onto theirs never conflicts.
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:gh-pages && exit 0
+            sleep $((i * 3))
+            git pull -q --rebase --depth 50 origin gh-pages
+          done
+          echo "Could not push to gh-pages"; exit 1
