@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eric Rosenbaum</title>
-<meta name="description" content="Eric Rosenbaum invents playful tools for making music, art and code. Director of Scratch Lab at the Scratch Foundation and co-inventor of Makey Makey.">
+<meta name="description" content="Eric Rosenbaum designs for creative play. Director of Scratch Lab at the Scratch Foundation and co-inventor of Makey Makey.">
 <meta property="og:title" content="Eric Rosenbaum">
-<meta property="og:description" content="Playful tools for making music, art and code.">
+<meta property="og:description" content="Designing for creative play.">
+<meta property="og:image" content="images/portrait.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -19,6 +20,7 @@
     --faint: #8c877d;
     --line: #e4dfd4;
     --accent: #d9482b;
+    --accent-text: #b73a20;
     --chip: #ece7dc;
     --shadow: 0 1px 2px rgba(40, 30, 10, .06), 0 8px 24px rgba(40, 30, 10, .06);
     --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
@@ -28,14 +30,14 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #151412; --surface: #1e1c19; --ink: #f1ede5; --soft: #b3ada2; --faint: #857f74;
-      --line: #2f2c27; --accent: #ff7a5c; --chip: #2a2723;
+      --line: #2f2c27; --accent: #ff7a5c; --accent-text: #ff8e74; --chip: #2a2723;
       --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #151412; --surface: #1e1c19; --ink: #f1ede5; --soft: #b3ada2; --faint: #857f74;
-    --line: #2f2c27; --accent: #ff7a5c; --chip: #2a2723;
+    --line: #2f2c27; --accent: #ff7a5c; --accent-text: #ff8e74; --chip: #2a2723;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
     color-scheme: dark;
   }
@@ -49,6 +51,7 @@
     -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
+  img { display: block; max-width: 100%; }
   :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
   @media (max-width: 520px) { .wrap { padding: 0 16px; } }
@@ -65,14 +68,15 @@
   .top.scrolled { border-bottom-color: var(--line); }
   .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
   .mark { font: 700 18px/1 var(--display); text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
-  .mark span { color: var(--accent); }
+  .mark .dot { color: var(--accent); }
   nav ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
   nav a {
     display: block; padding: 6px 12px; border-radius: 999px;
     text-decoration: none; font-size: 15px; color: var(--soft);
   }
   nav a:hover { color: var(--ink); background: var(--chip); }
-  @media (max-width: 420px) { nav ul { gap: 0; } nav a { padding: 6px 7px; font-size: 14px; } .mark { font-size: 16px; } }
+  @media (max-width: 480px) { nav ul { gap: 0; } nav a { padding: 6px 6px; font-size: 14px; } .mark { font-size: 16px; } }
+  @media (max-width: 360px) { .mark .last { display: none; } }
 
   /* ---------- hero ---------- */
   .hero { padding: 72px 0 56px; }
@@ -90,7 +94,7 @@
   .hero h1 .l.on { transform: translateY(-.12em); }
   @media (prefers-reduced-motion: reduce) { .hero h1 .l.on { transform: none; } }
   .lede {
-    font: 500 clamp(22px, 3vw, 30px)/1.3 var(--display);
+    font: 500 clamp(24px, 3.2vw, 34px)/1.25 var(--display);
     letter-spacing: -.01em; max-width: 22em; margin: 0 0 18px;
   }
   .lede em { font-style: normal; color: var(--accent); }
@@ -103,6 +107,7 @@
   section { padding: 56px 0; }
   .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
   h2 { font: 700 34px/1.1 var(--display); letter-spacing: -.02em; margin: 0; }
+  h3.sub-h { font: 700 22px/1.2 var(--display); letter-spacing: -.01em; margin: 0 0 16px; }
 
   /* ---------- filters ---------- */
   .filters { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -117,16 +122,10 @@
   /* ---------- project grid ---------- */
   .grid {
     display: grid; gap: 20px; list-style: none; margin: 0; padding: 0;
-    grid-auto-flow: row dense;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    grid-auto-flow: row dense;
   }
-  @media (min-width: 760px) {
-    .grid li.feature { grid-column: span 2; }
-    .grid li.wide { grid-column: 1 / -1; }
-    .grid li.wide .card { flex-direction: row; }
-    .grid li.wide .art { aspect-ratio: auto; width: 34%; min-height: 150px; }
-    .grid li.wide .body { justify-content: center; }
-  }
+  .grid li[hidden] { display: none; }
   .card {
     display: flex; flex-direction: column; height: 100%;
     background: var(--surface); border-radius: 18px; overflow: hidden;
@@ -134,66 +133,97 @@
     transition: transform .25s ease, box-shadow .25s ease;
   }
   .card:hover { transform: translateY(-3px); box-shadow: var(--shadow), 0 14px 32px rgba(40, 30, 10, .08); }
-  @media (prefers-reduced-motion: reduce) { .card, .card:hover { transition: none; transform: none; } }
-  .art {
-    position: relative; aspect-ratio: 16 / 10;
-    background: var(--tint); color: var(--hue);
-    display: grid; place-items: center; overflow: hidden;
+  .art { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--chip); }
+  .art img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+  .card:hover .art img { transform: scale(1.04); }
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card:hover, .card:hover .art img { transition: none; transform: none; }
   }
-  li.feature .art { aspect-ratio: 16 / 8.6; }
-  @media (max-width: 759px) { li.feature .art { aspect-ratio: 16 / 10; } }
-  .art svg { width: 100%; height: 100%; display: block; transition: transform .6s ease; }
-  .card:hover .art svg { transform: scale(1.04); }
-  @media (prefers-reduced-motion: reduce) { .card:hover .art svg { transform: none; } }
-  .art img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .meta { font-size: 13px; color: var(--faint); letter-spacing: .02em; display: flex; gap: 10px; flex-wrap: wrap; }
-  .meta .tag { color: var(--hue-text); font-weight: 600; }
+  .meta .tag { color: var(--accent-text); font-weight: 600; }
   .card h3 { font: 700 23px/1.15 var(--display); letter-spacing: -.015em; margin: 0; }
   .card h3 .arrow { display: inline-block; color: var(--faint); transition: transform .2s, color .2s; font-weight: 500; }
-  .card:hover h3 .arrow { transform: translate(3px, -3px); color: var(--hue-text); }
+  .card:hover h3 .arrow { transform: translate(3px, -3px); color: var(--accent); }
   .card p { margin: 0; color: var(--soft); font-size: 16px; line-height: 1.5; }
   .card .with { font-size: 14px; color: var(--faint); margin-top: auto; padding-top: 6px; }
-  .grid li[hidden] { display: none; }
+
+  @media (min-width: 760px) {
+    .grid li.feature { grid-column: span 2; }
+    .grid li.wide { grid-column: 1 / -1; }
+    .grid li.feature .card, .grid li.wide .card { flex-direction: row; }
+    .grid li.feature .art { aspect-ratio: auto; width: 50%; min-height: 320px; }
+    .grid li.wide .art { aspect-ratio: auto; width: 34%; min-height: 180px; }
+    .grid li.feature .body, .grid li.wide .body { justify-content: center; padding: 28px; }
+    .grid li.feature h3 { font-size: 30px; }
+    .grid li.feature p { font-size: 17px; }
+    .grid li.feature .with { margin-top: 4px; }
+  }
+
+  /* ---------- talks ---------- */
+  .talks { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); list-style: none; margin: 0; padding: 0; }
+  .talk { display: block; text-decoration: none; }
+  .talk .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; }
+  .talk .thumb img { width: 100%; height: 100%; object-fit: cover; opacity: .92; transition: opacity .2s; }
+  .talk:hover .thumb img { opacity: 1; }
+  .talk .play {
+    position: absolute; left: 12px; bottom: 12px; width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255, 255, 255, .92); display: grid; place-items: center; color: #1b1a17;
+    transition: transform .2s;
+  }
+  .talk:hover .play { transform: scale(1.1); }
+  .talk .kind { display: block; margin-top: 12px; font-size: 13px; color: var(--accent-text); font-weight: 600; letter-spacing: .02em; }
+  .talk .name { display: block; font: 600 18px/1.3 var(--display); margin-top: 2px; }
+  .talk:hover .name { color: var(--accent); }
 
   /* ---------- about ---------- */
-  .about { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; align-items: start; }
-  @media (max-width: 820px) { .about { grid-template-columns: 1fr; gap: 24px; } }
-  .about .big { font: 500 26px/1.35 var(--display); letter-spacing: -.01em; margin: 0; }
+  .about { display: grid; grid-template-columns: 1fr 1.25fr; gap: 48px; align-items: start; }
+  @media (max-width: 820px) { .about { grid-template-columns: 1fr; gap: 28px; } }
+  .about figure { margin: 20px 0 0; }
+  .about figure img { width: 100%; border-radius: 18px; aspect-ratio: 4 / 3; object-fit: cover; object-position: 35% 30%; }
+  .about .big { font: 500 28px/1.3 var(--display); letter-spacing: -.01em; margin: 0 0 20px; }
+  .about .big em { font-style: normal; color: var(--accent); }
   .about .text p { margin: 0 0 16px; color: var(--soft); }
+  .about .text p.first { color: var(--ink); font-size: 19px; }
   .facts { list-style: none; margin: 24px 0 0; padding: 0; border-top: 1px solid var(--line); }
   .facts li { display: grid; grid-template-columns: 5.5em 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
-  .facts .k { color: var(--faint); font-variant-numeric: tabular-nums; }
+  .facts .k { color: var(--faint); }
 
   /* ---------- writing ---------- */
   .pubs { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  .pubs li { display: grid; grid-template-columns: 4em 1fr; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--line); }
-  @media (max-width: 520px) { .pubs li { grid-template-columns: 1fr; gap: 4px; } }
+  .pubs li { display: grid; grid-template-columns: 4em 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  @media (max-width: 520px) { .pubs li { grid-template-columns: 1fr; gap: 2px; } }
   .pubs .yr { font: 700 18px/1.4 var(--display); color: var(--faint); font-variant-numeric: tabular-nums; }
   .pubs .t { font: 600 19px/1.35 var(--display); margin: 0 0 4px; }
-  .pubs .t a { text-decoration: none; }
-  .pubs .t a:hover { color: var(--accent); }
   .pubs .v { margin: 0; color: var(--soft); font-size: 15px; }
-  .more { margin-top: 20px; font-size: 16px; }
-  .more a { color: var(--accent); text-underline-offset: 3px; }
+  .pubs .links { display: inline-flex; gap: 10px; margin-left: 6px; }
+  .pubs .links a { color: var(--accent-text); font-size: 14px; font-weight: 600; text-underline-offset: 3px; }
+  .pubs li.more-pub { display: none; }
+  .pubs.all li.more-pub { display: grid; }
+  .toggle {
+    margin-top: 20px; font: 600 15px/1 var(--body); color: var(--ink);
+    background: var(--chip); border: 0; border-radius: 999px; padding: 11px 18px; cursor: pointer;
+  }
+  .toggle:hover { background: var(--line); }
 
   /* ---------- footer ---------- */
   footer { padding: 56px 0 72px; border-top: 1px solid var(--line); margin-top: 24px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: baseline; }
   footer h2 { font-size: 26px; }
-  .links { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; margin: 0; padding: 0; }
-  .links a { color: var(--soft); text-decoration: none; }
-  .links a:hover { color: var(--accent); }
+  .social { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; margin: 0; padding: 0; }
+  .social a { color: var(--soft); text-decoration: none; }
+  .social a:hover { color: var(--accent); }
 </style>
 </head>
 <body>
 
 <header class="top" id="top">
   <div class="wrap">
-    <a class="mark" href="#">Eric Rosenbaum<span>.</span></a>
+    <a class="mark" href="#">Eric <span class="last">Rosenbaum</span><span class="dot">.</span></a>
     <nav aria-label="Sections">
       <ul>
         <li><a href="#work">Work</a></li>
+        <li><a href="#talks">Talks</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#writing">Writing</a></li>
       </ul>
@@ -204,10 +234,10 @@
 <main>
   <div class="wrap hero">
     <h1 id="name" aria-label="Eric Rosenbaum">Eric Rosenbaum</h1>
-    <p class="lede">I invent <em>playful tools</em> for making music, art and code.</p>
-    <p class="sub">Director of <a href="https://lab.scratch.mit.edu/">Scratch Lab</a> at the Scratch Foundation,
-      co-inventor of <a href="https://makeymakey.com/">Makey Makey</a>, and PhD from the MIT Media Lab's
-      Lifelong Kindergarten group.</p>
+    <p class="lede">Designing for <em>creative play</em>.</p>
+    <p class="sub">My tools are all about bringing your imagination to life by helping you make things you care about.
+      I'm the Director of <a href="https://lab.scratch.mit.edu/">Scratch Lab</a> at the Scratch Foundation and the
+      co-inventor of <a href="https://makeymakey.com/">Makey Makey</a>.</p>
     <p class="hint" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 12.5V3.5l7-1.5v9"/><circle cx="4.5" cy="12.5" r="1.8"/><circle cx="11.5" cy="11" r="1.8"/></svg>
       Tap the letters of my name.
@@ -223,10 +253,30 @@
           <button type="button" aria-pressed="false" data-f="music">Music</button>
           <button type="button" aria-pressed="false" data-f="making">Making</button>
           <button type="button" aria-pressed="false" data-f="coding">Coding</button>
-          <button type="button" aria-pressed="false" data-f="light">Light &amp; paint</button>
+          <button type="button" aria-pressed="false" data-f="art">Art</button>
         </div>
       </div>
       <ul class="grid" id="grid"></ul>
+    </div>
+  </section>
+
+  <section id="talks" aria-labelledby="talks-h">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="talks-h">Talks &amp; workshops</h2></div>
+      <ul class="talks">
+        <li><a class="talk" href="https://www.youtube.com/watch?v=JnqIrYari28">
+          <span class="thumb"><img src="images/talk-tedx-hgse.jpg" alt="" loading="lazy"><span class="play" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></span></span>
+          <span class="kind">Talk</span><span class="name">TEDxHGSE: New Pathways in Musical Creation</span></a></li>
+        <li><a class="talk" href="https://www.youtube.com/watch?v=KKDOVb4QWng">
+          <span class="thumb"><img src="images/talk-tedx-pioneer-valley.jpg" alt="" loading="lazy"><span class="play" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></span></span>
+          <span class="kind">Talk</span><span class="name">TEDxPioneerValley: Finding a Voice in Music</span></a></li>
+        <li><a class="talk" href="https://www.youtube.com/watch?v=NSgw5PaEGRU">
+          <span class="thumb"><img src="images/workshop-arnhem.jpg" alt="" loading="lazy"><span class="play" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></span></span>
+          <span class="kind">Workshop</span><span class="name">Music as Material (Arnhem, Netherlands)</span></a></li>
+        <li><a class="talk" href="https://www.youtube.com/watch?v=fO6C-kvOsKY">
+          <span class="thumb"><img src="images/workshop-istanbul.jpg" alt="" loading="lazy"><span class="play" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></span></span>
+          <span class="kind">Workshop</span><span class="name">Cardboard Curiosities (Istanbul, Turkey)</span></a></li>
+      </ul>
     </div>
   </section>
 
@@ -234,21 +284,28 @@
     <div class="wrap about">
       <div>
         <h2 id="about-h">About</h2>
-        <p class="big" style="margin-top:20px">I design things that invite people to tinker: to mess around, try ideas and surprise themselves.</p>
+        <figure>
+          <img src="images/portrait.jpg" alt="Eric playing an instrument made from a fork, a spoon and a spring strapped to his arm" loading="lazy">
+        </figure>
       </div>
       <div class="text">
-        <p>As Director of Scratch Lab at the Scratch Foundation, I explore new creative possibilities for the future
-          of Scratch, the world's largest online coding community for kids.</p>
-        <p>I co-invented the Makey Makey invention kit with Jay Silver: a little circuit board that lets you turn
-          anything into a computer key. I also created Beetle Blocks, Singing Fingers, Glowdoodle and other playful
-          tools, and have worked with JoyLabz, Google Creative Lab and the NYU Music Experience Design Lab.</p>
-        <p>In 2015 I completed my PhD at the MIT Media Lab in the Lifelong Kindergarten group, with a dissertation
-          called <a href="https://www.ericrosenbaum.com/s/rosenbaum-musical-tinkering-dissertation.pdf"><cite>Explorations in Musical Tinkering</cite></a>.</p>
+        <p class="big">I design for <em>creative play!</em></p>
+        <p class="first">My tools are all about bringing your imagination to life by helping you make things you care about.
+          I love to see how using my tools can transform people's sense of what they can make and who they can become.</p>
+        <p>I am the Director of Scratch Lab at the Scratch Foundation, inventing new creative possibilities for the world's
+          largest online coding community for kids. I'm the co-inventor of the Makey Makey invention kit. I've also worked
+          with Joylabz, Google Creative Lab and NYU Music Experience Design Lab.</p>
+        <p>In 2015, I completed my PhD at MIT Media Lab in the Lifelong Kindergarten group with a dissertation entitled
+          <a href="https://www.ericrosenbaum.com/s/rosenbaum-musical-tinkering-dissertation.pdf">"Explorations in Musical Tinkering."</a>
+          Before my time at the Media Lab, I worked at MIT Teacher Education Program, creating learning games; Concord
+          Consortium, creating molecular dynamics simulations for kids; and Six Red Marbles, creating animations for
+          music education.</p>
+        <p>I enjoy playing the trombone with the Opposite People.</p>
         <ul class="facts">
           <li><span class="k">Now</span><span>Director of Scratch Lab, Scratch Foundation</span></li>
           <li><span class="k">PhD</span><span>MIT Media Lab, Lifelong Kindergarten</span></li>
-          <li><span class="k">EdM</span><span>Technology in Education, Harvard Graduate School of Education</span></li>
-          <li><span class="k">AB</span><span>Psychology and Mind/Brain/Behavior, Harvard College</span></li>
+          <li><span class="k">Master's</span><span>Technology in Education, Harvard Graduate School of Education</span></li>
+          <li><span class="k">Bachelor's</span><span>Psychology and Mind/Brain/Behavior, Harvard College</span></li>
         </ul>
       </div>
     </div>
@@ -257,58 +314,23 @@
   <section id="writing" aria-labelledby="writing-h">
     <div class="wrap">
       <div class="sec-head"><h2 id="writing-h">Writing</h2></div>
-      <ol class="pubs" reversed>
-        <li>
-          <span class="yr">2015</span>
-          <div>
-            <p class="t"><a href="https://www.ericrosenbaum.com/s/rosenbaum-musical-tinkering-dissertation.pdf">Explorations in Musical Tinkering</a></p>
-            <p class="v">PhD dissertation, MIT Media Lab. The design and study of two tools for musical tinkering, MelodyMorph and Makey Makey.</p>
-          </div>
-        </li>
-        <li>
-          <span class="yr">2013</span>
-          <div>
-            <p class="t">Designing for Tinkerability</p>
-            <p class="v">Resnick, M. &amp; Rosenbaum, E. In M. Honey &amp; D. E. Kanter (Eds.), <cite>Design, Make, Play</cite>, pp. 163–181. Routledge.</p>
-          </div>
-        </li>
-        <li>
-          <span class="yr">2012</span>
-          <div>
-            <p class="t">Makey Makey: Improvising Tangible and Nature-Based User Interfaces</p>
-            <p class="v">Silver, J. &amp; Rosenbaum, E. International Conference on Tangible, Embedded and Embodied Interaction (TEI).</p>
-          </div>
-        </li>
-        <li>
-          <span class="yr">2012</span>
-          <div>
-            <p class="t">Exploring Algorithmic Geometry with Beetle Blocks: A Graphical Programming Language for Generating 3D Forms</p>
-            <p class="v">Koschitz, D. &amp; Rosenbaum, E. International Conference on Geometry and Graphics.</p>
-          </div>
-        </li>
-        <li>
-          <span class="yr">2011</span>
-          <div>
-            <p class="t">MelodyMorph: A Reconfigurable Musical Instrument</p>
-            <p class="v">Rosenbaum, E. International Conference on New Interfaces for Musical Expression (NIME).</p>
-          </div>
-        </li>
-      </ol>
-      <p class="more">Talks, interviews and press are on the <a href="https://www.ericrosenbaum.com/media">media page</a>.
-        Essays are on <a href="https://medium.com/@eric.rosenbaum">Medium</a>.</p>
+      <ol class="pubs" id="pubs" reversed></ol>
+      <button type="button" class="toggle" id="pubs-toggle" aria-expanded="false" aria-controls="pubs"></button>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <h2>Say hello</h2>
-    <ul class="links">
+    <h2>Elsewhere</h2>
+    <ul class="social">
       <li><a href="https://github.com/ericrosenbaum">GitHub</a></li>
-      <li><a href="https://www.youtube.com/c/ericrosenbaum">YouTube</a></li>
+      <li><a href="https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg">YouTube</a></li>
       <li><a href="https://medium.com/@eric.rosenbaum">Medium</a></li>
+      <li><a href="https://soundcloud.com/eric-rosenbaum">SoundCloud</a></li>
       <li><a href="https://www.flickr.com/people/ericrosenbaum/">Flickr</a></li>
-      <li><a href="https://x.com/ericrosenbizzle">X</a></li>
+      <li><a href="https://www.linkedin.com/in/eric-rosenbaum-107120/">LinkedIn</a></li>
+      <li><a href="https://www.facebook.com/10103179909078511">Facebook</a></li>
     </ul>
   </div>
 </footer>
@@ -317,140 +339,90 @@
 (() => {
   const SITE = 'https://www.ericrosenbaum.com/';
 
-  // Each project: add `img: 'images/foo.jpg'` to show a photo instead of the illustration.
+  // Text is from each project's page on ericrosenbaum.com, trimmed to a sentence or two.
   const PROJECTS = [
-    { name: 'Scratch Lab', url: 'https://lab.scratch.mit.edu/', tags: ['coding'], year: 'Now',
-      org: 'Scratch Foundation', feature: true, art: 'blocks', hue: 38,
-      desc: 'Experimental features that explore new creative possibilities for the future of Scratch.' },
-    { name: 'Makey Makey', url: SITE + 'makeymakey', tags: ['making', 'music'], year: '2012',
-      with: 'with Jay Silver', feature: true, art: 'makey', hue: 8,
-      desc: 'An invention kit for everyone: a little circuit board that lets you turn anything into a computer key.' },
-    { name: 'Chrome Music Lab', url: SITE + 'chrome-music-lab', tags: ['music', 'coding'], year: '2015–16',
-      with: 'with Google Creative Lab', art: 'bars', hue: 205,
-      desc: 'Design and prototyping of web-based experiments that let anyone play with music and sound.' },
-    { name: 'Musical Paintings', url: SITE + 'musical-paintings', tags: ['music', 'light'], art: 'dots', hue: 280,
-      desc: 'Playable graphical scores you touch to play melodies and harmonies, mixing visual and musical composition.' },
-    { name: 'MK-1 Sampler', url: SITE + 'mk1-sampler', tags: ['music', 'making'], art: 'keys', hue: 150,
-      desc: 'A sampling synth for Makey Makey, inspired by the Casio SK-1 and built with p5.js.' },
-    { name: 'Echolaliator', url: SITE + 'echolaliator', tags: ['music'], art: 'echo', hue: 185,
-      desc: 'An improvisation system that listens as you play, then answers with a related phrase from earlier.' },
-    { name: 'Singing Fingers', url: SITE + 'singing-fingers', tags: ['music', 'light'], art: 'stroke', hue: 330,
-      desc: 'Fingerpaint with sound. Touch the screen while you make a sound, then touch the paint to hear it again.' },
-    { name: 'MelodyMorph', url: SITE + 'melodymorph', tags: ['music'], year: '2011', art: 'morph', hue: 255,
-      desc: 'An iPad app for building instruments: drag notes onto the screen, color for pitch and shape for timbre.' },
-    { name: 'Beetle Blocks', url: SITE + 'beetle-blocks', tags: ['coding', 'making'], year: '2012',
-      with: 'with Duks Koschitz', art: 'cubes', hue: 95,
-      desc: 'A blocks-based programming environment for 3D design and fabrication.' },
-    { name: 'Glowdoodle', url: SITE + 'glowdoodle', tags: ['light'], year: '2008', art: 'glow', hue: 50,
-      desc: 'Paint with light using your webcam, and watch your painting appear in real time.' },
-    { name: 'Earlier work', url: SITE + 'earlier-work', tags: ['music', 'making', 'coding', 'light'], art: 'grid', hue: 20, wide: true,
-      desc: 'More experiments, prototypes and projects from along the way.' },
+    { name: 'Scratch Lab', slug: 'scratch-lab', tags: ['coding'], year: 'Now', org: 'Scratch Foundation', feature: true,
+      desc: 'I direct Scratch Lab, where the Scratch team explores new creative possibilities and shares them with the world, like Face Sensing, Animated Text and Video Sprites.' },
+    { name: 'Makey Makey', slug: 'makeymakey', tags: ['making', 'music'], year: '2012', with: 'with Jay Silver', feature: true,
+      desc: "An invention kit for everyone: a little circuit board that lets you turn anything into a computer key. The world is your construction kit." },
+    { name: 'Duet Instrument', slug: 'duet-instrument', tags: ['music', 'making'],
+      desc: "A musical instrument built for two. The sides are mirrored, so if we make the same movement, we play the same melody." },
+    { name: 'Coloring Cam', slug: 'coloring-cam', tags: ['art'],
+      desc: "An iOS app that lets you color with your world: a coloring book that you color in with the camera." },
+    { name: 'Giorgio Cam', slug: 'giorgio-cam', tags: ['music', 'art'], year: '2016', with: 'with Google Creative Lab',
+      desc: 'Take pictures of things around you, and it makes up song lyrics about them, mixed with music by the legendary Giorgio Moroder.' },
+    { name: 'Chrome Music Lab', slug: 'chrome-music-lab', tags: ['music', 'coding'], year: '2015–16', with: 'with Google Creative Lab',
+      desc: 'Web-based experiments that let you play with music and sound: a drum machine, a live spectrogram, a melody generator and more.' },
+    { name: 'Beetle Blocks', slug: 'beetle-blocks', tags: ['coding', 'making'], year: '2012',
+      desc: 'A graphical blocks-based programming environment for 3D design and fabrication.' },
+    { name: 'MK-1 Sampler', slug: 'mk1-sampler', tags: ['music', 'making'],
+      desc: 'A sampling synthesizer for the Makey Makey, inspired by the classic Casio SK-1 sampling keyboard and built using p5.js.' },
+    { name: 'MelodyMorph', slug: 'melodymorph', tags: ['music'], year: '2011',
+      desc: 'An iPad app for making musical instruments and compositions. Drag notes onto the screen, with color for pitch and shape for timbre, then tap them to play.' },
+    { name: 'Musical Paintings', slug: 'musical-paintings', tags: ['music', 'art'], with: '"Simultaneous Composition #1" with Sophia Brueckner',
+      desc: 'Playable graphical scores that you touch to play melodies and harmonies, combining visual composition, musical composition and gestural interaction.' },
+    { name: 'Singing Fingers', slug: 'singing-fingers', tags: ['music', 'art'], year: '2010', with: 'with Jay Silver',
+      desc: 'Fingerpaint with sound. Touch the screen while you make a sound, and colorful paint appears. Touch the paint to play the sound again!' },
+    { name: 'Musical Gears', slug: 'musical-gears', tags: ['music', 'making'], year: '2013', with: 'with Jonah Elgart',
+      desc: 'A prototype construction kit of gears, pins and Lego levers that smack percussion instruments in complex rhythmic patterns.' },
+    { name: 'Echolaliator', slug: 'echolaliator', tags: ['music'],
+      desc: 'An experimental improvisation system. It listens as you play, and when you pause, it answers with one of your earlier phrases that it thinks is related.' },
+    { name: 'Glowdoodle', slug: 'glowdoodle', tags: ['art'], year: '2008',
+      desc: 'An accessible way to paint with light. It uses your webcam, so you see your painting appear in real time.' },
+    { name: 'Mmmtsss', slug: 'mmmtsss', tags: ['music'], year: '2008',
+      desc: "Free software for playful looping. To be honest, it's an excuse to make mouth noises, and have fun and make music together." },
+    { name: 'Scratch for Second Life', slug: 'scratch-4-second-life', tags: ['coding'], year: '2008',
+      desc: 'Makes it easier to program behaviors and interactivity in the virtual world of Second Life, based on an early version of Scratch.' },
+    { name: 'Earlier work', slug: 'earlier-work', tags: ['music', 'making', 'coding', 'art'], wide: true,
+      desc: 'Scratch extensions for Spotify and sound synthesis, the Scratch Jazz project with the Thelonious Monk Institute of Jazz, and installations like Stillness Clock, Motion Clock and (now (now (now))).' },
   ];
 
-  const TAG_NAMES = { music: 'Music', making: 'Making', coding: 'Coding', light: 'Light & paint' };
+  const PUBS = [
+    { y: 2017, t: 'Musical Making', v: 'Rosenbaum, E. In A. King, E. Himonides & S. A. Ruthmann (Eds.), The Routledge Companion to Music, Technology, and Education, pp. 249–261. Routledge, London.',
+      links: [['Link', 'https://www.routledge.com/The-Routledge-Companion-to-Music-Technology-and-Education/King-Himonides-Ruthmann/p/book/9780367869618']] },
+    { y: 2015, t: 'Explorations in Musical Tinkering', v: 'Rosenbaum, E. PhD dissertation, MIT Media Lab.', links: [['PDF', '/s/rosenbaum-musical-tinkering-dissertation.pdf']] },
+    { y: 2013, t: 'Designing for Tinkerability', v: 'Resnick, M. & Rosenbaum, E. In M. Honey & D. E. Hunter (Eds.), Design, Make, Play, pp. 163–181. Routledge, London.', links: [['PDF', '/s/designing-for-tinkerability-76l2.pdf']] },
+    { y: 2013, t: 'The Banana Interface', v: 'Blanton, A. & Rosenbaum, E. Make Magazine, Volume 33.',
+      links: [['Magazine', 'http://www.make-digital.com/make/vol33/?pg=56#pg56'], ['Web', 'http://makezine.com/projects/make-33/the-banana-interface/']] },
+    { y: 2012, t: 'Exploring algorithmic geometry with "beetle blocks": a graphical programming language for generating 3D forms', v: 'Koschitz, J. & Rosenbaum, E. International Conference on Geometry and Graphics.', links: [] },
+    { y: 2012, t: 'Makey Makey: Improvising Tangible and Nature-Based User Interfaces', v: 'Silver, J. & Rosenbaum, E. Proceedings of the International Conference on Tangible, Embedded and Embodied Interaction.', links: [['PDF', '/s/silver-makeymakey-TEI.pdf']] },
+    { y: 2011, t: 'MelodyMorph: A Reconfigurable Musical Instrument', v: 'Rosenbaum, E. Proceedings of the International Conference on New Interfaces for Musical Expression. Oslo, Norway.', links: [['PDF', '/s/rosenbaum-melodymorph-NIME.pdf']] },
+    { y: 2011, t: 'Examining values: an analysis of nine years of IDC research', v: 'Yarosh, S., Radu, I., Hunter, S. & Rosenbaum, E. Proceedings of the 10th International Conference on Interaction Design and Children.', links: [['PDF', '/s/yarosh-values-IDC.pdf']] },
+    { y: 2010, t: 'Singing Fingers: fingerpainting with sound', v: 'Rosenbaum, E. & Silver, J. Proceedings of the 9th International Conference on Interaction Design and Children (IDC 2010), pp. 308–310. ACM.', links: [['PDF', '/s/rosenbaum-singingfingers-IDC.pdf']] },
+    { y: 2010, t: 'Twinkle: programming with color', v: 'Silver, J. & Rosenbaum, E. Proceedings of the Fourth International Conference on Tangible, Embedded, and Embodied Interaction, pp. 383–384.', links: [['PDF', '/s/silver_twinkle_TEI.pdf']] },
+    { y: 2010, t: 'Empowering programmability for tangibles', v: 'Rosenbaum, E., Eastmond, E. & Mellis, D. Proceedings of the Fourth International Conference on Tangible, Embedded, and Embodied Interaction, pp. 357–360.', links: [['PDF', '/s/rosenbaum-Scratch4Arduino-TEI.pdf']] },
+    { y: 2009, t: 'Scratch: Programming For All', v: 'Resnick, M. et al. Communications of the ACM, Volume 52, Issue 11.', links: [['Link', 'http://dl.acm.org/citation.cfm?id=1592779']] },
+    { y: 2009, t: 'Jots: Cultivating reflective learning in Scratch', v: "Rosenbaum, E. Master's thesis.", links: [['PDF', '/s/rosenbaum-jots-thesis.pdf']] },
+    { y: 2009, t: 'Glowdoodle: A medium for expressive inquiry', v: 'Rosenbaum, E. Proceedings of the Seventh ACM Conference on Creativity and Cognition, pp. 469–470.', links: [['PDF', '/s/rosenbaum-glowdoodle-CC.pdf']] },
+    { y: 2009, t: 'Gifts for Intertwining with Modern Nature', v: 'Silver, J. & Rosenbaum, E. Special mention, 2009 Como for Children competition, International Conference on Interaction Design and Children.', links: [['PDF', '/s/silver-C4C-IDC.pdf']] },
+    { y: 2009, t: 'Jots: Reflective learning in Scratch', v: 'Rosenbaum, E. Proceedings of the 8th International Conference on Interaction Design and Children, pp. 284–285. ACM.', links: [['PDF', '/s/rosenbaum-jots-IDC.pdf']] },
+    { y: 2008, t: 'Scratch for Second Life', v: 'Rosenbaum, E. In S. Veeragoudar Harrell (Chair), Virtually there: Emerging designs for STEM teaching and learning in immersive online 3D microworlds. International Conference on Learning Sciences.', links: [['PDF', '/s/rosenbaum-S4SL-ICLS.pdf']] },
+    { y: 2007, t: 'Engaging Students in Science Controversy through an Augmented Reality Role-Playing Game', v: 'Rosenbaum, E., Klopfer, E., Boughner, B. & Rosenheck, L. Computer Supported Collaborative Learning.', links: [['PDF', '/s/rosenbaum-posit-CSCL.pdf']] },
+    { y: 2007, t: 'On Location Learning: Authentic Applied Science with Networked Augmented Realities', v: 'Rosenbaum, E., Klopfer, E. & Perry, J. Journal of Science Education and Technology 16(1): 31–45.', links: [['PDF', '/s/rosenbaum-outbreak-JSET.pdf']] },
+    { y: 2005, t: "Friday's Lesson: Molecular Self-Assembly", v: '@Concord, Newsletter of the Concord Consortium.', links: [['Link', 'http://www.concord.org/publications/newsletter/2005-fall/friday.html']] },
+  ];
+  const PUBS_SHOWN = 6;
 
-  // Small generated illustrations, drawn in each project's hue (currentColor).
-  const ART = {
-    blocks: () => `
-      <g transform="translate(95 60)">
-        <path d="M0 0h60l6 6h20l6-6h108v34H92l-6 6H66l-6-6H0z" fill="currentColor"/>
-        <path d="M24 44h60l6 6h20l6-6h60v34H116l-6 6H90l-6-6H24z" fill="currentColor" opacity=".7"/>
-        <path d="M24 88h60l6 6h20l6-6h90v34H116l-6 6H90l-6-6H24z" fill="currentColor" opacity=".45"/>
-        <rect x="12" y="34" width="12" height="88" fill="currentColor" opacity=".85"/>
-      </g>`,
-    makey: () => `
-      <path d="M60 170 C 120 60, 200 220, 250 110 S 340 80, 350 150" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".45"/>
-      <g transform="translate(200 125)" fill="currentColor">
-        <circle r="70" opacity=".16"/>
-        <path d="M0-52l14 18H-14z"/><path d="M0 52l14-18H-14z"/>
-        <path d="M-52 0l18-14v28z"/><path d="M52 0l-18-14v28z"/>
-        <circle r="17"/>
-      </g>`,
-    bars: () => {
-      let s = '';
-      const h = [40, 72, 110, 64, 128, 92, 50, 116, 84, 140, 60, 100, 36, 76];
-      h.forEach((v, i) => { s += `<rect x="${58 + i * 21}" y="${200 - v}" width="14" height="${v}" rx="7" fill="currentColor" opacity="${0.35 + (i % 4) * 0.18}"/>`; });
-      return s + '<circle cx="312" cy="56" r="20" fill="currentColor" opacity=".8"/>';
-    },
-    dots: () => {
-      const d = [[90, 80, 34, .9], [160, 140, 22, .6], [230, 70, 16, .5], [270, 150, 40, .75], [330, 90, 14, .5], [120, 190, 12, .45], [200, 200, 18, .7], [60, 150, 10, .4], [340, 190, 20, .35]];
-      return d.map(([x, y, r, o]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="currentColor" opacity="${o}"/>`).join('')
-        + '<path d="M90 80 L160 140 L270 150 L330 90" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>';
-    },
-    keys: () => {
-      let s = '';
-      for (let i = 0; i < 8; i++) s += `<rect x="${72 + i * 32}" y="70" width="28" height="120" rx="5" fill="currentColor" opacity=".28"/>`;
-      [0, 1, 3, 4, 5].forEach(i => { s += `<rect x="${92 + i * 32}" y="70" width="20" height="72" rx="4" fill="currentColor"/>`; });
-      return s + '<circle cx="200" cy="42" r="10" fill="currentColor" opacity=".7"/>';
-    },
-    echo: () => {
-      let s = '';
-      for (let i = 0; i < 6; i++) s += `<path d="M${120 + i * 26} ${60 - i * 4} a ${70 + i * 10} ${70 + i * 10} 0 0 1 0 ${130 + i * 8}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="${1 - i * 0.15}"/>`;
-      return s + '<circle cx="96" cy="125" r="16" fill="currentColor"/>';
-    },
-    stroke: () => `
-      <path d="M50 160 C 90 60, 140 60, 170 130 S 250 200, 280 110 S 340 50, 360 90" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" opacity=".85"/>
-      <path d="M50 160 C 90 60, 140 60, 170 130 S 250 200, 280 110 S 340 50, 360 90" fill="none" stroke="currentColor" stroke-width="54" stroke-linecap="round" opacity=".18"/>`,
-    morph: () => `
-      <circle cx="110" cy="90" r="26" fill="currentColor"/>
-      <rect x="180" y="60" width="48" height="48" rx="8" fill="currentColor" opacity=".6"/>
-      <path d="M300 60l30 52h-60z" fill="currentColor" opacity=".8"/>
-      <circle cx="150" cy="170" r="18" fill="currentColor" opacity=".45"/>
-      <rect x="232" y="150" width="36" height="36" rx="6" fill="currentColor" opacity=".35" transform="rotate(20 250 168)"/>
-      <circle cx="320" cy="180" r="12" fill="currentColor" opacity=".7"/>`,
-    cubes: () => {
-      const cube = (x, y, o) => `<g transform="translate(${x} ${y})" opacity="${o}">
-        <path d="M0-30l26 15v30L0 30-26 15v-30z" fill="currentColor" opacity=".35"/>
-        <path d="M0-30l26 15L0 0-26-15z" fill="currentColor"/>
-        <path d="M0 0l26-15v30L0 30z" fill="currentColor" opacity=".65"/></g>`;
-      return cube(200, 90, 1) + cube(174, 135, .9) + cube(226, 135, .9) + cube(148, 180, .75) + cube(200, 180, .8) + cube(252, 180, .75);
-    },
-    glow: () => `
-      <rect width="400" height="250" fill="#14120f"/>
-      <defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter></defs>
-      <path d="M70 180 C 110 40, 170 220, 210 110 S 300 40, 330 170" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" filter="url(#gl)"/>
-      <path d="M70 180 C 110 40, 170 220, 210 110 S 300 40, 330 170" fill="none" stroke="#fff8e0" stroke-width="4" stroke-linecap="round"/>`,
-    grid: () => {
-      let s = '';
-      for (let r = 0; r < 5; r++) for (let c = 0; c < 9; c++) {
-        const o = ((r * 7 + c * 3) % 5) / 5 + 0.15;
-        s += `<circle cx="${80 + c * 30}" cy="${65 + r * 30}" r="${6 + ((r + c) % 3) * 3}" fill="currentColor" opacity="${o.toFixed(2)}"/>`;
-      }
-      return s;
-    },
-  };
+  const TAG_NAMES = { music: 'Music', making: 'Making', coding: 'Coding', art: 'Art' };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  const dark = () => document.documentElement.dataset.theme === 'dark' ||
-    (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
+  // ---------- projects ----------
   const grid = document.getElementById('grid');
-  function renderGrid() {
-    const d = dark();
-    grid.innerHTML = PROJECTS.map(p => {
-      const hue = d ? `hsl(${p.hue} 70% 68%)` : `hsl(${p.hue} 62% 46%)`;
-      const tint = d ? `hsl(${p.hue} 22% 17%)` : `hsl(${p.hue} 55% 93%)`;
-      const hueText = d ? `hsl(${p.hue} 70% 72%)` : `hsl(${p.hue} 62% 36%)`;
-      const art = p.img
-        ? `<img src="${esc(p.img)}" alt="" loading="lazy">`
-        : `<svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${ART[p.art]()}</svg>`;
-      const meta = [p.year, p.org].filter(Boolean).map(esc).join(' · ');
-      return `<li class="${p.feature ? 'feature' : p.wide ? 'wide' : ''}" data-tags="${p.tags.join(' ')}">
-        <a class="card" href="${esc(p.url)}" style="--hue:${hue};--tint:${tint};--hue-text:${hueText}">
-          <div class="art">${art}</div>
-          <div class="body">
-            <div class="meta"><span class="tag">${p.tags.map(t => TAG_NAMES[t]).slice(0, 2).join(', ')}</span>${meta ? `<span>${meta}</span>` : ''}</div>
-            <h3>${esc(p.name)} <span class="arrow" aria-hidden="true">↗</span></h3>
-            <p>${esc(p.desc)}</p>
-            ${p.with ? `<div class="with">${esc(p.with)}</div>` : ''}
-          </div>
-        </a></li>`;
-    }).join('');
-    applyFilter();
-  }
+  grid.innerHTML = PROJECTS.map(p => {
+    const meta = [p.year, p.org].filter(Boolean).map(esc).join(' · ');
+    const cls = p.feature ? 'feature' : p.wide ? 'wide' : '';
+    return `<li class="${cls}" data-tags="${p.tags.join(' ')}">
+      <a class="card" href="${SITE}${p.slug}">
+        <div class="art"><img src="images/${p.slug}.jpg" alt="" loading="lazy"></div>
+        <div class="body">
+          <div class="meta"><span class="tag">${p.tags.map(t => TAG_NAMES[t]).slice(0, 2).join(', ')}</span>${meta ? `<span>${meta}</span>` : ''}</div>
+          <h3>${esc(p.name)} <span class="arrow" aria-hidden="true">↗</span></h3>
+          <p>${esc(p.desc)}</p>
+          ${p.with ? `<div class="with">${esc(p.with)}</div>` : ''}
+        </div>
+      </a></li>`;
+  }).join('');
 
-  // ---------- filters ----------
   let filter = 'all';
   const buttons = document.querySelectorAll('.filters button');
   function applyFilter() {
@@ -461,8 +433,24 @@
   }
   buttons.forEach(b => b.addEventListener('click', () => { filter = b.dataset.f; applyFilter(); }));
 
-  renderGrid();
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderGrid);
+  // ---------- publications ----------
+  const pubs = document.getElementById('pubs');
+  pubs.innerHTML = PUBS.map((p, i) => {
+    const links = p.links.map(([label, href]) =>
+      `<a href="${esc(href.startsWith('/') ? SITE + href.slice(1) : href)}">${label}</a>`).join('');
+    return `<li class="${i >= PUBS_SHOWN ? 'more-pub' : ''}">
+      <span class="yr">${p.y}</span>
+      <div><p class="t">${esc(p.t)}</p>
+      <p class="v">${esc(p.v)}${links ? `<span class="links">${links}</span>` : ''}</p></div></li>`;
+  }).join('');
+  const toggle = document.getElementById('pubs-toggle');
+  const setToggle = open => {
+    pubs.classList.toggle('all', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = open ? 'Show fewer' : `Show all ${PUBS.length} publications`;
+  };
+  toggle.addEventListener('click', () => setToggle(!pubs.classList.contains('all')));
+  setToggle(false);
 
   // ---------- header border on scroll ----------
   const top = document.getElementById('top');
@@ -473,6 +461,8 @@
   // ---------- playable name ----------
   // Each letter is a note in a pentatonic scale. Silent until the visitor taps or clicks;
   // after that, hovering across the name strums it.
+  const dark = () => document.documentElement.dataset.theme === 'dark' ||
+    (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
   const h1 = document.getElementById('name');
   const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28];
   const hues = [8, 38, 95, 150, 185, 205, 255, 280, 330];
