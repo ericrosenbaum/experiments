@@ -12,3 +12,5 @@ and timer length.
 Card art: [Kenney](https://kenney.nl), CC0 (embedded as data URIs).
 
 Copied from the Claude artifact "Oh My Eyes" (version 1790166197-e050).
+
+**Live: https://ericrosenbaum.github.io/experiments/oh-my-eyes/**

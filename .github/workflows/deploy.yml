@@ -1,0 +1,17 @@
+name: Deploy
+
+# Publishes this branch to https://ericrosenbaum.github.io/experiments/oh-my-eyes/
+# via the shared workflow on main (see main's README).
+
+on:
+  push:
+    branches: [oh-my-eyes]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: write
+    uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
+    with:
+      name: oh-my-eyes
