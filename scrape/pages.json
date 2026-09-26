@@ -1,0 +1,6036 @@
+[
+  {
+    "url": "https://www.ericrosenbaum.com/",
+    "title": "Eric Rosenbaum",
+    "description": "",
+    "og_image": "http://static1.squarespace.com/static/561c2019e4b0ee65a89cee14/t/5803ce2ab3db2b014693892d/1476644395874/ericr-logo.png?format=1500w",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h2",
+        "text": "Makey Makey"
+      },
+      {
+        "tag": "p",
+        "text": "I co-invented the Makey Makey with Jay Silver. It's an invention kit for everyone: a little circuit board that lets you turn anything into a computer key. The world is your construction kit."
+      },
+      {
+        "tag": "p",
+        "text": "Learn more at MakeyMakey.com"
+      },
+      {
+        "tag": "h2",
+        "text": "Musical Paintings"
+      },
+      {
+        "tag": "p",
+        "text": "My musical paintings are playable graphical scores that you touch to play melodies and harmonies. They combine visual composition, musical composition, and gestural interaction, creating a new audiovisual world to explore."
+      },
+      {
+        "tag": "p",
+        "text": "\"Simultaneous Composition #1\" is a collaboration with Sophia Brueckner."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      },
+      {
+        "href": "http://makeymakey.com/",
+        "text": "Makey Makey"
+      },
+      {
+        "href": "http://web.media.mit.edu/~silver/",
+        "text": "Jay Silver"
+      },
+      {
+        "href": "http://makeymakey.com/",
+        "text": "MakeyMakey.com"
+      },
+      {
+        "href": "http://www.sophiabrueckner.com/",
+        "text": "Sophia Brueckner"
+      },
+      {
+        "href": "/scratch-lab/",
+        "text": "0\n            Scratch Lab"
+      },
+      {
+        "href": "/makeymakey/",
+        "text": "2\n            Makey Makey"
+      },
+      {
+        "href": "/duet-instrument/",
+        "text": "0\n            Duet Instrument"
+      },
+      {
+        "href": "/coloring-cam/",
+        "text": "0\n            Coloring Cam"
+      },
+      {
+        "href": "/giorgio-cam/",
+        "text": "0\n            Giorgio Cam"
+      },
+      {
+        "href": "/chrome-music-lab/",
+        "text": "0\n            Chrome Music Lab"
+      },
+      {
+        "href": "/beetle-blocks/",
+        "text": "0\n            Beetle Blocks"
+      },
+      {
+        "href": "/mk1-sampler/",
+        "text": "0\n            MK-1 Sampler"
+      },
+      {
+        "href": "/melodymorph/",
+        "text": "0\n            MelodyMorph"
+      },
+      {
+        "href": "/musical-paintings/",
+        "text": "3\n            Musical Paintings"
+      },
+      {
+        "href": "/singing-fingers/",
+        "text": "0\n            Singing Fingers"
+      },
+      {
+        "href": "/musical-gears/",
+        "text": "0\n            Musical Gears"
+      },
+      {
+        "href": "/echolaliator/",
+        "text": "0\n            Echolaliator"
+      },
+      {
+        "href": "/glowdoodle/",
+        "text": "0\n            Glowdoodle"
+      },
+      {
+        "href": "/mmmtsss/",
+        "text": "0\n            Mmmtsss"
+      },
+      {
+        "href": "/scratch-4-second-life/",
+        "text": "0\n            Scratch 4 Second Life"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474323175171-H1AT1U5ZNMGRL8PR5QDY/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "10a71846-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474638889184-QOLBGOZQBXOE0YTLV27G/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "7163c6fa-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324059621-VBS7JBXE3ZSVP5VB0IHU/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "65214d59-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324505613-453XEPOOF8EUFV48ID7J/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "cd717f27-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324529621-FPXYL6KQMGSIK04IC0GM/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "c78af538-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1617050176890-8XRI18QMMXUZCKF2OBWK/Screen+Shot+2021-03-29+at+4.33.27+PM.png?format=2500w",
+        "alt": "Screen Shot 2021-03-29 at 4.33.27 PM.png",
+        "file": "d1e2988a-Screen+Shot+2021-03-29+at+4.33.27+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474378211006-9C9Z64A5A63C2WPESNZ4/makey-peppers.jpg?format=2500w",
+        "alt": "makey-peppers.jpg",
+        "file": "f459a8e8-makey-peppers.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1651622824661-XQSSZE8IWY0265GE0J3A/duet.png?format=2500w",
+        "alt": "duet.png",
+        "file": "7a8fe40b-duet.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647900464-A9OFY1QO7TCWLAU37SUX/rainbow-indoors-square.JPG?format=2500w",
+        "alt": "rainbow-indoors-square.JPG",
+        "file": "5d514abc-rainbow-indoors-square.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1482009495565-3VQCBVLFX1DH3S18L4R3/Screen+Shot+2016-12-17+at+4.01.26+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-12-17 at 4.01.26 PM.png",
+        "file": "c4efdb7a-Screen+Shot+2016-12-17+at+4.01.26+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474825942722-75U69E5BLTDSH9WUUVWH/Screen+Shot+2016-09-22+at+5.39.07+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-22 at 5.39.07 PM.png",
+        "file": "d9580e9f-Screen+Shot+2016-09-22+at+5.39.07+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474395759377-BH57WM0ILKXR4V5HWYX3/Screen+Shot+2016-09-20+at+2.20.53+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-20 at 2.20.53 PM.png",
+        "file": "44b4e68c-Screen+Shot+2016-09-20+at+2.20.53+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474828939922-69J2ACDNKB3YHJQJUPCU/Screen+Shot+2016-09-22+at+5.34.49+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-22 at 5.34.49 PM.png",
+        "file": "9ea4425d-Screen+Shot+2016-09-22+at+5.34.49+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474829428422-USYZLYY5K6519GOIZE4K/Screen+Shot+2016-09-20+at+6.30.20+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-20 at 6.30.20 PM.png",
+        "file": "3463c22d-Screen+Shot+2016-09-20+at+6.30.20+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474379919894-4WUTANZIAQUEI4Y1YH5G/Screen+Shot+2016-09-20+at+9.56.59+AM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-20 at 9.56.59 AM.png",
+        "file": "9c1963f7-Screen+Shot+2016-09-20+at+9.56.59+AM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474661750004-45LKY4GEFO6Z52XB8Q4N/4884982435_e06b17f7ac_z.jpg?format=2500w",
+        "alt": "4884982435_e06b17f7ac_z.jpg",
+        "file": "fc4ecdb1-4884982435_e06b17f7ac_z.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474833946770-1VNVI2FOWC2FCXDXXPFM/Screen+Shot+2016-09-22+at+10.05.41+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-22 at 10.05.41 PM.png",
+        "file": "b612acda-Screen+Shot+2016-09-22+at+10.05.41+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474830707618-40B2U0PYKKCTR3T4F6SI/Screen+Shot+2016-09-22+at+9.55.25+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-22 at 9.55.25 PM.png",
+        "file": "438b1992-Screen+Shot+2016-09-22+at+9.55.25+PM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474916794098-39SKZFU06V4LOAY86FPK/3513949366_4cce00d922_o.jpg?format=2500w",
+        "alt": "3513949366_4cce00d922_o.jpg",
+        "file": "1390eb24-3513949366_4cce00d922_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475041690091-IGKX0OJUOPL77F7VMSMP/maxresdefault.jpg?format=2500w",
+        "alt": "maxresdefault.jpg",
+        "file": "f7c16e55-maxresdefault.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475252021167-TSJ27IGDYI5YL4P48T4K/Screen+Shot+2016-09-30+at+12.00.24+PM.png?format=2500w",
+        "alt": "Screen Shot 2016-09-30 at 12.00.24 PM.png",
+        "file": "b4b55fa3-Screen+Shot+2016-09-30+at+12.00.24+PM.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/beetle-blocks",
+    "title": "Beetle Blocks — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Beetle Blocks"
+      },
+      {
+        "tag": "p",
+        "text": "Beetle Blocks is a graphical blocks-based programming environment for 3D design and fabrication."
+      },
+      {
+        "tag": "p",
+        "text": "Try it at BeetleBlocks.com"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://beetleblocks.com/",
+        "text": "BeetleBlocks.com"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474660308719-2ZN3GT1532BH7MG831UE/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "f18a0ba4-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/beetle-blocks/",
+    "title": "Beetle Blocks — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Beetle Blocks"
+      },
+      {
+        "tag": "p",
+        "text": "Beetle Blocks is a graphical blocks-based programming environment for 3D design and fabrication."
+      },
+      {
+        "tag": "p",
+        "text": "Try it at BeetleBlocks.com"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://beetleblocks.com/",
+        "text": "BeetleBlocks.com"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474660308719-2ZN3GT1532BH7MG831UE/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "f18a0ba4-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/bio",
+    "title": "Bio — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "p",
+        "text": "I design for creative play!"
+      },
+      {
+        "tag": "p",
+        "text": "My tools are all about bringing your imagination to life by helping you make things you care about. I love to see how using my tools can transform people's sense of what they can make and who they can become."
+      },
+      {
+        "tag": "p",
+        "text": "I am the Director of Scratch Lab at the Scratch Foundation, inventing new creative possibilities for the world’s largest online coding community for kids. I’m the co-inventor of the Makey Makey invention kit. I’ve also worked with Joylabz, Google Creative Lab and NYU Music Experience Design Lab. In 2015, I completed my PhD at MIT Media Lab in the Lifelong Kindergarten group with a dissertation entitled \"Explorations in Musical Tinkering.\" Before my time at the Media Lab, I worked at MIT Teacher Education Program, creating learning games; Concord Consortium, creating molecular dynamics simulations for kids; and Six Red Marbles, creating animations for music education. I hold a Master's in Technology in Education from Harvard Graduate School of Education, and a Bachelor's in Psychology and Mind/Brain/Behavior from Harvard College."
+      },
+      {
+        "tag": "p",
+        "text": "I enjoy playing the trombone with the Opposite People."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://makeymakey.com",
+        "text": "Makey Makey"
+      },
+      {
+        "href": "https://joylabz.com",
+        "text": "Joylabz"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": "Google Creative Lab"
+      },
+      {
+        "href": "https://musedlab.org/",
+        "text": "NYU Music Experience Design Lab"
+      },
+      {
+        "href": "https://llk.media.mit.edu/",
+        "text": "Lifelong Kindergarten group"
+      },
+      {
+        "href": "http://education.mit.edu/",
+        "text": "MIT Teacher Education Program"
+      },
+      {
+        "href": "https://concord.org/",
+        "text": "Concord Consortium"
+      },
+      {
+        "href": "http://sixredmarbles.com/",
+        "text": "Six Red Marbles"
+      },
+      {
+        "href": "http://oppositewebsite.com/",
+        "text": "Opposite People"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475958087570-K12MNQ9W0KVZ62UE5COK/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "4f0cc8f3-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476048965153-DFYUF2NT2TFT9QN0JV5I/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "f4304989-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/chrome-music-lab",
+    "title": "Chrome Music Lab — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "tag": "p",
+        "text": "I worked with Google Creative Lab in 2015 and 2016 on the design and prototyping of Chrome Music Lab, a set of web-based experiments that let you play with music and sound. They include a simple drum machine, a live spectrogram, a melody generator, an oscillator, a harmonic series, and more."
+      },
+      {
+        "tag": "p",
+        "text": "Check out Chrome Music Lab"
+      },
+      {
+        "tag": "p",
+        "text": "Here's a blog post I wrote about some of my favorite moments from the project."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum/musical-tinkering-277bdf635c28",
+        "text": "blog post"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474825307288-RADB5XBA59ODUKQ1EMNQ/chrome-music-lab-thumbnails.png?format=2500w",
+        "alt": "",
+        "file": "c2ca58c4-chrome-music-lab-thumbnails.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/chrome-music-lab/",
+    "title": "Chrome Music Lab — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "tag": "p",
+        "text": "I worked with Google Creative Lab in 2015 and 2016 on the design and prototyping of Chrome Music Lab, a set of web-based experiments that let you play with music and sound. They include a simple drum machine, a live spectrogram, a melody generator, an oscillator, a harmonic series, and more."
+      },
+      {
+        "tag": "p",
+        "text": "Check out Chrome Music Lab"
+      },
+      {
+        "tag": "p",
+        "text": "Here's a blog post I wrote about some of my favorite moments from the project."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": "Chrome Music Lab"
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum/musical-tinkering-277bdf635c28",
+        "text": "blog post"
+      },
+      {
+        "href": "https://musiclab.chromeexperiments.com/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474825307288-RADB5XBA59ODUKQ1EMNQ/chrome-music-lab-thumbnails.png?format=2500w",
+        "alt": "",
+        "file": "c2ca58c4-chrome-music-lab-thumbnails.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/coloring-cam",
+    "title": "Coloring Cam — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Coloring Cam"
+      },
+      {
+        "tag": "p",
+        "text": "Coloring Cam is an iOS app that lets you color with your world. It's a coloring book that you color in with the camera. Use colors and textures in the world around you to fill in a rainbow, a butterfly, a flower, or any of the other pages that come with the app."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/coloring-cam/id1078034601",
+        "text": ""
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069247-DWBSZ8UFXYSGSV3YT96R/01-rainbow.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069299-OKJVWANTXH6DTQAIC1ZK/02-catguy.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648071203-08IS2QSF3TZBPBXA83Z9/03-bug.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067951-MXYTVXZKBE79VLIYAYQN/01-penguin.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070762-P490NFAAQEGOBMKVTJFZ/02-fish-lego.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072017-UAJ2RKN75J3N7K6SZEUP/03-zebra-citrus.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648068687-O7LJ5D0WPFUCO4AC0L0S/01-red.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069978-R4PPCCX752QPZAPRLHF8/02-yellow.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070740-W8BZ2S0VVB6C6AJIQ61O/03-blue.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067473-1MENSUY6DOY1J3CQYOK3/01-ice-cream.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067013-TJT2NRD0YVWDRXX1L8FB/01-banana-saying-orange.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072262-EZWFLHFSLWHGA3AUV613/03-burger.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211286-AIYYBCS8FBSMHL4GQFC1/02-grapes.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211300-DJNW54I7NFLNM24PXR1C/02-outlet-plug.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649212144-PPX9DIDAUBJ23B6VCDKT/03-TP.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649418515-DN7O8VQOP5CUFF1FZTXP/IMG_1860.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647534964-DTJ3KMVVK0YQQ54JXXKS/Screen+Shot+2016-09-20+at+9.53.03+AM.png?format=2500w",
+        "alt": "",
+        "file": "55431dc6-Screen+Shot+2016-09-20+at+9.53.03+AM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647741436-F3KHJW6PE8DO6QZTMNHK/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "611226c6-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069247-DWBSZ8UFXYSGSV3YT96R/01-rainbow.JPG?format=2500w",
+        "alt": "01-rainbow.JPG",
+        "file": "e46577f2-01-rainbow.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069299-OKJVWANTXH6DTQAIC1ZK/02-catguy.JPG?format=2500w",
+        "alt": "02-catguy.JPG",
+        "file": "b2bc3334-02-catguy.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648071203-08IS2QSF3TZBPBXA83Z9/03-bug.JPG?format=2500w",
+        "alt": "03-bug.JPG",
+        "file": "aac28aa6-03-bug.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067951-MXYTVXZKBE79VLIYAYQN/01-penguin.JPG?format=2500w",
+        "alt": "01-penguin.JPG",
+        "file": "6749595c-01-penguin.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070762-P490NFAAQEGOBMKVTJFZ/02-fish-lego.JPG?format=2500w",
+        "alt": "02-fish-lego.JPG",
+        "file": "42a3c1ff-02-fish-lego.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072017-UAJ2RKN75J3N7K6SZEUP/03-zebra-citrus.JPG?format=2500w",
+        "alt": "03-zebra-citrus.JPG",
+        "file": "0517c930-03-zebra-citrus.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648068687-O7LJ5D0WPFUCO4AC0L0S/01-red.JPG?format=2500w",
+        "alt": "01-red.JPG",
+        "file": "7dae59c3-01-red.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069978-R4PPCCX752QPZAPRLHF8/02-yellow.JPG?format=2500w",
+        "alt": "02-yellow.JPG",
+        "file": "63e1a379-02-yellow.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070740-W8BZ2S0VVB6C6AJIQ61O/03-blue.JPG?format=2500w",
+        "alt": "03-blue.JPG",
+        "file": "94e824bb-03-blue.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067473-1MENSUY6DOY1J3CQYOK3/01-ice-cream.JPG?format=2500w",
+        "alt": "01-ice-cream.JPG",
+        "file": "854360c8-01-ice-cream.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067013-TJT2NRD0YVWDRXX1L8FB/01-banana-saying-orange.JPG?format=2500w",
+        "alt": "01-banana-saying-orange.JPG",
+        "file": "d1c47c44-01-banana-saying-orange.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072262-EZWFLHFSLWHGA3AUV613/03-burger.JPG?format=2500w",
+        "alt": "03-burger.JPG",
+        "file": "66ab025c-03-burger.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211286-AIYYBCS8FBSMHL4GQFC1/02-grapes.JPG?format=2500w",
+        "alt": "02-grapes.JPG",
+        "file": "857ea4ac-02-grapes.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211300-DJNW54I7NFLNM24PXR1C/02-outlet-plug.JPG?format=2500w",
+        "alt": "02-outlet-plug.JPG",
+        "file": "afb5b804-02-outlet-plug.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649212144-PPX9DIDAUBJ23B6VCDKT/03-TP.JPG?format=2500w",
+        "alt": "03-TP.JPG",
+        "file": "58b42735-03-TP.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649418515-DN7O8VQOP5CUFF1FZTXP/IMG_1860.JPG?format=2500w",
+        "alt": "IMG_1860.JPG",
+        "file": "d0b8e3ae-IMG_1860.JPG"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/coloring-cam/",
+    "title": "Coloring Cam — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Coloring Cam"
+      },
+      {
+        "tag": "p",
+        "text": "Coloring Cam is an iOS app that lets you color with your world. It's a coloring book that you color in with the camera. Use colors and textures in the world around you to fill in a rainbow, a butterfly, a flower, or any of the other pages that come with the app."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/coloring-cam/id1078034601",
+        "text": ""
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069247-DWBSZ8UFXYSGSV3YT96R/01-rainbow.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069299-OKJVWANTXH6DTQAIC1ZK/02-catguy.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648071203-08IS2QSF3TZBPBXA83Z9/03-bug.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067951-MXYTVXZKBE79VLIYAYQN/01-penguin.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070762-P490NFAAQEGOBMKVTJFZ/02-fish-lego.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072017-UAJ2RKN75J3N7K6SZEUP/03-zebra-citrus.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648068687-O7LJ5D0WPFUCO4AC0L0S/01-red.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069978-R4PPCCX752QPZAPRLHF8/02-yellow.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070740-W8BZ2S0VVB6C6AJIQ61O/03-blue.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067473-1MENSUY6DOY1J3CQYOK3/01-ice-cream.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067013-TJT2NRD0YVWDRXX1L8FB/01-banana-saying-orange.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072262-EZWFLHFSLWHGA3AUV613/03-burger.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211286-AIYYBCS8FBSMHL4GQFC1/02-grapes.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211300-DJNW54I7NFLNM24PXR1C/02-outlet-plug.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649212144-PPX9DIDAUBJ23B6VCDKT/03-TP.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649418515-DN7O8VQOP5CUFF1FZTXP/IMG_1860.JPG",
+        "text": "View fullsize"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647534964-DTJ3KMVVK0YQQ54JXXKS/Screen+Shot+2016-09-20+at+9.53.03+AM.png?format=2500w",
+        "alt": "",
+        "file": "55431dc6-Screen+Shot+2016-09-20+at+9.53.03+AM.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647741436-F3KHJW6PE8DO6QZTMNHK/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "611226c6-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069247-DWBSZ8UFXYSGSV3YT96R/01-rainbow.JPG?format=2500w",
+        "alt": "01-rainbow.JPG",
+        "file": "e46577f2-01-rainbow.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069299-OKJVWANTXH6DTQAIC1ZK/02-catguy.JPG?format=2500w",
+        "alt": "02-catguy.JPG",
+        "file": "b2bc3334-02-catguy.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648071203-08IS2QSF3TZBPBXA83Z9/03-bug.JPG?format=2500w",
+        "alt": "03-bug.JPG",
+        "file": "aac28aa6-03-bug.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067951-MXYTVXZKBE79VLIYAYQN/01-penguin.JPG?format=2500w",
+        "alt": "01-penguin.JPG",
+        "file": "6749595c-01-penguin.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070762-P490NFAAQEGOBMKVTJFZ/02-fish-lego.JPG?format=2500w",
+        "alt": "02-fish-lego.JPG",
+        "file": "42a3c1ff-02-fish-lego.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072017-UAJ2RKN75J3N7K6SZEUP/03-zebra-citrus.JPG?format=2500w",
+        "alt": "03-zebra-citrus.JPG",
+        "file": "0517c930-03-zebra-citrus.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648068687-O7LJ5D0WPFUCO4AC0L0S/01-red.JPG?format=2500w",
+        "alt": "01-red.JPG",
+        "file": "7dae59c3-01-red.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648069978-R4PPCCX752QPZAPRLHF8/02-yellow.JPG?format=2500w",
+        "alt": "02-yellow.JPG",
+        "file": "63e1a379-02-yellow.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648070740-W8BZ2S0VVB6C6AJIQ61O/03-blue.JPG?format=2500w",
+        "alt": "03-blue.JPG",
+        "file": "94e824bb-03-blue.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067473-1MENSUY6DOY1J3CQYOK3/01-ice-cream.JPG?format=2500w",
+        "alt": "01-ice-cream.JPG",
+        "file": "854360c8-01-ice-cream.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648067013-TJT2NRD0YVWDRXX1L8FB/01-banana-saying-orange.JPG?format=2500w",
+        "alt": "01-banana-saying-orange.JPG",
+        "file": "d1c47c44-01-banana-saying-orange.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474648072262-EZWFLHFSLWHGA3AUV613/03-burger.JPG?format=2500w",
+        "alt": "03-burger.JPG",
+        "file": "66ab025c-03-burger.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211286-AIYYBCS8FBSMHL4GQFC1/02-grapes.JPG?format=2500w",
+        "alt": "02-grapes.JPG",
+        "file": "857ea4ac-02-grapes.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649211300-DJNW54I7NFLNM24PXR1C/02-outlet-plug.JPG?format=2500w",
+        "alt": "02-outlet-plug.JPG",
+        "file": "afb5b804-02-outlet-plug.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649212144-PPX9DIDAUBJ23B6VCDKT/03-TP.JPG?format=2500w",
+        "alt": "03-TP.JPG",
+        "file": "58b42735-03-TP.JPG"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474649418515-DN7O8VQOP5CUFF1FZTXP/IMG_1860.JPG?format=2500w",
+        "alt": "IMG_1860.JPG",
+        "file": "d0b8e3ae-IMG_1860.JPG"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/duet-instrument",
+    "title": "Duet Instrument — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Duet instrument"
+      },
+      {
+        "tag": "p",
+        "text": "A musical instrument built for two. The two sides of the instrument have matching sets of notes in matching colors. They're mirrored, so if we make the same movement, we play the same melody. You can play together in synchrony, have a call-and-response conversation, trade phrases, or play other improvisation games."
+      },
+      {
+        "tag": "p",
+        "text": "It's about a shared experience of musical communication: A flow state, where you're in sync with each other; A musical conversation."
+      },
+      {
+        "tag": "p",
+        "text": "more info on github"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://github.com/ericrosenbaum/duet-instrument",
+        "text": "github"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647534964-DTJ3KMVVK0YQQ54JXXKS/Screen+Shot+2016-09-20+at+9.53.03+AM.png?format=2500w",
+        "alt": "",
+        "file": "55431dc6-Screen+Shot+2016-09-20+at+9.53.03+AM.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/duet-instrument/",
+    "title": "Duet Instrument — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Duet instrument"
+      },
+      {
+        "tag": "p",
+        "text": "A musical instrument built for two. The two sides of the instrument have matching sets of notes in matching colors. They're mirrored, so if we make the same movement, we play the same melody. You can play together in synchrony, have a call-and-response conversation, trade phrases, or play other improvisation games."
+      },
+      {
+        "tag": "p",
+        "text": "It's about a shared experience of musical communication: A flow state, where you're in sync with each other; A musical conversation."
+      },
+      {
+        "tag": "p",
+        "text": "more info on github"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://github.com/ericrosenbaum/duet-instrument",
+        "text": "github"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474647534964-DTJ3KMVVK0YQQ54JXXKS/Screen+Shot+2016-09-20+at+9.53.03+AM.png?format=2500w",
+        "alt": "",
+        "file": "55431dc6-Screen+Shot+2016-09-20+at+9.53.03+AM.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/earlier-work",
+    "title": "Earlier Work — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch Spotify Extension"
+      },
+      {
+        "tag": "p",
+        "text": "In 2017 I used the Experimental Extension system to connect Scratch to Spotify. You could play millions of songs from Spotify, remix them, and animate to the beat. The extension is no longer functional but you can view the documentation."
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch Synth Extension"
+      },
+      {
+        "tag": "p",
+        "text": "In 2016 I used the Experimental Extension system for Scratch to add blocks for synthesizing sound and tinkering with audio effects like echo and pan. The extension is no longer functional but you can view the documentation."
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch Jazz"
+      },
+      {
+        "tag": "p",
+        "text": "I proposed and lead the Scratch Jazz project, sponsored by the Thelonious Monk Institute of Jazz, to help kids in the Scratch community combine coding and music. We added new musical instrument samples and music loops to the Scratch sound library, and created a new tutorial that shows Scratchers how to incorporate music into their projects. We also set up an online Scratch Design Studio, coinciding with International Jazz Day, that inspired hundreds of musical projects. These included musical puzzles and platform games, animated bands made up of musical bugs and aliens, melody generators, simulated instruments, sequencers, drum sets, dance parties, and lots more."
+      },
+      {
+        "tag": "p",
+        "text": "Scratch Jazz was part of the Math, Science, and Music initiative from the Monk Institute, which sponsored several projects that developed educational resources for kindergarten through college level. I presented it at a press conference  at the US Department of Education, where Legendary jazz pianist and chairman of the Monk Institute Herbie Hancock and US Secretary of Education John King Jr. announced the initiative."
+      },
+      {
+        "tag": "p",
+        "text": "Visit the project page."
+      },
+      {
+        "tag": "h1",
+        "text": "Motion Clock, Stillness Clock"
+      },
+      {
+        "tag": "p",
+        "text": "\"Stillness Clock, Motion Clock\", a collaboration with Seth Hunter, explores the perception of time, in motion and in stillness. The slit-scanning technique is used to paint live video around a circle, mapping time onto space. The clock on the left responds to the motion of the viewer, leaving a jagged trace of activity over time. The clock on the right is active only when the scene is still, encouraging the viewer to watch in contemplative silence as their image slowly emerges. Does time pass more slowly when you are moving, or when you are still?"
+      },
+      {
+        "tag": "p",
+        "text": "This piece was created at 'Processing Time,' a coding jam and competition. The participants were invited to use the Processing programming language to create aesthetically pleasing displays of time. Our piece won the audience award, programmer prize and \"fame\" award. It was shown at the MIT Museum as part of the 2009 Boston CyberArts Festival"
+      },
+      {
+        "tag": "h1",
+        "text": "Now Now Now"
+      },
+      {
+        "tag": "p",
+        "text": "(now (now (now))): Infinite Time Capsule is an installation I created in 2011 with Charlie DeTar for the Festival of Art Science and Technology, celebrating MIT's 150th anniversary. It is an interactive video piece that creates temporal echoes. The present is overlaid on layers of the past at time intervals from seconds to weeks."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://scratchx.org/",
+        "text": "Experimental Extension"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://ericrosenbaum.github.io/spotify-extension/",
+        "text": "documentation"
+      },
+      {
+        "href": "http://scratchx.org/",
+        "text": "Experimental Extension"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "http://ericrosenbaum.github.io/tone-synth-extension/",
+        "text": "documentation"
+      },
+      {
+        "href": "https://mathsciencemusic.org/#/project/scratch-jazz",
+        "text": "Scratch Jazz"
+      },
+      {
+        "href": "http://monkinstitute.org/",
+        "text": "Thelonious Monk Institute of Jazz"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://mathsciencemusic.org/",
+        "text": "Math, Science, and Music"
+      },
+      {
+        "href": "https://mathsciencemusic.org/#/project/scratch-jazz",
+        "text": "project page"
+      },
+      {
+        "href": "http://perspectum.com/",
+        "text": "Seth Hunter"
+      },
+      {
+        "href": "https://processing.org/",
+        "text": "Processing"
+      },
+      {
+        "href": "https://tirl.org/",
+        "text": "Charlie DeTar"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1614732588652-PNFN7U1Q1MRE0TWDSELY/gobo.gif?format=2500w",
+        "alt": "",
+        "file": "2e94662f-gobo.gif"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1482007700894-Q5X87LJIMDAT2IFS6VN4/stillnessclock.jpg?format=2500w",
+        "alt": "",
+        "file": "86c2bb29-stillnessclock.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1482007726109-LC8JRYSSO0VKD4Z68RUM/StillnessMontageLowRes.jpg?format=2500w",
+        "alt": "",
+        "file": "ca522f6d-StillnessMontageLowRes.jpg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/echolaliator",
+    "title": "Echolaliator — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Echolaliator"
+      },
+      {
+        "tag": "p",
+        "text": "The Echolaliator is an experimental improvisation system. It listens as you play, recording each phrase. When you pause, it responds by playing back one of your previous phrases that it thinks is related (in different versions, I have used the duration, pitch, or amplitude envelope to calculate 'relatedness'). When it detects a repeating rhythm, it joins in with a pattern at the same tempo, composed of sounds it has heard. Speech and other sounds are included and sometimes reappear at surprising times."
+      },
+      {
+        "tag": "p",
+        "text": "The visualization has a circle in the center, with color representing the current pitch it is hearing and size representing amplitude. Around it, a flowing graph shows the recent history of pitch and amplitude. A ring shape appears each time it records a sound, and these are arranged radially according to pitch. When it plays one of these sounds, it lights up and spins."
+      },
+      {
+        "tag": "p",
+        "text": "Made with OpenFrameworks"
+      },
+      {
+        "tag": "p",
+        "text": "download (mac only, no guarantees!)"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://openframeworks.cc/",
+        "text": "OpenFrameworks"
+      },
+      {
+        "href": "/s/echolaliator-2016-9-17.zip",
+        "text": "download"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/echolaliator/",
+    "title": "Echolaliator — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Echolaliator"
+      },
+      {
+        "tag": "p",
+        "text": "The Echolaliator is an experimental improvisation system. It listens as you play, recording each phrase. When you pause, it responds by playing back one of your previous phrases that it thinks is related (in different versions, I have used the duration, pitch, or amplitude envelope to calculate 'relatedness'). When it detects a repeating rhythm, it joins in with a pattern at the same tempo, composed of sounds it has heard. Speech and other sounds are included and sometimes reappear at surprising times."
+      },
+      {
+        "tag": "p",
+        "text": "The visualization has a circle in the center, with color representing the current pitch it is hearing and size representing amplitude. Around it, a flowing graph shows the recent history of pitch and amplitude. A ring shape appears each time it records a sound, and these are arranged radially according to pitch. When it plays one of these sounds, it lights up and spins."
+      },
+      {
+        "tag": "p",
+        "text": "Made with OpenFrameworks"
+      },
+      {
+        "tag": "p",
+        "text": "download (mac only, no guarantees!)"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://openframeworks.cc/",
+        "text": "OpenFrameworks"
+      },
+      {
+        "href": "/s/echolaliator-2016-9-17.zip",
+        "text": "download"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/giorgio-cam",
+    "title": "Giorgio Cam — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "GIORGIO CAM"
+      },
+      {
+        "tag": "p",
+        "text": "I helped to create Giorgio Cam during my time at Google Creative Lab in 2016. You take pictures of things around you, and it makes up song lyrics about them. It uses Google's Cloud Vision API to identify thousands of object categories (like beard, shoe, flower, etc). A speech synthesis server generates the words which are then run through audio effects and mixed with music by the legendary Giorgio Moroder."
+      },
+      {
+        "tag": "p",
+        "text": "Try it here (it works on laptops and android phones)."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://aiexperiments.withgoogle.com/giorgio-cam/view/",
+        "text": "here"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/giorgio-cam/",
+    "title": "Giorgio Cam — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "GIORGIO CAM"
+      },
+      {
+        "tag": "p",
+        "text": "I helped to create Giorgio Cam during my time at Google Creative Lab in 2016. You take pictures of things around you, and it makes up song lyrics about them. It uses Google's Cloud Vision API to identify thousands of object categories (like beard, shoe, flower, etc). A speech synthesis server generates the words which are then run through audio effects and mixed with music by the legendary Giorgio Moroder."
+      },
+      {
+        "tag": "p",
+        "text": "Try it here (it works on laptops and android phones)."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://aiexperiments.withgoogle.com/giorgio-cam/view/",
+        "text": "here"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/glowdoodle",
+    "title": "Glowdoodle — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Glowdoodle"
+      },
+      {
+        "tag": "p",
+        "text": "I created Glowdoodle in 2008 as an accessible new way to let people paint with light. Unlike the typical light painting technique, using a camera to take a long exposure, Glowdoodle uses your webcam and lets you see your painting appear in real time. Glowdoodle also makes it easy to share your creation, and the site hosts thousands of glowdoodle paintings."
+      },
+      {
+        "tag": "p",
+        "text": "I wrote a blog post telling the story of the project and what I learned along the way, including fire, flowers, zombies, and Dwight from the Office, here."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://glowdoodle.com",
+        "text": "Glowdoodle"
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum/glowdoodle-a-love-letter-to-light-painting-33bc94b17d41",
+        "text": "here"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788174-DNV7S7GJI5CYP1E4L1RC/3515749846_04dd40d0c3_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788655-L995IBDLYWD23EGZKBD7/3649397448_2755583a4e_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923787882-Z4JCFKYPN8IBJ2H9EE2G/3470151142_ff038662f3_o+%281%29.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989597-GCCXDQZ92WYN7W1U6HJ0/3483448367_7acc809a1d_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786869-FMRPEG1SGGONAYM87UHF/3466593240_6be7e23fff_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786432-Z6519C0N13OB1QWSHH9Q/3466595744_14d06787b0_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788900-VKQOU4KM4HN5O7JCZO8C/3620049992_29811772cf_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989577-IT4LCS40UX6ATZ0M9OZ0/3466592360_30a9f2c879_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991124-8G4RXO200Z7TE436RHOI/3545466673_1ba98d1385_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923990484-MRPNVWG2UU3TB2K00F1Z/3619234175_1fc3a9a3b2_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991671-RQYUDOUNA2VH7QYM2X0Z/3620052534_b3d9379c98_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474924141281-RSJERDZWG6051WUZCLTX/3484262892_f00e254534_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788174-DNV7S7GJI5CYP1E4L1RC/3515749846_04dd40d0c3_o.jpg?format=2500w",
+        "alt": "3515749846_04dd40d0c3_o.jpg",
+        "file": "ba2b7141-3515749846_04dd40d0c3_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788655-L995IBDLYWD23EGZKBD7/3649397448_2755583a4e_o.jpg?format=2500w",
+        "alt": "3649397448_2755583a4e_o.jpg",
+        "file": "a4418b7d-3649397448_2755583a4e_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923787882-Z4JCFKYPN8IBJ2H9EE2G/3470151142_ff038662f3_o+%281%29.jpg?format=2500w",
+        "alt": "3470151142_ff038662f3_o (1).jpg",
+        "file": "b93456aa-3470151142_ff038662f3_o+-1-.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989597-GCCXDQZ92WYN7W1U6HJ0/3483448367_7acc809a1d_o.jpg?format=2500w",
+        "alt": "3483448367_7acc809a1d_o.jpg",
+        "file": "45549efb-3483448367_7acc809a1d_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786869-FMRPEG1SGGONAYM87UHF/3466593240_6be7e23fff_o.jpg?format=2500w",
+        "alt": "3466593240_6be7e23fff_o.jpg",
+        "file": "69317f21-3466593240_6be7e23fff_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786432-Z6519C0N13OB1QWSHH9Q/3466595744_14d06787b0_o.jpg?format=2500w",
+        "alt": "3466595744_14d06787b0_o.jpg",
+        "file": "2e18ed2c-3466595744_14d06787b0_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788900-VKQOU4KM4HN5O7JCZO8C/3620049992_29811772cf_o.jpg?format=2500w",
+        "alt": "3620049992_29811772cf_o.jpg",
+        "file": "c8397cbc-3620049992_29811772cf_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989577-IT4LCS40UX6ATZ0M9OZ0/3466592360_30a9f2c879_o.jpg?format=2500w",
+        "alt": "3466592360_30a9f2c879_o.jpg",
+        "file": "dfe49967-3466592360_30a9f2c879_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991124-8G4RXO200Z7TE436RHOI/3545466673_1ba98d1385_o.jpg?format=2500w",
+        "alt": "3545466673_1ba98d1385_o.jpg",
+        "file": "5608021d-3545466673_1ba98d1385_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923990484-MRPNVWG2UU3TB2K00F1Z/3619234175_1fc3a9a3b2_o.jpg?format=2500w",
+        "alt": "3619234175_1fc3a9a3b2_o.jpg",
+        "file": "a767a135-3619234175_1fc3a9a3b2_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991671-RQYUDOUNA2VH7QYM2X0Z/3620052534_b3d9379c98_o.jpg?format=2500w",
+        "alt": "3620052534_b3d9379c98_o.jpg",
+        "file": "f7c776ce-3620052534_b3d9379c98_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474924141281-RSJERDZWG6051WUZCLTX/3484262892_f00e254534_o.jpg?format=2500w",
+        "alt": "3484262892_f00e254534_o.jpg",
+        "file": "060d7911-3484262892_f00e254534_o.jpg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/glowdoodle/",
+    "title": "Glowdoodle — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Glowdoodle"
+      },
+      {
+        "tag": "p",
+        "text": "I created Glowdoodle in 2008 as an accessible new way to let people paint with light. Unlike the typical light painting technique, using a camera to take a long exposure, Glowdoodle uses your webcam and lets you see your painting appear in real time. Glowdoodle also makes it easy to share your creation, and the site hosts thousands of glowdoodle paintings."
+      },
+      {
+        "tag": "p",
+        "text": "I wrote a blog post telling the story of the project and what I learned along the way, including fire, flowers, zombies, and Dwight from the Office, here."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://glowdoodle.com",
+        "text": "Glowdoodle"
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum/glowdoodle-a-love-letter-to-light-painting-33bc94b17d41",
+        "text": "here"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788174-DNV7S7GJI5CYP1E4L1RC/3515749846_04dd40d0c3_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788655-L995IBDLYWD23EGZKBD7/3649397448_2755583a4e_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923787882-Z4JCFKYPN8IBJ2H9EE2G/3470151142_ff038662f3_o+%281%29.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989597-GCCXDQZ92WYN7W1U6HJ0/3483448367_7acc809a1d_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786869-FMRPEG1SGGONAYM87UHF/3466593240_6be7e23fff_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786432-Z6519C0N13OB1QWSHH9Q/3466595744_14d06787b0_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788900-VKQOU4KM4HN5O7JCZO8C/3620049992_29811772cf_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989577-IT4LCS40UX6ATZ0M9OZ0/3466592360_30a9f2c879_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991124-8G4RXO200Z7TE436RHOI/3545466673_1ba98d1385_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923990484-MRPNVWG2UU3TB2K00F1Z/3619234175_1fc3a9a3b2_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991671-RQYUDOUNA2VH7QYM2X0Z/3620052534_b3d9379c98_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474924141281-RSJERDZWG6051WUZCLTX/3484262892_f00e254534_o.jpg",
+        "text": "View fullsize"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788174-DNV7S7GJI5CYP1E4L1RC/3515749846_04dd40d0c3_o.jpg?format=2500w",
+        "alt": "3515749846_04dd40d0c3_o.jpg",
+        "file": "ba2b7141-3515749846_04dd40d0c3_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788655-L995IBDLYWD23EGZKBD7/3649397448_2755583a4e_o.jpg?format=2500w",
+        "alt": "3649397448_2755583a4e_o.jpg",
+        "file": "a4418b7d-3649397448_2755583a4e_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923787882-Z4JCFKYPN8IBJ2H9EE2G/3470151142_ff038662f3_o+%281%29.jpg?format=2500w",
+        "alt": "3470151142_ff038662f3_o (1).jpg",
+        "file": "b93456aa-3470151142_ff038662f3_o+-1-.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989597-GCCXDQZ92WYN7W1U6HJ0/3483448367_7acc809a1d_o.jpg?format=2500w",
+        "alt": "3483448367_7acc809a1d_o.jpg",
+        "file": "45549efb-3483448367_7acc809a1d_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786869-FMRPEG1SGGONAYM87UHF/3466593240_6be7e23fff_o.jpg?format=2500w",
+        "alt": "3466593240_6be7e23fff_o.jpg",
+        "file": "69317f21-3466593240_6be7e23fff_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923786432-Z6519C0N13OB1QWSHH9Q/3466595744_14d06787b0_o.jpg?format=2500w",
+        "alt": "3466595744_14d06787b0_o.jpg",
+        "file": "2e18ed2c-3466595744_14d06787b0_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923788900-VKQOU4KM4HN5O7JCZO8C/3620049992_29811772cf_o.jpg?format=2500w",
+        "alt": "3620049992_29811772cf_o.jpg",
+        "file": "c8397cbc-3620049992_29811772cf_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923989577-IT4LCS40UX6ATZ0M9OZ0/3466592360_30a9f2c879_o.jpg?format=2500w",
+        "alt": "3466592360_30a9f2c879_o.jpg",
+        "file": "dfe49967-3466592360_30a9f2c879_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991124-8G4RXO200Z7TE436RHOI/3545466673_1ba98d1385_o.jpg?format=2500w",
+        "alt": "3545466673_1ba98d1385_o.jpg",
+        "file": "5608021d-3545466673_1ba98d1385_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923990484-MRPNVWG2UU3TB2K00F1Z/3619234175_1fc3a9a3b2_o.jpg?format=2500w",
+        "alt": "3619234175_1fc3a9a3b2_o.jpg",
+        "file": "a767a135-3619234175_1fc3a9a3b2_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474923991671-RQYUDOUNA2VH7QYM2X0Z/3620052534_b3d9379c98_o.jpg?format=2500w",
+        "alt": "3620052534_b3d9379c98_o.jpg",
+        "file": "f7c776ce-3620052534_b3d9379c98_o.jpg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474924141281-RSJERDZWG6051WUZCLTX/3484262892_f00e254534_o.jpg?format=2500w",
+        "alt": "3484262892_f00e254534_o.jpg",
+        "file": "060d7911-3484262892_f00e254534_o.jpg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/makeymakey",
+    "title": "Makey Makey — Eric Rosenbaum",
+    "description": " I co-invented the  Makey Makey &nbsp;with  Jay Silver . It's an invention kit for everyone:&nbsp;a little circuit board that lets you turn anything into a computer key. The world is your construction kit.  Learn more at  MakeyMakey.com  ",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474323175171-H1AT1U5ZNMGRL8PR5QDY/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "10a71846-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474638889184-QOLBGOZQBXOE0YTLV27G/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "7163c6fa-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/makeymakey/",
+    "title": "Makey Makey — Eric Rosenbaum",
+    "description": " I co-invented the  Makey Makey &nbsp;with  Jay Silver . It's an invention kit for everyone:&nbsp;a little circuit board that lets you turn anything into a computer key. The world is your construction kit.  Learn more at  MakeyMakey.com  ",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474323175171-H1AT1U5ZNMGRL8PR5QDY/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "10a71846-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474638889184-QOLBGOZQBXOE0YTLV27G/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "7163c6fa-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/media",
+    "title": "Media — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Talks"
+      },
+      {
+        "tag": "h1",
+        "text": "Workshops"
+      },
+      {
+        "tag": "h1",
+        "text": "Publications"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2017). “Musical Making.” In A. King, E. Himonides, S. A. Ruthmann (Eds.) The Routledge Companion to Music, Technology, and Education pp 249-261. Routledge, London. [link]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2015). \"Explorations in Musical Tinkering\" Unpublished Dissertation. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Resnick, M., & Rosenbaum, E. (2013). Designing for Tinkerability. In M. Honey & D.E. Hunter (Eds.) Design, Make, Play pp. 163-181. Routledge, London. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Blanton, A. & Rosenbaum, E. (2013). The Banana Interface. In Make Magazine, Volume 33 [magazine] [html]"
+      },
+      {
+        "tag": "p",
+        "text": "Koschitz, J. & Rosenbaum, E. (2012). \"Exploring algorithmic geometry with \"beetle blocks\": a graphical programming language for generating 3D forms.\" International Conference on Geometry and Graphics."
+      },
+      {
+        "tag": "p",
+        "text": "Silver, J. & Rosenbaum, E. (2012). \"Makey Makey: Improvising Tangible and Nature-Based User Interfaces.\" in proceedings of the International Conference on Tangible, Embedded and Embodied Interaction. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2011). \"MelodyMorph: A Reconfigurable Musical Instrument.\" in Proceedings of the International Conference on New Interfaces for Musical Expression. Oslo, Norway, 2011. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Yarosh, S., Radu, I., Hunter, S. and Rosenbaum, E. (2011). \"Examining values: an analysis of nine years of IDC research.\" in Proceedings of the 10th International Conference on Interaction Design and Children. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. & Silver, J. (2010). \"Singing Fingers: fingerpainting with sound.\" in Proceedings of the 9th International Conference on Interaction Design and Children, IDC 2010 (New York, NY, USA: ACM, 2010), 308-310. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Silver, J. & Rosenbaum, E. (2010). \"Twinkle: programming with color.\" Proceedings of the fourth international conference on Tangible, embedded, and embodied interaction (Cambridge, Massachusetts, USA, 2010), 383-384. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E., Eastmond, E., and Mellis, D. (2010) \"Empowering programmability for tangibles.\" Proceedings of the fourth international conference on Tangible, embedded, and embodied interaction (Cambridge, Massachusetts, USA, 2010), 357-360. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Resnick, M. et al. (2009) \"Scratch: Programming For All\" Communications of the ACM, Volume 52 Issue 11. [link]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2009). \"Jots: Cultivating reflective learning in scratch.\" Unpublished Master's thesis. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2009). \"Glowdoodle: A medium for expressive inquiry.\" Proceedings of the seventh ACM conference on Creativity and Cognition (Berkeley, California, USA, 2009), 469-470. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Silver, J. & Rosenbaum, E. (2009). \"Gifts for Intertwining with Modern Nature.\" Short paper awarded a special mention in the 2009 Como for Children competition at International Conference on Interaction Design and Children. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2009). \"Jots: Reflective learning in scratch.\" In Proceedings of the 8th International Conference on Interaction Design and Children. ACM New York, NY, USA, 2009. 284-285. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2008). \"Scratch for Second Life.\" In S. Veeragoudar Harrell (Chair & Organizer), Virtually there: Emerging designs for STEM teaching and learning in immersive online 3D microworlds. Symposium in Proceedings of the International Conference on Learning Sciences. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E., Klopfer, E., Boughner B., and Rosenheck, L. (2007). \"Engaging Students in Science Controversy through an Augmented Reality Role-Playing Game.\" In Conference Proceedings of Computer Supported Collaborative Learning. [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E., Klopfer, E., and Perry, J. (2007). \"On Location Learning: Authentic Applied Science with Networked Augmented Realities.\" Journal of Science Education Technology 16(1): 31-45 [PDF]"
+      },
+      {
+        "tag": "p",
+        "text": "Rosenbaum, E. (2005). \"Friday's Lesson -- Molecular Self-Assembly.\" In @Concord, Newsletter of the Concord Consortium. [link]"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://www.routledge.com/The-Routledge-Companion-to-Music-Technology-and-Education/King-Himonides-Ruthmann/p/book/9780367869618",
+        "text": "link"
+      },
+      {
+        "href": "/s/rosenbaum-musical-tinkering-dissertation.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/designing-for-tinkerability-76l2.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "http://www.make-digital.com/make/vol33/?pg=56#pg56",
+        "text": "magazine"
+      },
+      {
+        "href": "http://makezine.com/projects/make-33/the-banana-interface/",
+        "text": "html"
+      },
+      {
+        "href": "/s/silver-makeymakey-TEI.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-melodymorph-NIME.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/yarosh-values-IDC.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-singingfingers-IDC.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/silver_twinkle_TEI.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-Scratch4Arduino-TEI.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "http://dl.acm.org/citation.cfm?id=1592779",
+        "text": "link"
+      },
+      {
+        "href": "/s/rosenbaum-jots-thesis.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-glowdoodle-CC.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/silver-C4C-IDC.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-jots-IDC.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-S4SL-ICLS.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-posit-CSCL.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "/s/rosenbaum-outbreak-JSET.pdf",
+        "text": "PDF"
+      },
+      {
+        "href": "http://www.concord.org/publications/newsletter/2005-fall/friday.html",
+        "text": "link"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475430296663-QQ5U8SKV6RD5WB84FCFA/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "ad982e99-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475430318726-59ZE8G82YCLY6R5SL321/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "e5f7a6f5-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475430578785-S28AVI1Z6JGFEEZZBQXE/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "49612bd3-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1475430627855-S978WXOLSAB36MA24VEJ/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "78ae7111-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/melodymorph",
+    "title": "MelodyMorph — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MelodyMorph"
+      },
+      {
+        "tag": "p",
+        "text": "MelodyMorph is an iPad app (unreleased) for making interactive musical instruments and compositions. Just drag notes onto the screen, with color for pitch and shape for timbre, then tap them to play."
+      },
+      {
+        "tag": "p",
+        "text": "You can tinker with melody and harmony, make a melody intro a ring or a tree, or build a customized piano. Create playable representations of existing songs, take a tune apart and put it back together a different way, and explore harmonic relationships. Compose your own musical landscapes, make an instrument to improvise on a particular song, even modify your instrument as you play. It's a new pathway into musical creation."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/melodymorph/",
+    "title": "MelodyMorph — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MelodyMorph"
+      },
+      {
+        "tag": "p",
+        "text": "MelodyMorph is an iPad app (unreleased) for making interactive musical instruments and compositions. Just drag notes onto the screen, with color for pitch and shape for timbre, then tap them to play."
+      },
+      {
+        "tag": "p",
+        "text": "You can tinker with melody and harmony, make a melody intro a ring or a tree, or build a customized piano. Create playable representations of existing songs, take a tune apart and put it back together a different way, and explore harmonic relationships. Compose your own musical landscapes, make an instrument to improvise on a particular song, even modify your instrument as you play. It's a new pathway into musical creation."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/mk1-sampler",
+    "title": "MK-1 Sampler — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MK-1 Sampler"
+      },
+      {
+        "tag": "p",
+        "text": "The MK-1 is a sampling synthesizer I created for the Makey Makey invention kit, inspired by the classic Casio SK-1 sampling keyboard, and built using p5.js."
+      },
+      {
+        "tag": "p",
+        "text": "Try it here:"
+      },
+      {
+        "tag": "p",
+        "text": "https://ericrosenbaum.github.io/MK-1/"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://makeymakey.com/",
+        "text": "Makey Makey"
+      },
+      {
+        "href": "http://en.wikipedia.org/wiki/Casio_SK-1",
+        "text": "Casio SK-1"
+      },
+      {
+        "href": "http://p5js.org/",
+        "text": "p5.js"
+      },
+      {
+        "href": "https://ericrosenbaum.github.io/MK-1/",
+        "text": "https://ericrosenbaum.github.io/MK-1/"
+      },
+      {
+        "href": "https://ericrosenbaum.github.io/MK-1/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474828752692-J1AB3PQ7A0QOFU5JUU21/image-asset.png?format=2500w",
+        "alt": "",
+        "file": "88d41097-image-asset.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/mk1-sampler/",
+    "title": "MK-1 Sampler — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MK-1 Sampler"
+      },
+      {
+        "tag": "p",
+        "text": "The MK-1 is a sampling synthesizer I created for the Makey Makey invention kit, inspired by the classic Casio SK-1 sampling keyboard, and built using p5.js."
+      },
+      {
+        "tag": "p",
+        "text": "Try it here:"
+      },
+      {
+        "tag": "p",
+        "text": "https://ericrosenbaum.github.io/MK-1/"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://makeymakey.com/",
+        "text": "Makey Makey"
+      },
+      {
+        "href": "http://en.wikipedia.org/wiki/Casio_SK-1",
+        "text": "Casio SK-1"
+      },
+      {
+        "href": "http://p5js.org/",
+        "text": "p5.js"
+      },
+      {
+        "href": "https://ericrosenbaum.github.io/MK-1/",
+        "text": "https://ericrosenbaum.github.io/MK-1/"
+      },
+      {
+        "href": "https://ericrosenbaum.github.io/MK-1/",
+        "text": ""
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474828752692-J1AB3PQ7A0QOFU5JUU21/image-asset.png?format=2500w",
+        "alt": "",
+        "file": "88d41097-image-asset.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/mmmtsss",
+    "title": "Mmmtsss — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MmmTsss"
+      },
+      {
+        "tag": "p",
+        "text": "Mmmtsss is free software for playful looping that I created in 2008. To be honest, it's an excuse to make mouth noises, and have fun and make music together."
+      },
+      {
+        "tag": "p",
+        "text": "Mmmtsss is a sound: a bass drum in your throat (mmm) and then a little hi-hat on your teeth (tsss). Do this over and over, bobbing your head, and you've got your own party. Mmmtsss mmmtsss mmmtsss mmmtsss...."
+      },
+      {
+        "tag": "p",
+        "text": "Learn more and download it here."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://mmmtsss.com",
+        "text": "here"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/mmmtsss/",
+    "title": "Mmmtsss — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "MmmTsss"
+      },
+      {
+        "tag": "p",
+        "text": "Mmmtsss is free software for playful looping that I created in 2008. To be honest, it's an excuse to make mouth noises, and have fun and make music together."
+      },
+      {
+        "tag": "p",
+        "text": "Mmmtsss is a sound: a bass drum in your throat (mmm) and then a little hi-hat on your teeth (tsss). Do this over and over, bobbing your head, and you've got your own party. Mmmtsss mmmtsss mmmtsss mmmtsss...."
+      },
+      {
+        "tag": "p",
+        "text": "Learn more and download it here."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://mmmtsss.com",
+        "text": "here"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/musical-gears",
+    "title": "Musical Gears — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Musical Gears"
+      },
+      {
+        "tag": "p",
+        "text": "I collaborated with Jonah Elgart in 2013 on a prototype for a musical gears construction kit that lets you create complex rhythmic patterns. A large gear in the center turns smaller gears that you place around it, which go around 2, 3 or 4 times for each turn of the larger one. They have holes for pins around the edges. As an outer gear turns, its pin pushes back a Lego lever arm tensioned with a rubber band, and the arm snaps back and smacks a percussion instrument (or any other object). The combination of the different sizes of the gears and the placement of the pins on each gear lets you create a variety of different rhythmic patterns."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://jonahelgart.com/",
+        "text": "Jonah Elgart"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/musical-gears/",
+    "title": "Musical Gears — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Musical Gears"
+      },
+      {
+        "tag": "p",
+        "text": "I collaborated with Jonah Elgart in 2013 on a prototype for a musical gears construction kit that lets you create complex rhythmic patterns. A large gear in the center turns smaller gears that you place around it, which go around 2, 3 or 4 times for each turn of the larger one. They have holes for pins around the edges. As an outer gear turns, its pin pushes back a Lego lever arm tensioned with a rubber band, and the arm snaps back and smacks a percussion instrument (or any other object). The combination of the different sizes of the gears and the placement of the pins on each gear lets you create a variety of different rhythmic patterns."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://jonahelgart.com/",
+        "text": "Jonah Elgart"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/musical-paintings",
+    "title": "Musical Paintings — Eric Rosenbaum",
+    "description": " My musical paintings are playable graphical scores that you touch to play melodies and harmonies. They combine visual composition, musical composition, and gestural interaction, creating a new audiovisual world to explore.    ",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324059621-VBS7JBXE3ZSVP5VB0IHU/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "65214d59-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324505613-453XEPOOF8EUFV48ID7J/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "cd717f27-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324529621-FPXYL6KQMGSIK04IC0GM/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "c78af538-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/musical-paintings/",
+    "title": "Musical Paintings — Eric Rosenbaum",
+    "description": " My musical paintings are playable graphical scores that you touch to play melodies and harmonies. They combine visual composition, musical composition, and gestural interaction, creating a new audiovisual world to explore.    ",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324059621-VBS7JBXE3ZSVP5VB0IHU/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "65214d59-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324505613-453XEPOOF8EUFV48ID7J/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "cd717f27-image-asset.jpeg"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474324529621-FPXYL6KQMGSIK04IC0GM/image-asset.jpeg?format=2500w",
+        "alt": "",
+        "file": "c78af538-image-asset.jpeg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/scratch-4-second-life",
+    "title": "Scratch 4 Second Life — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch for Second Life"
+      },
+      {
+        "tag": "p",
+        "text": "I created Scratch for Second Life in 2008, as a way to to make it easier for people to program behaviors and interactivity in the virtual world of Second Life. It was based on an early version of the Scratch programming environment."
+      },
+      {
+        "tag": "p",
+        "text": "It is still available for download via internet archive."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://secondlife.com/",
+        "text": "Second Life"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://web.archive.org/web/20200201034847/http://web.mit.edu/~eric_r/Public/S4SL/",
+        "text": "internet archive"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/scratch-4-second-life/",
+    "title": "Scratch 4 Second Life — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch for Second Life"
+      },
+      {
+        "tag": "p",
+        "text": "I created Scratch for Second Life in 2008, as a way to to make it easier for people to program behaviors and interactivity in the virtual world of Second Life. It was based on an early version of the Scratch programming environment."
+      },
+      {
+        "tag": "p",
+        "text": "It is still available for download via internet archive."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "http://secondlife.com/",
+        "text": "Second Life"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://web.archive.org/web/20200201034847/http://web.mit.edu/~eric_r/Public/S4SL/",
+        "text": "internet archive"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/scratch-lab",
+    "title": "Scratch Lab — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch Lab"
+      },
+      {
+        "tag": "p",
+        "text": "I direct Scratch Lab, where the Scratch team explores new creative possibilities and shares them with the world."
+      },
+      {
+        "tag": "p",
+        "text": "Face Sensing uses AI to detect your face, so Scratchers can code their own Snapchat-like interactive face filters, games, and assistive technologies."
+      },
+      {
+        "tag": "p",
+        "text": "Animated Text adds new programming blocks for displaying and animating words, so it’s easier than ever to tell interactive stories, make animated poems, and add dialog to games."
+      },
+      {
+        "tag": "p",
+        "text": "Video Sprites lets you fill sprites with live video - put yourself into your project, make kaleidoscopes, apply crazy effects, and more."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://medium.com/scratchteam-blog/scratch-lab-extending-creative-possibilities-and-play-5b131cc4d9de",
+        "text": "Scratch Lab"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/face/",
+        "text": "Face Sensing"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/face/",
+        "text": ""
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/text/",
+        "text": "Animated Text"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/text/",
+        "text": ""
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/videosprites/",
+        "text": "Video Sprites"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1614735422627-EUEPQNOW2G5JCPBT199U/face-sensing-.gif?format=2500w",
+        "alt": "",
+        "file": "adc79850-face-sensing-.gif"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1614735558155-Y05VNT208J31BTI5EA62/animated-text-.gif?format=2500w",
+        "alt": "",
+        "file": "2605e8d2-animated-text-.gif"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/scratch-lab/",
+    "title": "Scratch Lab — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Scratch Lab"
+      },
+      {
+        "tag": "p",
+        "text": "I direct Scratch Lab, where the Scratch team explores new creative possibilities and shares them with the world."
+      },
+      {
+        "tag": "p",
+        "text": "Face Sensing uses AI to detect your face, so Scratchers can code their own Snapchat-like interactive face filters, games, and assistive technologies."
+      },
+      {
+        "tag": "p",
+        "text": "Animated Text adds new programming blocks for displaying and animating words, so it’s easier than ever to tell interactive stories, make animated poems, and add dialog to games."
+      },
+      {
+        "tag": "p",
+        "text": "Video Sprites lets you fill sprites with live video - put yourself into your project, make kaleidoscopes, apply crazy effects, and more."
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://medium.com/scratchteam-blog/scratch-lab-extending-creative-possibilities-and-play-5b131cc4d9de",
+        "text": "Scratch Lab"
+      },
+      {
+        "href": "https://scratch.mit.edu/",
+        "text": "Scratch"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/face/",
+        "text": "Face Sensing"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/face/",
+        "text": ""
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/text/",
+        "text": "Animated Text"
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/text/",
+        "text": ""
+      },
+      {
+        "href": "https://lab.scratch.mit.edu/videosprites/",
+        "text": "Video Sprites"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1614735422627-EUEPQNOW2G5JCPBT199U/face-sensing-.gif?format=2500w",
+        "alt": "",
+        "file": "adc79850-face-sensing-.gif"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1614735558155-Y05VNT208J31BTI5EA62/animated-text-.gif?format=2500w",
+        "alt": "",
+        "file": "2605e8d2-animated-text-.gif"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/singing-fingers",
+    "title": "Singing Fingers — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Singing Fingers"
+      },
+      {
+        "tag": "p",
+        "text": "Singing Fingers lets you fingerpaint with sound. Just touch the screen while you make a sound, and colorful paint appears. Touch the paint to play back the sound again!"
+      },
+      {
+        "tag": "p",
+        "text": "iPad version"
+      },
+      {
+        "tag": "p",
+        "text": "iPhone version"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers-hd/id424724387",
+        "text": ""
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers-hd/id424724387",
+        "text": "iPad version"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers/id381015280?mt=8",
+        "text": "iPhone version"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474732244250-RN4FKLNLVEQH7NZE6JEQ/Download_on_the_App_Store_Badge_US-UK_135x40+%281%29.jpg?format=2500w",
+        "alt": "",
+        "file": "d7e5b920-Download_on_the_App_Store_Badge_US-UK_135x40+-1-.jpg"
+      }
+    ]
+  },
+  {
+    "url": "https://www.ericrosenbaum.com/singing-fingers/",
+    "title": "Singing Fingers — Eric Rosenbaum",
+    "description": "",
+    "og_image": "",
+    "blocks": [
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "li",
+        "text": "Projects"
+      },
+      {
+        "tag": "li",
+        "text": "Media"
+      },
+      {
+        "tag": "li",
+        "text": "Earlier Work"
+      },
+      {
+        "tag": "li",
+        "text": "Bio"
+      },
+      {
+        "tag": "h1",
+        "text": "Singing Fingers"
+      },
+      {
+        "tag": "p",
+        "text": "Singing Fingers lets you fingerpaint with sound. Just touch the screen while you make a sound, and colorful paint appears. Touch the paint to play back the sound again!"
+      },
+      {
+        "tag": "p",
+        "text": "iPad version"
+      },
+      {
+        "tag": "p",
+        "text": "iPhone version"
+      }
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "/",
+        "text": ""
+      },
+      {
+        "href": "/",
+        "text": "Projects"
+      },
+      {
+        "href": "/media",
+        "text": "Media"
+      },
+      {
+        "href": "/earlier-work",
+        "text": "Earlier Work"
+      },
+      {
+        "href": "/bio",
+        "text": "Bio"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers-hd/id424724387",
+        "text": ""
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers-hd/id424724387",
+        "text": "iPad version"
+      },
+      {
+        "href": "https://itunes.apple.com/us/app/singing-fingers/id381015280?mt=8",
+        "text": "iPhone version"
+      },
+      {
+        "href": "http://www.facebook.com/10103179909078511",
+        "text": ""
+      },
+      {
+        "href": "https://www.flickr.com/people/ericrosenbaum/",
+        "text": ""
+      },
+      {
+        "href": "https://www.youtube.com/channel/UCigKQsaj4JSLRFsrskqlJWg",
+        "text": ""
+      },
+      {
+        "href": "http://soundcloud.com/eric-rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://github.com/ericrosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://medium.com/@eric.rosenbaum",
+        "text": ""
+      },
+      {
+        "href": "https://www.linkedin.com/in/eric-rosenbaum-107120/",
+        "text": ""
+      }
+    ],
+    "images": [
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1476644394468-V82I4G6OCO8OWZ5RA1J3/ericr-logo.png?format=2500w",
+        "alt": "Eric Rosenbaum",
+        "file": "fbb16203-ericr-logo.png"
+      },
+      {
+        "url": "https://images.squarespace-cdn.com/content/v1/561c2019e4b0ee65a89cee14/1474732244250-RN4FKLNLVEQH7NZE6JEQ/Download_on_the_App_Store_Badge_US-UK_135x40+%281%29.jpg?format=2500w",
+        "alt": "",
+        "file": "d7e5b920-Download_on_the_App_Store_Badge_US-UK_135x40+-1-.jpg"
+      }
+    ]
+  }
+]
