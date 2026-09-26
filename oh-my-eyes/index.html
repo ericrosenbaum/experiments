@@ -12,6 +12,8 @@
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
     --bg: #1c4fd8;
     --bg-deep: #163fb0;
     --ink: #10203f;
@@ -43,6 +45,7 @@
   *, *::before, *::after { box-sizing: inherit; }
   body {
     margin: 0; height: 100%;
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     background: var(--bg);
     background-image: radial-gradient(ellipse at 50% 120%, var(--bg-deep), transparent 70%);
     color: var(--on-bg);
@@ -77,14 +80,14 @@
     padding: 10px clamp(20px, 6vw, 96px) 24px;
     max-width: 1280px; width: 100%; margin: 0 auto;
   }
-  @media (max-width: 760px), (max-aspect-ratio: 1/1) {
-    main { grid-template-columns: 1fr; align-content: start; gap: 22px; padding-top: 18px; }
-  }
 
   /* The card */
-  .stage { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  main { grid-template-rows: minmax(0, 1fr); }
+  .stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; height: 100%; min-height: 0; }
+  /* The slot takes the space the layout leaves; the card is the largest 4:5 that fits in it. */
+  .card-slot { flex: 0 1 550px; min-height: 0; width: 100%; container-type: size; display: grid; place-items: center; }
   .card {
-    position: relative; width: min(100%, 440px); aspect-ratio: 4 / 5;
+    position: relative; width: min(100cqw, 80cqh, 440px); aspect-ratio: 4 / 5;
     background: var(--paper); border-radius: 22px; color: var(--ink);
     box-shadow: 0 2px 0 var(--paper-shade), 0 22px 40px -18px rgba(0,0,0,.55);
     display: grid; overflow: hidden;
@@ -94,7 +97,8 @@
     content: ""; position: absolute; inset: 12px; border-radius: 13px;
     border: 2px solid var(--paper-shade); pointer-events: none;
   }
-  .card .art { display: grid; place-items: center; padding: 34px; min-height: 0; }
+  .card { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+  .card .art { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; padding: 34px; min-height: 0; height: 100%; box-sizing: border-box; }
   .card img { width: 72%; height: 74%; object-fit: contain; image-rendering: auto;
     filter: drop-shadow(0 6px 0 rgba(0,0,0,.08)); }
   .card .empty { color: var(--paper-shade); font-size: 120px; font-weight: 700; line-height: 1; user-select: none; }
@@ -152,6 +156,51 @@
   .timer .btn { padding: 8px 14px; font-size: 15px; }
 
   .hint { text-align: center; color: var(--on-bg-soft); font-size: 15px; max-width: 42ch; line-height: 1.45; margin: 0; }
+
+  /* Keyboard shortcut badges mean nothing on a touch screen */
+  @media (hover: none) and (pointer: coarse) { .btn .key { display: none; } }
+
+  /* Portrait / narrow: one column that fits the screen without scrolling.
+     The sections dissolve into one grid so Next card and Roll share a row. */
+  @media (max-width: 760px), (max-aspect-ratio: 1/1) {
+    header { padding: 12px 16px 0; }
+    main {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: minmax(0, 1fr) auto auto auto auto;
+      grid-template-areas: "card card" "dice dice" "draw roll" "timer timer" "hint hint";
+      align-items: center; gap: 14px 10px; padding: 10px 16px 14px;
+    }
+    .stage, .table { display: contents; }
+    .card-slot { grid-area: card; height: 100%; }
+    .dice { grid-area: dice; min-height: 0;
+      --die-size: min(84px, 21vw, 10.5dvh); }
+    .dice[data-count="4"] { --die-size: min(76px, 18vw, 10dvh); }
+    .dice[data-count="5"] { --die-size: min(64px, 15vw, 9dvh); }
+    .stage .controls { grid-area: draw; }
+    .table .controls { grid-area: roll; }
+    .controls .btn, .controls .btn.primary { width: 100%; font-size: 18px; padding: 13px 10px; }
+    .timer { grid-area: timer; justify-self: center; min-height: 0; }
+    .timer .ring { width: 36px; height: 36px; }
+    .hint { grid-area: hint; justify-self: center; font-size: 14px; line-height: 1.35; }
+  }
+  @media ((max-width: 760px) or (max-aspect-ratio: 1/1)) and (max-height: 640px) {
+    main { gap: 10px 10px; padding-bottom: 10px; }
+    .hint { display: none; }
+  }
+
+  /* Landscape phones: keep the two columns, tighten everything vertically */
+  @media (min-width: 761px) and (min-aspect-ratio: 1/1) and (max-height: 560px) {
+    header { padding: 10px 20px 0; }
+    main { padding-top: 8px; padding-bottom: 12px; }
+    .stage { gap: 10px; }
+    .table { gap: 12px; }
+    .dice { min-height: 0; --die-size: min(116px, 22dvh); }
+    .dice[data-count="4"] { --die-size: min(104px, 20dvh); }
+    .dice[data-count="5"] { --die-size: min(88px, 18dvh); }
+    .btn.primary { font-size: 19px; padding: 12px 24px; }
+    .btn { padding: 11px 20px; }
+    .hint { display: none; }
+  }
 
   /* Settings */
   dialog {
@@ -296,9 +345,11 @@
 </header>
 
 <main>
-  <section class="stage" aria-live="polite">
-    <div class="card" id="card">
-      <div class="art" id="art"><div class="empty">?</div></div>
+  <section class="stage">
+    <div class="card-slot">
+      <div class="card" id="card">
+        <div class="art" id="art"><div class="empty">?</div></div>
+      </div>
     </div>
     <div class="controls">
       <button class="btn primary" id="drawBtn">Draw a card <span class="key">D</span></button>
@@ -319,7 +370,7 @@
       <span class="count" id="count">60</span>
       <button class="btn ghost" id="timerBtn" disabled>Start timer <span class="key">Space</span></button>
     </div>
-    <p class="hint" id="hint">Draw a card, then roll the letter dice. Describe the picture with a phrase whose words start with those letters, in any order.</p>
+    <p class="hint" id="hint" aria-live="polite">Draw a card, then roll the letter dice. Describe the picture with a phrase whose words start with those letters, in any order.</p>
   </section>
 </main>
 
