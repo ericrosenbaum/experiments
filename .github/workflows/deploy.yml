@@ -1,0 +1,19 @@
+name: Deploy
+
+# Publishes this branch to https://ericrosenbaum.github.io/experiments/assemble/
+# via the shared workflow on main (see main's README).
+
+on:
+  push:
+    branches: [assemble]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: write
+    uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
+    with:
+      name: assemble
+      build: npm run build
+      dist: dist
