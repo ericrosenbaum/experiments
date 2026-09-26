@@ -5,7 +5,7 @@ letter dice, then describe the picture with a phrase whose words start with
 those letters (in any order) before the timer runs out.
 
 Open `index.html` in a browser; there is no build step. Keys: `D` draw,
-`R` roll, `Space` timer, `1`–`5` number of dice. Settings has four themes
+`R` roll, `Space` timer, `1`–`5` number of dice, `?` how to play (also shown on the first visit). Settings has four themes
 (Game Night, Card Table, Eye Chart, Riso Zine), letter weighting, dice count
 and timer length.
 
