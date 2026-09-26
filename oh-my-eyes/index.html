@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-skin="riso">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -379,10 +379,10 @@
   <div class="field">
     <label for="skin">Theme</label>
     <select id="skin">
+      <option value="riso">Riso Zine</option>
       <option value="classic">Game Night</option>
       <option value="felt">Card Table</option>
       <option value="chart">Eye Chart</option>
-      <option value="riso">Riso Zine</option>
     </select>
   </div>
   <div class="field">
@@ -434,7 +434,7 @@ const SKINS = ["classic", "felt", "chart", "riso"];
 function applySkin() { document.documentElement.dataset.skin = state.skin; }
 const state = {
   order: [], pos: 0, round: 0, card: null, letters: [], rolling: false,
-  skin: "classic", weighting: "text", diceCount: 3, timerLen: 60, timerLeft: 0, timerId: null
+  skin: "riso", skinChosen: false, weighting: "text", diceCount: 3, timerLen: 60, timerLeft: 0, timerId: null
 };
 
 const $ = id => document.getElementById(id);
@@ -450,13 +450,13 @@ function loadPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem("ohmyeyes:prefs") || "{}");
     if (WEIGHTS[p.weighting]) state.weighting = p.weighting;
-    if (SKINS.includes(p.skin)) state.skin = p.skin;
+    if (p.skinChosen && SKINS.includes(p.skin)) { state.skin = p.skin; state.skinChosen = true; }
     if ([1,2,3,4,5].includes(p.diceCount)) state.diceCount = p.diceCount;
     if ([0,30,45,60,90].includes(p.timerLen)) state.timerLen = p.timerLen;
   } catch (e) {}
 }
 function savePrefs() {
-  try { localStorage.setItem("ohmyeyes:prefs", JSON.stringify({ skin: state.skin, weighting: state.weighting, diceCount: state.diceCount, timerLen: state.timerLen })); } catch (e) {}
+  try { localStorage.setItem("ohmyeyes:prefs", JSON.stringify({ skin: state.skin, skinChosen: state.skinChosen, weighting: state.weighting, diceCount: state.diceCount, timerLen: state.timerLen })); } catch (e) {}
 }
 
 function shuffle() {
@@ -606,7 +606,7 @@ function setDiceCount(n) {
 }
 diceCountSel.addEventListener("change", () => setDiceCount(+diceCountSel.value));
 const skinSel = $("skin");
-skinSel.addEventListener("change", () => { state.skin = skinSel.value; applySkin(); savePrefs(); });
+skinSel.addEventListener("change", () => { state.skin = skinSel.value; state.skinChosen = true; applySkin(); savePrefs(); });
 $("settingsBtn").addEventListener("click", () => {
   skinSel.value = state.skin; weightingSel.value = state.weighting; timerLenSel.value = String(state.timerLen); diceCountSel.value = String(state.diceCount);
   updateDeckInfo();
