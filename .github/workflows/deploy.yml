@@ -1,0 +1,13 @@
+name: Deploy
+on:
+  push:
+    branches: [claude/personal-website-design-74h65r]
+  workflow_dispatch:
+jobs:
+  deploy:
+    permissions:
+      contents: write
+    uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
+    with:
+      name: personal-website   # URL path: /experiments/personal-website/
+      dist: website
