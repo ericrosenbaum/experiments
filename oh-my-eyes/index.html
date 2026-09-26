@@ -223,6 +223,35 @@
   dialog .foot a { color: inherit; }
   dialog .foot .btn { font-size: 15px; padding: 9px 18px; background: var(--bg); color: #fff; }
 
+  /* How to play */
+  .meta .icon-btn.help { font-weight: 700; font-size: 20px; line-height: 1; }
+  #intro { width: min(92vw, 460px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 22px 24px 18px; }
+  #intro h2:focus { outline: none; }
+  #intro h2 { margin-bottom: 8px; }
+  #intro .lede { margin: 0 0 14px; line-height: 1.45; }
+  #intro ol { margin: 0 0 14px; padding-left: 1.3em; line-height: 1.45; }
+  #intro ol li + li { margin-top: 4px; }
+  #intro h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+  .examples { list-style: none; margin: 0; padding: 0; }
+  .examples li { display: grid; grid-template-columns: 56px 1fr; gap: 3px 14px; align-items: center; padding: 7px 0; border-top: 1px solid var(--paper-shade); }
+  .examples li:first-child { border-top: 0; }
+  .examples .thumb { grid-row: span 2; width: 56px; height: 70px; border-radius: 8px; background: #fff;
+    box-shadow: inset 0 0 0 2px var(--paper-shade); display: grid; place-items: center; }
+  .examples .thumb img { width: 70%; height: 70%; object-fit: contain; }
+  .examples .rolled { display: flex; gap: 5px; align-self: end; }
+  .mini-die { width: 26px; height: 26px; border-radius: 22%; display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    background: var(--die); color: var(--die-ink); box-shadow: inset 0 -3px 0 var(--die-edge); }
+  .examples .phrase { align-self: start; font-size: 17px; line-height: 1.3; }
+  .examples .phrase b { font-weight: 700; color: var(--timer); }
+  .examples .phrase small { display: block; font-size: 13px; opacity: .7; margin-top: 1px; }
+  #intro .tips { margin: 12px 0 0; font-size: 14px; line-height: 1.45; opacity: .8; }
+  :root[data-skin="felt"] .mini-die { font-family: var(--font-display); font-weight: 400; background: linear-gradient(155deg, #d8243f, #b10f29 60%); }
+  :root[data-skin="chart"] .mini-die { box-shadow: inset 0 0 0 2px #000; border-radius: 3px; font-family: var(--font-display); }
+  :root[data-skin="chart"] .examples .phrase b { color: #c8102e; }
+  :root[data-skin="riso"] .mini-die { border-radius: 50%; box-shadow: 2px 2px 0 #0b4fa8; font-family: var(--font-display); font-weight: 400; font-size: 12px; }
+  :root[data-skin="riso"] .examples .phrase b { color: #ff4fa3; }
+  :root[data-skin="riso"] #intro { border-radius: 6px; box-shadow: 10px 10px 0 #ff4fa3; }
+
   /* ---------- Themes ---------- */
   h1 { font-family: var(--font-display, inherit); }
   body { font-family: var(--font-body, "Fredoka", "Nunito", "Avenir Next Rounded", "Arial Rounded MT Bold", system-ui, sans-serif); }
@@ -338,6 +367,7 @@
   <h1 aria-label="Oh My Eyes"><span class="t" aria-hidden="true">Oh</span>&nbsp;<span class="t" aria-hidden="true">My</span>&nbsp;<span class="t" aria-hidden="true">Eyes</span></h1>
   <div class="meta">
     <div class="round" id="round"><small>Round</small> 0</div>
+    <button class="icon-btn help" id="helpBtn" aria-label="How to play">?</button>
     <button class="icon-btn" id="settingsBtn" aria-label="Settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
@@ -373,6 +403,24 @@
     <p class="hint" id="hint" aria-live="polite">Draw a card, then roll the letter dice. Describe the picture with a phrase whose words start with those letters, in any order.</p>
   </section>
 </main>
+
+<dialog id="intro" aria-labelledby="introTitle">
+  <h2 id="introTitle" tabindex="-1" autofocus>How to play</h2>
+  <p class="lede">A quick describing game for two or more players.</p>
+  <ol>
+    <li>Draw a picture card.</li>
+    <li>Roll the letter dice.</li>
+    <li>Describe the picture in a phrase with one word per die. Each word starts with a different die&rsquo;s letter, in any order.</li>
+    <li>Say it before the timer runs out.</li>
+  </ol>
+  <h3>Examples</h3>
+  <ul class="examples" id="examples"></ul>
+  <p class="tips">You don&rsquo;t have to name the thing: clues, jokes and puns all count. Take turns, or have everyone call out answers at once.</p>
+  <div class="foot">
+    <span></span>
+    <button class="btn" id="closeIntro">Let&rsquo;s play</button>
+  </div>
+</dialog>
 
 <dialog id="settings">
   <h2>Settings</h2>
@@ -620,11 +668,58 @@ timerLenSel.addEventListener("change", () => {
 });
 $("reshuffle").addEventListener("click", () => { shuffle(); settings.close(); });
 
+// How to play: shown on the first visit, reopened with the ? button.
+// Each example: card name from DECK, the dice as rolled, and the phrase.
+const EXAMPLES = [
+  { card: "giraffe", dice: "LTN", phrase: "Long Tall Neck" },
+  { card: "coffee pot", dice: "MBH", phrase: "Hot Morning Brew", note: "any order works" },
+  { card: "penguin", dice: "SWT", phrase: "Tuxedo Wearing Swimmer", note: "no need to name it" },
+  { card: "elephant", dice: "EBNT", phrase: "Big Ears, Nose Trumpet", note: "four dice" }
+];
+const intro = $("intro");
+function renderExamples() {
+  const list = $("examples");
+  for (const ex of EXAMPLES) {
+    const item = DECK.find(d => d.name === ex.card);
+    const li = document.createElement("li");
+    const thumb = document.createElement("div"); thumb.className = "thumb";
+    if (item) { const img = new Image(); img.src = item.src; img.alt = ex.card; thumb.appendChild(img); }
+    const rolled = document.createElement("div"); rolled.className = "rolled";
+    rolled.setAttribute("aria-label", "Dice: " + ex.dice.split("").join(", "));
+    for (const c of ex.dice) { const d = document.createElement("span"); d.className = "mini-die"; d.textContent = c; d.setAttribute("aria-hidden", "true"); rolled.appendChild(d); }
+    const phrase = document.createElement("div"); phrase.className = "phrase";
+    ex.phrase.split(" ").forEach((w, i) => {
+      if (i) phrase.append(" ");
+      const b = document.createElement("b"); b.textContent = w[0]; phrase.append(b, w.slice(1));
+    });
+    if (ex.note) { const n = document.createElement("small"); n.textContent = ex.note; phrase.appendChild(n); }
+    li.append(thumb, rolled, phrase);
+    list.appendChild(li);
+  }
+}
+function openIntro() { if (!intro.open) intro.showModal(); }
+function closeIntro() {
+  intro.close();
+  try { localStorage.setItem("ohmyeyes:introSeen", "1"); } catch (e) {}
+}
+$("helpBtn").addEventListener("click", openIntro);
+$("closeIntro").addEventListener("click", closeIntro);
+intro.addEventListener("cancel", () => { try { localStorage.setItem("ohmyeyes:introSeen", "1"); } catch (e) {} });
+intro.addEventListener("click", e => { // a tap on the backdrop, outside the dialog box
+  const r = intro.getBoundingClientRect();
+  if (e.target === intro && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) closeIntro();
+});
+document.addEventListener("keydown", e => { if (e.key === "?" && !e.target.closest("dialog, select, input")) { e.preventDefault(); openIntro(); } });
+renderExamples();
+
 loadPrefs();
 applySkin();
 shuffle();
 resetTimer();
 setDiceCount(state.diceCount);
+let introSeen = false;
+try { introSeen = localStorage.getItem("ohmyeyes:introSeen") === "1"; } catch (e) {}
+if (!introSeen) openIntro();
 </script>
 </body>
 </html>
