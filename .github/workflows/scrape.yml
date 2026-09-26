@@ -1,0 +1,65 @@
+name: Scrape ericrosenbaum.com
+
+# One-off: mirrors the live site's pages and images into scrape/ on this
+# branch, so the redesign can use the real content. The session that builds
+# the site can't reach ericrosenbaum.com, but Actions runners can.
+
+on:
+  push:
+    branches: [claude/personal-website-design-74h65r]
+    paths: ['.github/workflows/scrape.yml', 'tools/scrape_site.py']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-site
+  cancel-in-progress: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mirror pages
+        run: |
+          set -uo pipefail
+          # wget exits 8 when any single URL 404s; that's fine for a mirror.
+          wget --recursive --level=inf --no-parent \
+            --domains=www.ericrosenbaum.com,ericrosenbaum.com \
+            --reject='*.pdf,*.zip,*.mp3,*.mp4,*.mov,*.jpg,*.jpeg,*.png,*.gif,*.webp,*.svg,*.ico,*.css,*.js,*.woff,*.woff2' \
+            --reject-regex='(\?|&)(format|offset|reversePaginate|tag|category|month|author)=' \
+            --adjust-extension --restrict-file-names=windows \
+            --user-agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36' \
+            -e robots=off --wait=0.3 --random-wait --tries=3 --timeout=30 \
+            --directory-prefix=mirror \
+            https://www.ericrosenbaum.com/ || echo "wget exit $?"
+          find mirror -name '*.html' | sort
+          du -sh mirror
+
+      - name: Extract text and images
+        run: |
+          rm -rf scrape
+          mkdir -p scrape
+          python3 tools/scrape_site.py mirror scrape
+          mkdir -p scrape/html
+          cp -a mirror/. scrape/html/
+          du -sh scrape scrape/images
+          ls scrape/images | wc -l
+
+      - name: Commit scrape/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scrape
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -q -m "Scrape ericrosenbaum.com into scrape/"
+          for i in 1 2 3 4 5; do
+            git push -q origin HEAD:${GITHUB_REF_NAME} && exit 0
+            sleep $((i * 3))
+            git pull -q --rebase origin ${GITHUB_REF_NAME}
+          done
+          exit 1
