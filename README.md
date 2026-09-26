@@ -9,6 +9,7 @@ deploy workflow.
 | assemble — molecular self-assembly simulator | [`assemble`](../../tree/assemble) | https://ericrosenbaum.github.io/experiments/assemble/ |
 | sleep spectrogram | [`spectrogram`](../../tree/spectrogram) | https://ericrosenbaum.github.io/experiments/spectrogram/ |
 | Oh My Eyes — letter-dice picture game | [`oh-my-eyes`](../../tree/oh-my-eyes) | https://ericrosenbaum.github.io/experiments/oh-my-eyes/ |
+| personal website — redesign of ericrosenbaum.com | [`claude/personal-website-design-74h65r`](../../tree/claude/personal-website-design-74h65r) | https://ericrosenbaum.github.io/experiments/personal-website/ |
 
 Landing page: https://ericrosenbaum.github.io/experiments/
 
