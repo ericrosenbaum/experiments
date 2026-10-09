@@ -1,0 +1,15 @@
+{
+  "name": "smart-brick-proximity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time proximity display for a LEGO Smart Brick, driven by its BLE advertisements",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@stoprocent/noble": "^2.3.16"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "lift-to-launch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lift a LEGO Smart Brick off its dock to launch a rocket on screen; set it back to land",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-smartplay": "^1.0.0"
+  }
+}

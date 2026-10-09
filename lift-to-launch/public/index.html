@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Lift to Launch</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body data-phase="unknown">
+    <div class="sky" aria-hidden="true">
+      <div class="stars near"></div>
+      <div class="stars far"></div>
+    </div>
+
+    <header class="hud">
+      <p class="link" id="link"><span class="dot"></span><span id="linkText">Starting up</span></p>
+      <p class="count" id="count"></p>
+    </header>
+
+    <main class="stage">
+      <h1 class="prompt" id="prompt">Wake the brick on its dock</h1>
+      <p class="timer" id="timer" aria-live="polite"></p>
+    </main>
+
+    <div class="rocket" id="rocket" aria-hidden="true">
+      <span class="ship">🚀</span>
+      <span class="flame">🔥</span>
+    </div>
+
+    <div class="ground" aria-hidden="true">
+      <div class="pad"></div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
