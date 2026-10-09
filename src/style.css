@@ -115,6 +115,8 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 #point-hint { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tool { border: 2px solid var(--line); background: none; border-radius: 10px; padding: 5px 10px; font-weight: 700; }
 .tool.on { background: var(--yellow); border-color: var(--yellow); color: #222; }
+#btn-talk.on { animation: listening 1.2s ease-in-out infinite; }
+@keyframes listening { 50% { box-shadow: 0 0 0 5px rgba(255, 212, 0, 0.35); } }
 .primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 800; }
 .primary:disabled { opacity: .6; cursor: progress; }
 

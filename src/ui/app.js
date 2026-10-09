@@ -157,6 +157,7 @@ export class App {
     $('btn-make').onclick = () => this.make();
     $('btn-point').onclick = () => this.setPointing(!this.pointing);
     $('btn-console').onclick = () => {
+    this._wireSpeech();
       $('console').classList.toggle('collapsed');
       this.unread = 0;
       $('console-badge').textContent = '';
@@ -190,6 +191,7 @@ export class App {
   select(e) {
     if (e && (e.kind !== 'model' || e.remote)) return;
     this.selected = e;
+    if (e !== this.selected) this.stopListening?.();
     $('no-selection').classList.toggle('hidden', !!e);
     $('selection').classList.toggle('hidden', !e);
     this.ring.visible = !!e;
@@ -300,11 +302,69 @@ export class App {
     this.pointing = on;
     $('btn-point').classList.toggle('on', on);
     $('viewport').classList.toggle('pointing', on);
-    $('point-hint').textContent = on ? 'Click a part, a thing, or the ground' : '';
+    $('point-hint').textContent = on ? 'Click a part, a thing, or the ground' : this.listening ? 'Say what it should do' : '';
     if (!on) this._highlight(null);
   }
 
   // ---- composer -----------------------------------------------------------------
+  // ---- talking ------------------------------------------------------------------
+
+  // Browser speech recognition (Chrome, Edge, Safari). Final words go in at the
+  // cursor like typing, so a kid can say "go to", point at a tree, and keep talking.
+  _wireSpeech() {
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SR) return;
+    const btn = $('btn-talk');
+    btn.classList.remove('hidden');
+    const rec = new SR();
+    rec.lang = navigator.language || 'en-US';
+    rec.continuous = true;
+    rec.interimResults = true;
+    this.listening = false;
+    btn.onmousedown = (ev) => ev.preventDefault(); // keep the cursor in the composer
+    btn.onclick = () => (this.listening ? rec.stop() : rec.start());
+    rec.onstart = () => {
+      this.listening = true;
+      btn.classList.add('on');
+      btn.textContent = '🎤 Listening…';
+      $('point-hint').textContent = 'Say what it should do';
+    };
+    rec.onend = () => {
+      this.listening = false;
+      btn.classList.remove('on');
+      btn.textContent = '🎤 Talk';
+      $('point-hint').textContent = this.pointing ? 'Click a part, a thing, or the ground' : '';
+    };
+    rec.onerror = (ev) => {
+      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') this.log('I need permission to use the microphone to hear you.', 'error');
+      else if (ev.error !== 'no-speech' && ev.error !== 'aborted') this.log(`Listening stopped: ${ev.error}`, 'error');
+    };
+    rec.onresult = (ev) => {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (!r.isFinal) { interim += r[0].transcript; continue; }
+        let words = r[0].transcript.trim();
+        const done = /\bmake it so\W*$/i.test(words);
+        if (done) words = words.replace(/\W*make it so\W*$/i, '');
+        if (words) this._insertSpoken(words);
+        if (done) { rec.stop(); this.make(); return; }
+      }
+      $('point-hint').textContent = interim ? `🎤 …${interim.trim()}` : 'Say what it should do';
+    };
+    this.stopListening = () => this.listening && rec.stop();
+  }
+
+  _insertSpoken(words) {
+    const r = this._range();
+    const pre = document.createRange();
+    pre.selectNodeContents($('composer'));
+    pre.setEnd(r.startContainer, r.startOffset);
+    const before = pre.toString();
+    if (!before.trim() || /[.!?]\s*$/.test(before)) words = words[0].toUpperCase() + words.slice(1);
+    this._insertText((before && !/\s$/.test(before) ? ' ' : '') + words + ' ');
+  }
+
 
   _wireComposer() {
     const c = $('composer');
@@ -386,6 +446,7 @@ export class App {
     const text = this.serialize().trim();
     if (!e || !text) return;
     const btn = $('btn-make');
+    this.stopListening?.();
     btn.disabled = true;
     btn.textContent = '✨ Thinking…';
     try {
