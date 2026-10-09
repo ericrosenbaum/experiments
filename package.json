@@ -1,0 +1,22 @@
+{
+  "name": "brick-behaviors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototype: kids describe behaviors for virtual brick creations in structured natural language; generated code runs sandboxed against high-level primitives in a physics world.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node test/compiler.test.mjs && node test/prompt.test.mjs && node test/physics.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
+    "@dimforge/rapier3d-compat": "^0.19.3",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.0",
+    "vite": "^8.3.4"
+  }
+}

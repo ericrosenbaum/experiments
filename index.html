@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Behavior programs run in workers that inherit this policy: no outside network. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' blob:; worker-src 'self' blob:; connect-src 'self' ws: wss:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:" />
+  <title>Brick Behaviors</title>
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="viewport"></div>
+  <div id="bubbles"></div>
+
+  <header id="topbar">
+    <div class="brand"><span class="logo"></span>Brick Behaviors</div>
+    <button id="btn-library" class="tb" title="Add a model from the library">＋ Add model</button>
+    <button id="btn-pause" class="tb" title="Pause / resume the world">⏸ Pause</button>
+    <button id="btn-reset" class="tb" title="Put everything back where it started">⟲ Reset world</button>
+    <button id="btn-follow" class="tb" title="Camera follows the selected model">🎥 Follow</button>
+    <button id="btn-mute" class="tb" title="Sound on/off">🔊</button>
+    <span id="gen-status" class="pill" title="How descriptions become code">…</span>
+    <span id="net-status" class="pill" title="Open this page in another tab to see a friend's models">👥 1 player</span>
+  </header>
+
+  <aside id="library" class="hidden">
+    <div class="panel-title">Model library <button class="x" data-close="library">✕</button></div>
+    <div id="library-list"></div>
+    <p class="hint">Building isn't part of this prototype — pick a premade creation, then teach it what to do.</p>
+  </aside>
+
+  <aside id="inspector">
+    <div id="no-selection">
+      <h2>Click a model to teach it</h2>
+      <p>Then describe what it should do in your own words. You can point at its parts or at things in the world to use them in your sentence.</p>
+      <p class="hint">Drag to orbit · Right-drag to pan · Scroll to zoom</p>
+    </div>
+    <div id="selection" class="hidden">
+      <div class="sel-head">
+        <span id="sel-swatch" class="swatch"></span>
+        <h2 id="sel-name"></h2>
+        <button id="btn-respawn" class="mini" title="Put it back where it started">⟲</button>
+        <button id="btn-remove" class="mini" title="Remove this model">🗑</button>
+      </div>
+      <p id="sel-blurb" class="blurb"></p>
+
+      <div class="section-label">Its parts <span class="hint">(click to use in a sentence)</span></div>
+      <div id="sel-parts" class="chips"></div>
+
+      <div class="section-label">Teach it something new</div>
+      <div class="starters" id="starters"></div>
+      <div id="composer" contenteditable="true" spellcheck="false" data-placeholder="When I press the up arrow, drive forward…"></div>
+      <div class="composer-tools">
+        <button id="btn-point" class="tool" title="Then click a part, a thing, or the ground to add it to your sentence (or hold Alt and click)">👉 Point</button>
+        <span id="point-hint" class="hint"></span>
+        <button id="btn-make" class="primary">✨ Make it so</button>
+      </div>
+      <div id="examples"></div>
+
+      <div class="section-label">What it knows <span id="behavior-count" class="hint"></span></div>
+      <div id="behaviors"></div>
+    </div>
+  </aside>
+
+  <section id="console" class="collapsed">
+    <div class="console-head"><span>Program log</span><span id="console-badge"></span><button id="btn-console" class="mini">▴</button></div>
+    <div id="console-body"></div>
+  </section>
+
+  <div id="loading">Building the world…</div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
