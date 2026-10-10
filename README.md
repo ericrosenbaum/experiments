@@ -6,8 +6,9 @@ Building is out of scope here. You pick premade models from a library and teach 
 
 ```bash
 npm install
-npm run dev                          # offline compiler only
-ANTHROPIC_API_KEY=sk-... npm run dev # Claude writes the code
+cp .env.example .env.local           # then paste your key into .env.local
+npm run dev                          # Claude writes the code if a key is set,
+                                     # otherwise the offline compiler is used
 npm test                             # compiler, prompt, physics checks (headless)
 ```
 
