@@ -156,8 +156,8 @@ export class App {
     };
     $('btn-make').onclick = () => this.make();
     $('btn-point').onclick = () => this.setPointing(!this.pointing);
-    $('btn-console').onclick = () => {
     this._wireSpeech();
+    $('btn-console').onclick = () => {
       $('console').classList.toggle('collapsed');
       this.unread = 0;
       $('console-badge').textContent = '';
@@ -190,8 +190,8 @@ export class App {
 
   select(e) {
     if (e && (e.kind !== 'model' || e.remote)) return;
-    this.selected = e;
     if (e !== this.selected) this.stopListening?.();
+    this.selected = e;
     $('no-selection').classList.toggle('hidden', !!e);
     $('selection').classList.toggle('hidden', !e);
     this.ring.visible = !!e;
@@ -306,7 +306,6 @@ export class App {
     if (!on) this._highlight(null);
   }
 
-  // ---- composer -----------------------------------------------------------------
   // ---- talking ------------------------------------------------------------------
 
   // Browser speech recognition (Chrome, Edge, Safari). Final words go in at the
@@ -365,6 +364,7 @@ export class App {
     this._insertText((before && !/\s$/.test(before) ? ' ' : '') + words + ' ');
   }
 
+  // ---- composer -----------------------------------------------------------------
 
   _wireComposer() {
     const c = $('composer');
@@ -445,8 +445,8 @@ export class App {
     const e = this.selected;
     const text = this.serialize().trim();
     if (!e || !text) return;
-    const btn = $('btn-make');
     this.stopListening?.();
+    const btn = $('btn-make');
     btn.disabled = true;
     btn.textContent = '✨ Thinking…';
     try {
