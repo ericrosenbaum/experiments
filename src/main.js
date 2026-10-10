@@ -7,6 +7,7 @@ import { Runtime } from './behavior/runtime.js';
 import { Audio } from './audio.js';
 import { App } from './ui/app.js';
 import { Net } from './net.js';
+import { Chat } from './chat/chat.js';
 
 await RAPIER.init();
 
@@ -66,6 +67,8 @@ net.attach(runtime, app);
 await new Promise((r) => setTimeout(r, 400));
 net.update(0);
 app.boot();
+const chat = new Chat({ app, net, camera, controls, world });
+net.chat = chat;
 
 document.getElementById('loading').remove();
 
@@ -75,9 +78,10 @@ renderer.setAnimationLoop(() => {
   world.step(dt);
   net.update(dt);
   app.update(dt);
+  chat.update();
   controls.update();
   renderer.render(scene, camera);
 });
 
 // for debugging / tests
-Object.assign(window, { __bb: { world, runtime, app, net, camera, controls } });
+Object.assign(window, { __bb: { world, runtime, app, net, chat, camera, controls } });

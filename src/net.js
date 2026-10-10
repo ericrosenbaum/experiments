@@ -31,6 +31,7 @@ export class Net {
 
   sendMessage(name) { this._send({ t: 'msg', name }); }
   sendSay(entity, text, seconds) { this._send({ t: 'say', id: entity.id, text, seconds }); }
+  sendChat(phrases, modelId) { this._send({ t: 'chat', phrases, modelId }); }
   sendSound(name, pos) { this._send({ t: 'sound', name, pos: [pos.x, pos.y, pos.z] }); }
 
   update(dt) {
@@ -100,6 +101,7 @@ export class Net {
         if (r) this.app?.say(r.entity, String(m.text).slice(0, 80), Math.min(10, Number(m.seconds) || 2));
         break;
       }
+      case 'chat': this.chat?.receive({ phrases: m.phrases, from: m.from, modelId: m.modelId }); break;
       case 'sound': this.app?.audio.play(String(m.name), { x: m.pos?.[0] ?? 0, y: m.pos?.[1] ?? 0, z: m.pos?.[2] ?? 0 }); break;
       case 'bye':
         for (const [key, r] of this.remotes) if (key.startsWith(`${m.from}:`)) { this.world.remove(r.entity); this.remotes.delete(key); }

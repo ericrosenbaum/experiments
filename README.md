@@ -83,6 +83,17 @@ The physics engine is Rapier 3D, and Three.js mirrors its bodies for rendering (
 
 The transport is `BroadcastChannel`, so for now players are browser tabs. Moving to a real relay only means replacing the channel. New players spawn in a spot that no other player is using.
 
+## Brick Talk chat
+
+A collapsible chat window (bottom left) based on the Brick Talk concept: you type in any language, and other players only ever see a row of symbols, never your words. Each symbol is a small 3D-rendered brick build on a pedestal in its category color (`public/bricktalk/<id>.webp`, extracted from the Brick Talk artifact).
+
+To redesign a symbol, describe its build in `tools/bricktalk/builds.js` and run `node tools/bricktalk/render.mjs <ids> <outdir>` with the dev server up (set `BRICK_URL` if it isn't on :5173). The script renders each build in headless Chrome with three.js, matching the camera, lights and pedestal of the originals, and writes `<id>-review.png`, which compares the old and new versions at chat sizes and shows the new one next to all 64 symbols. Add `--install` to copy the result into `public/bricktalk/`. `go` is in there only as the calibration reference; `play` is the redrawn game controller.
+
+- **Translation is always Claude** (`server/bricktalk.js`, `POST /api/bricktalk`, `claude-haiku-5-5`). The response schema's enum is the 64 symbol ids, so the model can't return anything else. There's no offline fallback; without a key the chat says so.
+- **The validator is the safety layer** (`src/chat/symbols.js`). Every phrase is checked on the server and again on the page (grammar, no name-calling, at most 6 symbols). Dropped words and blocked phrases are shown to the sender only.
+- **In the world**, a sent message appears as a symbol bubble over your selected model and is shared with other tabs, where it appears over your model's copy.
+- **Simulating a friend**: switch the **Me / Friend** button to Friend and type, or press 🎲 for a canned friend message. It shows up in the log and as a yellow-outlined bubble over a friend's model (or a spot near the middle of the view if no friend is connected).
+
 ## Layout
 
 ```
@@ -98,8 +109,12 @@ src/world/     world.js       Rapier + Three entities, joints, motors
                worldmap.js    the premade world
                bricks.js      brick geometry/materials
 src/ui/app.js  composer, pointing, behavior cards, bubbles
+src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
+               prompt.js      Claude prompt + enum schema
+               chat.js        the chat window and in-world bubbles
 src/net.js     multiplayer
-server/        /api/generate (Vite middleware)
+tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
+server/        /api/generate, /api/bricktalk (Vite middleware)
 test/          compiler / prompt / physics checks
 tools/         smoke.mjs (headless browser run), physics probes
 ```
