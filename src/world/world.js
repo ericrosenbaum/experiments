@@ -4,7 +4,7 @@
 // chassis by revolute joints (wheels and hinges).
 import * as THREE from 'three';
 import { brickMesh, wheelMesh, material, SIZES, BRICK_H } from './bricks.js';
-import { modelBottom } from './library.js';
+import { modelBottom, modelBounds } from './library.js';
 
 const DEG = Math.PI / 180;
 export const GRAVITY = -25; // studs/s^2 — "toy scale" gravity, snappy but readable
@@ -188,6 +188,42 @@ export class World {
     }
     chassisObj.userData.entity = e;
     return this._register(e);
+  }
+
+  // Nearest spot to (x, z), spiralling outward, where the model's resting
+  // bounding box doesn't touch anything already in the world.
+  findClearSpot(def, { x = 0, z = 0, yaw = 0 } = {}, margin = 0.5) {
+    const R = this.R;
+    const { min, max } = modelBounds(def);
+    const half = min.map((v, k) => (max[k] - v) / 2 + margin);
+    const center = min.map((v, k) => (max[k] + v) / 2);
+    const lift = -min[1] + 0.05;
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw * DEG);
+    const shape = new R.Cuboid(...half);
+    // Test colliders directly: the scene-query tree only refreshes on step,
+    // so it would miss things added since (like the whole world at boot).
+    const others = [];
+    this.physics.forEachCollider((col) => {
+      if (this.colliderInfo.get(col.handle)?.entity.kind !== 'ground') others.push(col);
+    });
+    const reach = Math.hypot(...half) + 12;
+    const clear = (px, pz) => {
+      const c = new THREE.Vector3(...center).applyQuaternion(q).add(new THREE.Vector3(px, lift, pz));
+      return others.every((col) => {
+        const t = col.translation();
+        return Math.hypot(t.x - c.x, t.z - c.z) > reach || !col.intersectsShape(shape, c, q);
+      });
+    };
+    if (clear(x, z)) return { x, z, yaw };
+    for (let r = 2; r <= 60; r += 2) {
+      const n = Math.ceil((2 * Math.PI * r) / 2);
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * 2 * Math.PI;
+        const px = x + r * Math.cos(a), pz = z + r * Math.sin(a);
+        if (clear(px, pz)) return { x: px, z: pz, yaw };
+      }
+    }
+    return { x, z, yaw };
   }
 
   // ---- loose bricks and props ----------------------------------------------

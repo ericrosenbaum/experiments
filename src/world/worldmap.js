@@ -22,8 +22,8 @@ function house(world, n, cx, cz, wallColor, roofColor) {
   const thingId = `house-${n}`;
   const name = `${roofColor[0].toUpperCase() + roofColor.slice(1)}-Roof House`;
   const rows = 4;
-  const add = (x, y, z, w, d, color = wallColor) =>
-    world.addBrick({ dims: [w, BRICK_H, d], color, x: cx + x, y, z: cz + z, kind: 'house', name, thingId, sleeping: true });
+  const add = (x, y, z, w, d, color = wallColor, h = BRICK_H) =>
+    world.addBrick({ dims: [w, h, d], color, x: cx + x, y, z: cz + z, kind: 'house', name, thingId, sleeping: true });
   // Lay segment lengths (in studs) along a wall, alternating the joint pattern.
   const segs = (len, odd) => (len === 8 ? (odd ? [2, 4, 2] : [4, 4]) : (odd ? [2, 4] : [4, 2]));
   for (let r = 0; r < rows; r++) {
@@ -47,7 +47,7 @@ function house(world, n, cx, cz, wallColor, roofColor) {
     }
   }
   const top = rows * BRICK_H;
-  add(0, top + PLATE_H / 2, 0, 9, 9, roofColor);
+  add(0, top + PLATE_H / 2, 0, 9, 9, roofColor, PLATE_H);
   world.addBrick({ dims: [6, BRICK_H, 6], color: roofColor, x: cx, y: top + PLATE_H + BRICK_H / 2, z: cz, kind: 'house', name, thingId, sleeping: true });
   world.addBrick({ dims: [3, BRICK_H, 3], color: roofColor, x: cx, y: top + PLATE_H + BRICK_H * 1.5, z: cz, kind: 'house', name, thingId, sleeping: true });
 }
@@ -80,6 +80,6 @@ export function buildWorld(world) {
     ],
   });
   world.addBall({ x: 4, y: 1.3, z: 14, color: 'white', name: 'Ball' });
-  const loose = [['red', -12, 6], ['blue', -10, 8], ['yellow', -12.5, 9], ['green', -9, 4.5], ['orange', 6, -10], ['purple', 8, -12]];
+  const loose = [['red', -13, 5], ['blue', -9, 8], ['yellow', -13, 11], ['green', -8.5, 3.5], ['orange', 5, -11], ['purple', 9.5, -12]];
   loose.forEach(([color, x, z], i) => world.addBrick({ size: i % 2 ? '2x2' : '2x4', color, x, y: BRICK_H / 2, z, yaw: i * 37, sleeping: true }));
 }

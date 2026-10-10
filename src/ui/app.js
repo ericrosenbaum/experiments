@@ -114,6 +114,7 @@ export class App {
       const p = this.controls.target.clone().add(dir.setY(0).normalize().multiplyScalar(6));
       pose = { x: p.x + (Math.random() - 0.5) * 4, z: p.z + (Math.random() - 0.5) * 4, yaw: Math.atan2(-dir.x, -dir.z) * 180 / Math.PI + 180 };
     }
+    pose = { ...pose, ...this.world.findClearSpot(def, pose) }; // never start inside something
     const n = [...this.world.entities.values()].filter((e) => e.def?.id === defId && !e.remote).length;
     const e = this.world.addModel(def, { ...pose, name: n ? `${def.name} ${n + 1}` : def.name });
     e.behaviors = [];

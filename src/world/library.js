@@ -108,12 +108,12 @@ export const LIBRARY = [
       { name: 'back left wheel', kind: 'wheel', side: 'left', at: [2.55, -0.3, -2.4], radius: 1.1, width: 0.9 },
       { name: 'back right wheel', kind: 'wheel', side: 'right', at: [-2.55, -0.3, -2.4], radius: 1.1, width: 0.9 },
       {
-        name: 'scoop', kind: 'hinge', pivot: [0, 0.6, 2.4], axis: [1, 0, 0], sign: -1, limits: [-15, 75], strength: 3,
+        name: 'scoop', kind: 'hinge', pivot: [0, 0.6, 2.5], axis: [1, 0, 0], sign: -1, limits: [-15, 75], strength: 3,
         bricks: [
           b(1.5, 0, 1.5, 1, B, 3, 'darkgray'),
           b(-1.5, 0, 1.5, 1, B, 3, 'darkgray'),
           b(0, -0.6, 3.4, 5, P, 1.8, 'darkgray', { studs: false }),
-          b(0, 0, 4.25, 5, 1.2, 0.2, 'darkgray', { studs: false }),
+          b(0, 0.1, 4.2, 5, 1.0, 0.2, 'darkgray', { studs: false }),
         ],
       },
     ],
@@ -130,7 +130,9 @@ export const LIBRARY = [
       b(0, 0, 0, 4, B, 6, 'brown'),
       b(1.5, B, 0.5, 1, B, 1, 'brown'),
       b(-1.5, B, 0.5, 1, B, 1, 'brown'),
-      b(0, 1.5 * B + P / 2, 0.5, 4, P, 1, 'tan'),
+      // axle plates, split to leave a slot the throwing arm swings through
+      b(1.3, 1.5 * B + P / 2, 0.5, 1.4, P, 1, 'tan', { studs: false }),
+      b(-1.3, 1.5 * B + P / 2, 0.5, 1.4, P, 1, 'tan', { studs: false }),
       b(0, B * 0.75, -1.5, 2, P, 3, 'tan'),
     ],
     parts: [
@@ -141,11 +143,15 @@ export const LIBRARY = [
       {
         name: 'throwing arm', kind: 'hinge', pivot: [0, 1.25 * B + 0.5, 0.5], axis: [1, 0, 0], sign: 1, limits: [-5, 130], strength: 4, speed: 200, density: 0.3,
         bricks: [
-          b(0, 0, -2.6, 1, P, 5.6, 'tan'),
-          b(0, 0.0, -5.5, 2.2, P, 2.2, 'darkgray', { bucket: true }),
-          b(1.05, 0.5, -5.5, 0.15, 0.7, 2.2, 'darkgray', { studs: false }),
-          b(-1.05, 0.5, -5.5, 0.15, 0.7, 2.2, 'darkgray', { studs: false }),
-          b(0, 0.5, -6.55, 2.2, 0.7, 0.15, 'darkgray', { studs: false }),
+          // arm ends where the bucket begins; the walls stand on the bucket
+          // floor and the back wall fits between the side walls, so no two
+          // faces share a plane (they'd flicker). Inside is 2.3 x 2.45, so a
+          // 2x2 brick fits without overlapping the walls.
+          b(0, 0, -2.0, 1, P, 4.4, 'tan'),
+          b(0, 0.0, -5.5, 2.6, P, 2.6, 'darkgray', { bucket: true, studs: false }),
+          b(1.225, 0.55, -5.5, 0.15, 0.7, 2.6, 'darkgray', { studs: false }),
+          b(-1.225, 0.55, -5.5, 0.15, 0.7, 2.6, 'darkgray', { studs: false }),
+          b(0, 0.55, -6.725, 2.3, 0.7, 0.15, 'darkgray', { studs: false }),
         ],
       },
     ],
@@ -181,7 +187,7 @@ export const LIBRARY = [
         name: 'tail', kind: 'hinge', pivot: [0, 0.2, -2.5], axis: [0, 1, 0], sign: 1, limits: [-50, 50], strength: 1,
         bricks: [
           b(0, 0, -1.4, 1.8, B, 2.8, 'green'),
-          b(0, -0.2, -3.6, 1, 0.8, 1.8, 'green', { studs: false }),
+          b(0, -0.2, -3.7, 1, 0.8, 1.8, 'green', { studs: false }),
         ],
       },
     ],
@@ -190,13 +196,21 @@ export const LIBRARY = [
 
 export const LIBRARY_BY_ID = Object.fromEntries(LIBRARY.map((d) => [d.id, d]));
 
+// Local-space bounding box of a model at rest: { min: [x,y,z], max: [x,y,z] }.
+export function modelBounds(def) {
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  const grow = (c, half) => {
+    for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], c[k] - half[k]); max[k] = Math.max(max[k], c[k] + half[k]); }
+  };
+  for (const br of def.bricks) grow(br.at, br.size.map((s) => s / 2));
+  for (const p of def.parts) {
+    if (p.kind === 'wheel') grow(p.at, [p.width / 2, p.radius, p.radius]);
+    else for (const br of p.bricks) grow(br.at.map((v, k) => v + p.pivot[k]), br.size.map((s) => s / 2));
+  }
+  return { min, max };
+}
+
 // Lowest point of a model, for placing it on the ground.
 export function modelBottom(def) {
-  let min = Infinity;
-  for (const br of def.bricks) min = Math.min(min, br.at[1] - br.size[1] / 2);
-  for (const p of def.parts) {
-    if (p.kind === 'wheel') min = Math.min(min, p.at[1] - p.radius);
-    else for (const br of p.bricks) min = Math.min(min, p.pivot[1] + br.at[1] - br.size[1] / 2);
-  }
-  return min;
+  return modelBounds(def).min[1];
 }
