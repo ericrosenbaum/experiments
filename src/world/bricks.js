@@ -3,6 +3,7 @@
 // footprint is a whole number of studs.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { COLORS } from '../behavior/primitives.js';
 
 export const BRICK_H = 1.2;
@@ -18,12 +19,20 @@ export function colorHex(color) {
   return new THREE.Color(color).getHex();
 }
 
+// The glossy coat costs a little per pixel; slow GPUs go without it.
+let gloss = 0.35;
+export function setGloss(on) {
+  gloss = on ? 0.35 : 0;
+  for (const m of matCache.values()) if (m.clearcoat !== gloss) { m.clearcoat = gloss; m.needsUpdate = true; }
+}
+
 export function material(color, opts = {}) {
   const hex = colorHex(color);
   const key = hex + (opts.transparent ? 't' : '');
   if (!matCache.has(key)) {
-    matCache.set(key, new THREE.MeshStandardMaterial({
-      color: hex, roughness: 0.32, metalness: 0.0,
+    // ABS plastic: a fairly smooth base under a thin glossy coat.
+    matCache.set(key, new THREE.MeshPhysicalMaterial({
+      color: hex, roughness: 0.42, metalness: 0.0, clearcoat: gloss, clearcoatRoughness: 0.18,
       transparent: !!opts.transparent, opacity: opts.transparent ? 0.55 : 1,
     }));
   }
@@ -33,10 +42,12 @@ export function material(color, opts = {}) {
 export function brickGeometry(w, h, d, studs = true) {
   const key = `${w}|${h}|${d}|${studs}`;
   if (geoCache.has(key)) return geoCache.get(key);
-  const parts = [new THREE.BoxGeometry(w - GAP, h - GAP, d - GAP)];
+  // Slightly rounded edges catch the light the way real bricks do.
+  const bevel = Math.min(0.05, w / 6, h / 6, d / 6);
+  const parts = [new RoundedBoxGeometry(w - GAP, h - GAP, d - GAP, 1, bevel)];
   const nx = Math.round(w), nz = Math.round(d);
   if (studs && Math.abs(w - nx) < 1e-6 && Math.abs(d - nz) < 1e-6 && nx * nz <= 64) {
-    const stud = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 14);
+    const stud = studGeometry();
     for (let i = 0; i < nx; i++) {
       for (let k = 0; k < nz; k++) {
         const s = stud.clone();
@@ -45,10 +56,19 @@ export function brickGeometry(w, h, d, studs = true) {
       }
     }
   }
-  const g = mergeGeometries(parts.map((p) => p.toNonIndexed()));
-  g.computeVertexNormals();
+  const g = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)));
   geoCache.set(key, g);
   return g;
+}
+
+// A stud with a chamfered top edge, centered on its height (0.2 tall).
+let studGeo = null;
+function studGeometry() {
+  if (!studGeo) {
+    const pts = [[0.3, -0.1], [0.3, 0.075], [0.27, 0.1], [0, 0.1]].map(([x, y]) => new THREE.Vector2(x, y));
+    studGeo = new THREE.LatheGeometry(pts, 12);
+  }
+  return studGeo;
 }
 
 export function brickMesh(w, h, d, color, studs = true) {

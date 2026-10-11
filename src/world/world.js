@@ -93,7 +93,7 @@ export class World {
     tex.anisotropy = 8;
     tex.colorSpace = THREE.SRGBColorSpace;
     this.groundTex = tex;
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 2, roughness: 0.75 }));
     plane.rotation.x = -Math.PI / 2;
     plane.receiveShadow = true;
     plane.userData.ground = true;

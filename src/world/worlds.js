@@ -92,7 +92,7 @@ export const WORLDS = [
     name: 'Space',
     emoji: '🚀',
     blurb: 'No gravity! A starfighter, a UFO, a rocket, floating asteroids and a couple of aliens.',
-    theme: { sky: 0x05060f, fog: null, hemi: [0x9fb4ff, 0x20202a, 1.0], sun: [0xffffff, 2.6], ground: { base: '#30323d', stud: '#3d404e', edge: '#24252e' }, stars: true },
+    theme: { sky: 0x05060f, fog: [110, 260], hemi: [0x9fb4ff, 0x20202a, 1.0], sun: [0xffffff, 2.6], ground: { base: '#30323d', stud: '#3d404e', edge: '#24252e' }, stars: true },
     camera: { pos: [-10, 18, -30], target: [0, 4, 4] },
     gravity: 0,
     build(w) {
