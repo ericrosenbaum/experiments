@@ -16,7 +16,11 @@ const KEY_WORDS = [
 ];
 const KEY_LABEL = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ' ': 'space', Enter: 'enter' };
 const SOUND_VERBS = { honk: 'honk', beep: 'beep', roar: 'roar', pop: 'pop', ding: 'ding', boing: 'boing', zap: 'laser', cheer: 'yay', drum: 'drum' };
-const KINDS = ['tree', 'house', 'brick', 'tower', 'ramp', 'ball', 'model', 'car', 'robot', 'anything', 'something', 'thing'];
+// Model types (matched by name) and prop kinds kids are likely to say.
+const MODEL_WORDS = ['catapult', 'digger', 'dino', 'tractor', 'truck', 'knight', 'hero', 'slime', 'alien', 'spaceship', 'ufo', 'rocket', 'dragon', 'horse', 'cow'];
+const KINDS = ['tree', 'house', 'brick', 'tower', 'ramp', 'ball', 'castle', 'hill', 'coin', 'asteroid', 'platform', 'crystal', 'hay', 'fence', 'barn', 'silo',
+  'well', 'tent', 'pipe', 'block', 'goal', 'flag', 'cloud', 'lamp', 'fountain', 'stall', 'pond', 'road', 'dummy', 'station', ...MODEL_WORDS,
+  'model', 'car', 'robot', 'anything', 'something', 'thing'];
 
 const VERBS = {};
 for (const [base, forms] of Object.entries({
@@ -97,6 +101,7 @@ function findTarget(phrase) {
   if (c.places.length) return { code: `place(${c.places[0].x}, ${c.places[0].z})`, label: 'that spot' };
   const t = phrase.toLowerCase();
   const color = colorIn(t);
+  if (/\brace ?cars?\b/.test(t)) return { code: q('racecar'), label: 'the race car' };
   for (const k of KINDS) {
     if (new RegExp(`\\b${k}s?\\b`).test(t)) {
       const kind = k === 'car' || k === 'robot' ? 'model' : ['anything', 'something', 'thing'].includes(k) ? null : k;
@@ -118,6 +123,65 @@ function touchFilter(phrase) {
 
 // Each handler: (phrase, ctx) => {code: [lines], label, continuous?: {stop: [lines]}} | null
 const ACTIONS = [
+  // world rules: gravity
+  (p) => {
+    if (!/\bgravity\b|\beverything floats?\b/.test(p)) return null;
+    let g = null, label;
+    const n = p.match(/gravity\s+(to\s+)?(-?\d+(\.\d+)?)/);
+    if (n) { g = Number(n[2]); label = `set gravity to ${g}`; }
+    else if (/\b(off|no|zero|none|stop)\b|everything floats?/.test(p)) { g = 0; label = 'turn off gravity'; }
+    else if (/\b(moon|low|weak|less|half)\b/.test(p)) { g = /half/.test(p) ? 0.5 : 0.3; label = 'make gravity weak, like on the moon'; }
+    else if (/\b(upside|reverse|backwards|up)\b/.test(p)) { g = -0.3; label = 'make gravity pull up'; }
+    else if (/\b(strong|heavy|double|more|high|super)\b/.test(p)) { g = 2; label = 'make gravity strong'; }
+    else if (/\b(on|normal|back|regular)\b/.test(p)) { g = 1; label = 'turn gravity back on'; }
+    return g == null ? null : { code: [`gravity(${g});`], label };
+  },
+
+  // disappear
+  (p) => (/^(disappear|vanish|go away|poof|remove (it|itself|yourself|me)|delete (it|itself|yourself))\b/.test(p) ? { code: ['remove();'], label: 'disappear' } : null),
+
+  // clone: "clone itself", "make a copy of {thing} above", "make 3 copies"
+  (p) => {
+    const m = p.match(/^(clone|copy|duplicate)\b|^(make|create|add|build|spawn)\s+(a|another|one more|\d+|two|three|four|five)?\s*(cop(y|ies)|clones?|twins?)\b/);
+    if (!m) return null;
+    const c = chips(p);
+    const ofPart = (m[1] ? p.slice(m[0].length) : (p.match(/\bof\s+(.*)$/)?.[1] ?? '')).split(/\s+(in|at|to|next|above|behind|on|over|beside|ahead|there)\b/)[0];
+    let what = 'null', label = 'itself';
+    if (c.things.length) { what = `thing(${q(c.things[0].id)})`; label = c.things[0].name; }
+    else if (ofPart && !/^\s*(it|itself|me|myself|yourself|this|that)?\s*$/.test(stripChips(ofPart))) {
+      const t = findTarget(ofPart);
+      if (t) { what = t.code; label = t.label.replace(/^the nearest /, 'the '); }
+    }
+    let where = null, whereLabel = '';
+    if (c.places.length) { where = `place(${c.places[0].x}, ${c.places[0].z})`; whereLabel = ' over there'; }
+    else if (/\b(above|on top|up high|over (it|itself))\b/.test(p)) { where = '"above"'; whereLabel = ' above'; }
+    else if (/\b(in front|ahead)\b/.test(p)) { where = '"front"'; whereLabel = ' in front'; }
+    else if (/\b(behind|in back)\b/.test(p)) { where = '"back"'; whereLabel = ' behind'; }
+    else if (/\bleft\b/.test(p)) { where = '"left"'; whereLabel = ' to the left'; }
+    else if (/\bright\b/.test(p)) { where = '"right"'; whereLabel = ' to the right'; }
+    const call = `await clone(${what}${where ? `, ${where}` : ''});`;
+    const n = num(m[3]) && m[3] !== 'a' ? num(m[3]) : timesIn(p);
+    return n > 1
+      ? { code: [`for (let i = 0; i < ${n}; i++) { ${call} }`], label: `make ${n} copies of ${label}${whereLabel}` }
+      : { code: [call], label: `make a copy of ${label}${whereLabel}` };
+  },
+
+  // fly up / down
+  (p, ctx) => {
+    const m = p.match(/^(fly|go|move|float|rise|climb|sink|descend|lift off|take off|blast off)\b\s*(up|upward|upwards|higher|down|downward|downwards|lower)?\b/);
+    if (!m) return null;
+    const [, verb, dir] = m;
+    if (!dir && !['fly', 'float', 'rise', 'climb', 'sink', 'descend', 'lift off', 'take off', 'blast off'].includes(verb)) return null;
+    if (!dir && /\b(to|towards?|around|forward|backwards?)\b/.test(p)) return null;
+    const down = /^(sink|descend)/.test(verb) || /^(down|lower)/.test(dir ?? '');
+    const v = (speedIn(p) ?? 6) * (down ? -1 : 1);
+    const word = down ? 'down' : 'up';
+    const secs = num((p.match(/\bfor\s+(\d+(\.\d+)?|a|one|two|three|four|five)\s*(seconds?|secs?)/) || [])[1]);
+    if (ctx.continuous && secs == null) return { code: [`rise(${v});`], label: `fly ${word}`, continuous: ['rise(0);'] };
+    const t = secs ?? 1;
+    return { code: [`rise(${v});`, `await wait(${t});`, 'rise(0);'], label: `fly ${word} for ${t} second${t === 1 ? '' : 's'}` };
+  },
+
   // stop
   (p) => (/^(stop|halt|freeze|stand still)\b/.test(p) ? { code: ['stop();'], label: 'stop' } : null),
 
@@ -168,7 +232,7 @@ const ACTIONS = [
 
   // go to / follow / chase
   (p) => {
-    const m = p.match(/^(go|drive|walk|move|run|head|roll)\s+(over\s+)?(to|towards?)\b|^(follow|chase|find|visit)\b/);
+    const m = p.match(/^(go|drive|walk|move|run|head|roll|fly|float)\s+(over\s+)?(to|towards?)\b|^(follow|chase|find|visit)\b/);
     if (!m) return null;
     const t = findTarget(p);
     if (!t) return null;
@@ -321,8 +385,12 @@ function parseTrigger(s) {
     const k = parseKey(m[5]);
     if (k) return { type: 'keyup', key: k, rest: s.slice(m[0].length) };
   }
-  if ((m = s.match(/^(when|whenever|if)\s+(it|you|the \w+|i)?\s*(touch|touches|bump|bumps|hit|hits|crash|crashes|run|runs|bump into|bumps into|crash into|crashes into|runs into|run into)( into)?\s*(.*?)\s*(,|then|$)/))) {
-    if (m[2] !== 'i') return { type: 'touch', filter: touchFilter(m[5]), rest: s.slice(m[0].length) };
+  if ((m = s.match(/^(when|whenever|if)\s+(it|you|the \w+|i)?\s*(touches|touch|bumps into|bump into|bumps|bump|hits|hit|crashes into|crash into|crashes|crash|runs into|run into|runs|run)( into)?\s*(.*?)\s*(,|then|$)/))) {
+    if (m[2] !== 'i') {
+      // "when the hero touches it": the subject is what does the touching
+      const subj = m[2] && /^the /.test(m[2]) && /^(it|me|this|you)?$/.test(m[5].trim()) ? m[2] : m[5];
+      return { type: 'touch', filter: touchFilter(subj), rest: s.slice(m[0].length) };
+    }
   }
   if ((m = s.match(/^(when|whenever|if)\s+(it|you)\s+(sees?|spots?)\s+(.*?)\s*(,|then|$)/))) {
     return { type: 'see', filter: touchFilter(m[4]), rest: s.slice(m[0].length) };
@@ -367,8 +435,12 @@ function parseActions(rest, ctx) {
 const indent = (lines, n = 1) => lines.map((l) => '  '.repeat(n) + l);
 
 export function compileLocal(text, model) {
-  // Hide punctuation inside chips so it doesn't split sentences or actions.
+  // Hide punctuation inside chips so it doesn't split sentences or actions,
+  // and set quoted words aside ("Hi, friend!") so they come back untouched.
   text = text.replace(/\{[^}]*\}/g, (m) => m.replace(/,/g, '\u0001').replace(/\./g, '\u0002'));
+  const quotes = [];
+  text = text.replace(/["“]([^"”]*)["”]/g, (_, inner) => `"Q${quotes.push(inner) - 1}Q"`);
+  const unquote = (s, inCode) => s.replace(/Q(\d+)Q/gi, (_, i) => (inCode ? JSON.stringify(quotes[i]).slice(1, -1) : quotes[i]));
   const sentences = text
     .replace(/\n+/g, '. ')
     .split(/(?<=[.!?])\s+|\.\s*$/)
@@ -441,5 +513,5 @@ export function compileLocal(text, model) {
         }
     }
   }
-  return { code: code.join('\n'), summary, unknown, source: 'offline' };
+  return { code: unquote(code.join('\n'), true), summary: summary.map((x) => unquote(x)), unknown: unknown.map((x) => unquote(x)), source: 'offline' };
 }

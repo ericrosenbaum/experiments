@@ -2,7 +2,13 @@
 // Used server-side (vite dev middleware) — the API key never reaches the page.
 import { primitivesReference, COLORS, SOUNDS } from './primitives.js';
 
-export const SYSTEM_PROMPT = `You turn a child's description of how their toy brick creation should behave into a short JavaScript behavior program.
+export const SYSTEM_PROMPT = `You turn a child's description of how something in a toy brick world should behave into a short JavaScript behavior program.
+
+The program belongs to one thing, described in the message:
+- a model: a premade creation with named parts (wheels, hinged arms, heads...);
+- a thing: a prop (a tree, a platform, a coin: it doesn't fall over but can still slide and turn) or an assembly of loose bricks (a house, a castle: it moves and turns as one block and can be knocked apart);
+- a piece: one brick picked out of an assembly;
+- the World: rules for the whole world. The World never moves (no drive, steer, rise, jump, push, move, turn, goTo, face, look, part(), remove), but it can set gravity(), spawn() bricks from the sky, clone() things, play(), say() (a banner), broadcast(), color() the ground, and react to onStart, onKey, forever, every, onMessage and onClick (clicks on the ground). Only the World may call gravity().
 
 The program runs in a sandbox with ONLY the functions listed below in scope (no DOM, no network, no imports). It is the body of an async function; top-level code runs once to register handlers, so put actions inside handlers (onStart, onKey, forever...). Use await for anything listed under "take time" or "sensing".
 
@@ -18,6 +24,8 @@ The child's text may contain chips they made by pointing in the 3D world:
 
 Guidelines:
 - Do what the child meant, generously. Kids write loosely ("make it go zoom when I press space").
+- Keys only reach the thing that is selected, so onKey on a thing works while the child has it selected.
+- clone() copies a thing with all its behaviors, and copies run them too (onStart, forever, every...). If something should happen only in the copy, use onClone; if only in the original, check isClone(). Never let copies keep cloning forever.
 - Movement on keys: for "when I press <arrow>, go forward" make it go while the key is held (onKey to start with drive/steer, onKeyUp to stop), unless they gave a distance or angle.
 - Use only part names that exist on the model (listed below). If they name a part loosely ("arm" when there are two), pick the sensible one or both.
 - Keep loops safe: every forever/while loop must await something each time around.
@@ -42,16 +50,22 @@ export const RESPONSE_SCHEMA = {
 
 // Build the user message: the model, nearby things, existing behaviors, and the request.
 export function buildUserMessage({ text, model, things = [], otherBehaviors = [] }) {
-  const parts = model.parts.map((p) => {
+  const parts = (model.parts ?? []).map((p) => {
     if (p.kind === 'wheel') return `- "${p.name}" (wheel, ${p.side} side)`;
     return `- "${p.name}" (hinge; turnTo range ${p.limits?.[0] ?? -180}..${p.limits?.[1] ?? 180} degrees, 0 = resting pose, positive = up/forward/left)`;
   }).join('\n');
-  const thingList = things.slice(0, 40).map((t) => `- ${t.name} (id "${t.id}", kind ${t.kind}, color ${t.color}, ${t.distance} studs away)`).join('\n');
+  const thingList = things.slice(0, 40).map((t) => `- ${t.name} (id "${t.id}", kind ${t.kind}${t.type ? `, a ${t.type}` : ''}, color ${t.color}, ${t.distance} studs away)`).join('\n');
   const others = otherBehaviors.length
     ? `\nThis model already runs these other behaviors (don't repeat them; avoid fighting over the same keys):\n${otherBehaviors.map((b) => `- ${b}`).join('\n')}\n`
     : '';
-  return `Model: ${model.name} — ${model.blurb}
-Moves by: ${model.motion === 'wheels' ? 'driving its wheels (differential steering)' : 'gliding (stays upright)'}
+  const kind = model.kind ?? 'model';
+  const moves = {
+    wheels: 'driving its wheels (differential steering)', glide: 'gliding (stays upright); rise() makes it fly',
+    slide: 'sliding and turning (it is a prop, so it never falls over)', loose: 'sliding and turning as one block; it can be knocked over',
+    none: 'it never moves',
+  }[model.motion] ?? 'gliding';
+  return `This program belongs to ${kind === 'world' ? 'the World' : `a ${kind}`}: ${model.name} — ${model.blurb}
+Moves by: ${moves}
 Parts:
 ${parts || '- (none)'}
 ${others}

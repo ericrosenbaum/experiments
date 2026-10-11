@@ -3,7 +3,7 @@
 // filter: null (anything but the ground) | "red" | "tree" | "trees" | an id |
 //         {color, kind} | thing("id") reference
 const COLOR_NAMES = new Set(['red', 'blue', 'yellow', 'green', 'black', 'white', 'orange', 'purple', 'pink', 'brown', 'gray', 'darkgray', 'tan', 'lime', 'cyan', 'grass']);
-const BRICKISH = new Set(['brick', 'tower', 'house']);
+const BRICKISH = new Set(['brick', 'tower', 'house', 'castle', 'hay']);
 
 export function matchFilter(filter, desc) {
   if (!desc) return false;
@@ -17,7 +17,8 @@ export function matchFilter(filter, desc) {
   let f = String(filter).toLowerCase().trim();
   if (f === 'grey') f = 'gray';
   if (f.endsWith('s') && !COLOR_NAMES.has(f)) f = f.replace(/(es|s)$/, (m) => (f.endsWith('ches') || f.endsWith('xes') ? '' : m === 'es' ? 'e' : ''));
-  if (f === desc.color || f === desc.kind || f === desc.id || f === String(desc.name ?? '').toLowerCase()) return true;
+  if (f === desc.color || f === desc.kind || f === desc.id || f === desc.type || f === String(desc.name ?? '').toLowerCase()) return true;
+  if (f === 'race car' && desc.type === 'racecar') return true;
   if (f === 'brick' && BRICKISH.has(desc.kind)) return true;
   if (['car', 'robot', 'creation', 'friend', 'model', 'player'].includes(f) && desc.kind === 'model') return true;
   return false;

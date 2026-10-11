@@ -2,10 +2,10 @@
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { makeWorld, run, LIBRARY_BY_ID } from './physics.harness.mjs';
-import { buildWorld } from '../src/world/worldmap.js';
+import { WORLDS_BY_ID } from '../src/world/worlds.js';
 
 const w = await makeWorld();
-buildWorld(w);
+WORLDS_BY_ID.playground.build(w);
 const bricks = () => [...w.entities.values()].filter((e) => e.kind === 'tower' || e.kind === 'house');
 const snap = new Map(bricks().map((e) => [e, e.position]));
 run(w, 4);

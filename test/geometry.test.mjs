@@ -3,7 +3,8 @@
 // flicker, when rendered).
 import assert from 'node:assert/strict';
 import { makeWorld, LIBRARY_BY_ID } from './physics.harness.mjs';
-import { buildWorld } from '../src/world/worldmap.js';
+import { modelBottom } from '../src/world/library.js';
+import { WORLDS } from '../src/world/worlds.js';
 import { overlappingColliders } from './overlap.mjs';
 
 const EPS = 1e-3;
@@ -43,15 +44,22 @@ for (const def of Object.values(LIBRARY_BY_ID)) {
 assert.deepEqual(fights, [], `coplanar faces that will flicker:\n  ${fights.join('\n  ')}`);
 console.log('ok: no model has coplanar overlapping faces');
 
+// Every premade world starts with nothing inside anything else.
 const w = await makeWorld();
-buildWorld(w);
-const start = [['racecar', 0, 0, 0], ['robot', -8, -4, 20], ['catapult', 9, -3, 25]];
-for (const [id, x, z, yaw] of start) {
-  const def = LIBRARY_BY_ID[id];
-  w.addModel(def, w.findClearSpot(def, { x, z, yaw }));
+for (const preset of WORLDS) {
+  w.clear();
+  preset.build(w);
+  for (const m of preset.models) {
+    const def = LIBRARY_BY_ID[m.def];
+    w.addModel(def, { x: m.x, z: m.z, yaw: m.yaw ?? 0, y: m.lift ? -modelBottom(def) + 0.05 + m.lift : undefined, id: m.id });
+  }
+  const overlaps = overlappingColliders(w).map(([a, b, d]) => `${a.entity.name} (${a.part ?? a.color}) / ${b.entity.name} (${b.part ?? b.color}): ${d.toFixed(2)}`);
+  assert.deepEqual(overlaps, [], `${preset.id}: things start out overlapping:\n  ${overlaps.join('\n  ')}`);
+  console.log(`ok: nothing in the ${preset.name} world overlaps (${w.entities.size} entities)`);
 }
 // Dropping a model right on top of a house finds clear ground nearby.
+w.clear();
+WORLDS[0].build(w);
 w.addModel(LIBRARY_BY_ID.digger, w.findClearSpot(LIBRARY_BY_ID.digger, { x: -20, z: -14 }));
-const overlaps = overlappingColliders(w).map(([a, b, d]) => `${a.entity.name} (${a.part ?? a.color}) / ${b.entity.name} (${b.part ?? b.color}): ${d.toFixed(2)}`);
-assert.deepEqual(overlaps, [], `things start out overlapping:\n  ${overlaps.join('\n  ')}`);
-console.log('ok: nothing in the starting world overlaps');
+assert.deepEqual(overlappingColliders(w), [], 'a new model should land clear of the house');
+console.log('ok: new models land clear of what is there');

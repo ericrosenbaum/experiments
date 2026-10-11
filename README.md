@@ -2,24 +2,42 @@
 
 Kids describe how their virtual brick creations should behave in structured natural language, made of words plus things they point at. The description becomes a small program. That program runs in a sandbox and can only call high-level primitives, which act on a physics world.
 
-Building is out of scope here. You pick premade models from a library and teach them behaviors.
+Building is out of scope here. You pick a premade world, add premade models from a library, and teach anything in the world (models, houses, trees, single bricks, or the World itself) how to behave.
 
 ```bash
 npm install
 cp .env.example .env.local           # then paste your key into .env.local
 npm run dev                          # Claude writes the code if a key is set,
                                      # otherwise the offline compiler is used
-npm test                             # compiler, prompt, physics checks (headless)
+npm test                             # compiler, prompt, physics, geometry, stage checks (headless)
 ```
 
-Open the page in a second tab to get a second "player".
+Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to start in that world.
 
 ## What's on screen
 
-- **World**: a green baseplate with trees, two brick houses, a 12-layer rainbow tower, a ramp, a ball and some loose bricks. The houses and tower are made of loose dynamic bricks that start out asleep, so you can knock them over.
-- **Library** (＋ Add model): Race Car, Robot, Digger, Catapult and Dino. Each one has named parts: wheels, plus hinged pieces such as arms, a head, a tail, a scoop or a throwing arm.
-- **Inspector** (right): the selected model's parts, the composer, examples, and the behaviors it knows.
-- **Camera**: drag to orbit, right-drag to pan, scroll to zoom. 🎥 Follow keeps the selected model in view. The arrow keys are left free for the kids' programs.
+- **Worlds** (picker, top left). Each one has its own look, gravity, props, models and a few behaviors that come already taught:
+  - 🧱 **Playground**: trees, two loose-brick houses, a rainbow tower, a ramp, a ball. Race car, robot, catapult.
+  - 🏰 **Castle**: a loose-brick castle on a hill with a catapult aimed at it (space throws; three throws knock bricks loose). A knight, a horse, a dragon, tents, a well, hay.
+  - 🚀 **Space**: no gravity (it's a World rule you can switch off). A starfighter that flies with w/s and shoots, a UFO, a rocket that blasts off when clicked, two aliens, floating asteroids, a moon base, stars and a ringed planet.
+  - 🍄 **Platform Game**: steps and ledges, a moving platform, spinning coins that vanish when the Hero touches them, patrolling slimes, a surprise block and a goal flag.
+  - 🏘️ **Village**: houses along the roads, a fountain, market stalls, a bell tower. A dump truck, Mayor Bot.
+  - 🚜 **Farm**: barn, silo, carrots and corn, a pond, a cow pen with two cows that moo, a horse and a tractor.
+
+  Each world keeps its own state, so switching away and back finds everything as you left it.
+- **Library** (＋ Add model): 17 models in four groups. Vehicles (race car, digger, catapult, tractor, dump truck), characters (robot, knight, hero, slime), animals (dino, dragon, horse, cow) and space (alien, spaceship, UFO, rocket).
+- **Inspector** (right): what's selected, its parts, the composer, examples, and the behaviors it knows.
+- **Camera**: drag the sky or ground to orbit, right-drag to pan, scroll to zoom. 🎥 Follow keeps the selection in view.
+
+## Selecting, moving, keys
+
+- **Click** a model to select it, or any brick of an assembly (a house, the castle, the tower) to select the whole assembly. Props like trees, platforms and coins are things too.
+- **Double-click** a brick in an assembly to select just that brick. ⬆ goes back to the whole thing.
+- **Click the ground** (or 🌍 World rules) to select the **World**. World rules can change `gravity()`, drop bricks from the sky, `clone()` things, say things in a banner, recolor the ground, and react to keys and to clicks on the ground. The World itself never moves.
+- Clicking the sky selects nothing.
+- **Only the selected thing hears the keyboard.** Several things can all be taught the arrow keys, and only the one you've selected moves.
+- **Drag** the selected thing to move it; **scroll while dragging** to turn it. ↻ turns it 45°, ⧉ copies it with everything it knows, 🗑 removes it from this world, ⟲ puts a model back where it started.
+- **⟲ Reset world** rebuilds the world. Things stay where you dragged them, deleted things stay deleted, copies go away, and every behavior starts again.
 
 ## Describing a behavior
 
@@ -49,8 +67,12 @@ Each behavior can be switched on and off, edited, or deleted. A model can run se
 
 `src/behavior/primitives.js` is the single source of truth. The worker, the host validator, the Claude prompt and the tests all read from it.
 
-- **events**: `onStart`, `onKey`, `onKeyUp`, `whileKey`, `onTouch(filter)`, `onClick`, `onMessage`, `forever`, `every`
-- **movement**: `drive(speed)`, `steer(rate)`, `stop()`, `jump()`, `push()`, and the awaitable `move(dist)`, `turn(deg)`, `goTo(target)`, `face(target)`
+Every program belongs to one **actor** (`src/world/actor.js`): a model, an assembly (everything sharing a thing id), one brick of an assembly, or the World. Actors are looked up by stable ids, so behaviors survive the world being rebuilt.
+
+- **events**: `onStart`, `onKey`, `onKeyUp`, `whileKey`, `onTouch(filter)`, `onClick`, `onMessage`, `onClone`, `forever`, `every`
+- **movement**: `drive(speed)`, `steer(rate)`, `rise(speed)` (fly up/down), `stop()`, `jump()`, `push()`, and the awaitable `move(dist)`, `turn(deg)`, `goTo(target)`, `face(target)`. Assemblies of loose bricks drive as one block (frictionless while driven, so the bottom row keeps up); props slide kinematically.
+- **copies**: `await clone(what, where)` copies a thing with all its behaviors (`what`: null for itself, `thing("id")` or a kind; `where`: `place(x, z)`, `"front"`, `"back"`, `"left"`, `"right"`, `"above"`, or nothing for a clear spot beside it). Copies run their behaviors too, plus `onClone`; `isClone()` tells them apart. At most 40 copies and 3 per second. `remove()` takes a thing out of the world.
+- **world rules**: `gravity(amount)` (1 normal, 0 floating, negative falls up), only from the World.
 - **parts**: `part(name).spin()`, `part(name).turnTo(deg)`, `part(name).wiggle()`, `part(name).color()`
 - **world**: `spawn({color, size, at, launch, from})`, `play(sound)`, `say(text)`, `broadcast(name)`, `color()`
 - **sensing**: `look(dist)` (raycast straight ahead), `nearest(filter)`, `touching(filter)`, `position()`, `is(thing, filter)`
@@ -77,22 +99,19 @@ The physics engine is Rapier 3D, and Three.js mirrors its bodies for rendering (
 - "Glide" models (Robot, Dino) stay upright and move by velocity control.
 - Collision events feed `onTouch` and `touching()`. Raycasts feed `look()`.
 
-## Multiplayer seam
 
-`src/net.js` shares state between players. Each player is authoritative for their own models and sends their transforms 15 times a second. Everyone else's models show up as **kinematic** copies with a name tag, and you can bump them, `look()` at them, chase them, or `goTo` them. `broadcast()` messages, speech bubbles and sounds are shared too, so `onMessage("party", …)` can be triggered by a friend's model.
-
-The transport is `BroadcastChannel`, so for now players are browser tabs. Moving to a real relay only means replacing the channel. New players spawn in a spot that no other player is using.
 
 ## Brick Talk chat
 
-A collapsible chat window (bottom left) based on the Brick Talk concept: you type in any language, and other players only ever see a row of symbols, never your words. Each symbol is a small 3D-rendered brick build on a pedestal in its category color (`public/bricktalk/<id>.webp`, extracted from the Brick Talk artifact).
+A collapsible chat window (bottom left) based on the Brick Talk concept: you type in any language, and what gets "sent" is only a row of symbols, never your words. There's no multiplayer, so the other side of the conversation is simulated. Each symbol is a small 3D-rendered brick build on a pedestal in its category color (`public/bricktalk/<id>.webp`, extracted from the Brick Talk artifact).
 
 To redesign a symbol, describe its build in `tools/bricktalk/builds.js` and run `node tools/bricktalk/render.mjs <ids> <outdir>` with the dev server up (set `BRICK_URL` if it isn't on :5173). The script renders each build in headless Chrome with three.js, matching the camera, lights and pedestal of the originals, and writes `<id>-review.png`, which compares the old and new versions at chat sizes and shows the new one next to all 64 symbols. Add `--install` to copy the result into `public/bricktalk/`. `go` is in there only as the calibration reference; `play` is the redrawn game controller.
 
 - **Translation is always Claude** (`server/bricktalk.js`, `POST /api/bricktalk`, `claude-haiku-5-5`). The response schema's enum is the 64 symbol ids, so the model can't return anything else. There's no offline fallback; without a key the chat says so.
 - **The validator is the safety layer** (`src/chat/symbols.js`). Every phrase is checked on the server and again on the page (grammar, no name-calling, at most 6 symbols). Dropped words and blocked phrases are shown to the sender only.
-- **In the world**, a sent message appears as a symbol bubble over your selected model and is shared with other tabs, where it appears over your model's copy.
-- **Simulating a friend**: switch the **Me / Friend** button to Friend and type, or press 🎲 for a canned friend message. It shows up in the log and as a yellow-outlined bubble over a friend's model (or a spot near the middle of the view if no friend is connected).
+- **In the world**, a sent message appears as a symbol bubble over the selected thing (or near the middle of the view if nothing, or the World, is selected).
+- **Simulating a friend**: switch the **Me / Friend** button to Friend and type, or press 🎲 for a canned friend message. It shows up in the log and as a yellow-outlined bubble over another model near the middle of the view.
+
 
 ## Layout
 
@@ -104,24 +123,27 @@ src/behavior/  primitives.js  the API spec (source of truth)
                runtime.js     host side: workers, validation, tasks, sensing
                sandbox.worker.js
                filter.js      shared "does this thing match 'red' / 'tree'?"
-src/world/     world.js       Rapier + Three entities, joints, motors
+src/world/     world.js       Rapier + Three entities, joints, motors, gravity
+               actor.js       what a program runs on: model, assembly, brick, World
                library.js     premade models as data
-               worldmap.js    the premade world
+               worlds.js      the premade worlds (theme, props, models, pre-taught behaviors)
+               props.js       builders for castles, houses, platforms, coins, barns...
                bricks.js      brick geometry/materials
-src/ui/app.js  composer, pointing, behavior cards, bubbles
+src/stage.js   current world, behaviors per thing, clone/remove, drags, Reset
+src/ui/app.js  world picker, selecting/dragging, composer, behavior cards, bubbles
 src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
                prompt.js      Claude prompt + enum schema
                chat.js        the chat window and in-world bubbles
-src/net.js     multiplayer
 tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
 server/        /api/generate, /api/bricktalk (Vite middleware)
-test/          compiler / prompt / physics checks
-tools/         smoke.mjs (headless browser run), physics probes
+test/          compiler / prompt / physics / geometry / stage checks
+tools/         smoke.mjs (headless browser run), model-probe, castle-probe, physics probes
 ```
 
 ## Open questions this prototype raises
 
 - **Resolving ambiguity.** "Wave your arm" on a model with two arms. Right now the generator guesses and says so in the notes. A follow-up question could be better.
 - **Pointing at parts of other models.** Today, pointing at another model gives you the whole thing.
-- **Key conflicts** between several behaviors, or several players' models, that listen to the same keys.
-- **Who runs a program in multiplayer.** Currently each owner runs their own. Shared props such as the tower aren't synced yet, so each player has their own copy.
+- **Key conflicts** between several behaviors on the same thing. Keys now go only to the selected thing, which settles conflicts between things but makes games with two controllable things harder.
+- **Copies and their code.** Copies run every behavior they inherit, including `forever` and `onStart`; a copy-making loop copies itself until the 40-copy limit. `onClone`/`isClone()` give a way out, but kids won't find it without help.
+- **Multiplayer** was removed for now; it's in git history (commit 38421c2). The Brick Talk chat stays as a single-player demo.

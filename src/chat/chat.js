@@ -1,7 +1,8 @@
 // Brick Talk chat: a small collapsible window. You type (any language), Claude
 // maps it to symbols, the validator checks it, and only symbol ids go out —
-// to the chat log, to a bubble over your model in the world, and to other tabs.
-// "Friend" mode and 🎲 simulate another player's message arriving in the world.
+// to the chat log and to a bubble over the selected thing in the world.
+// There's no multiplayer: "Friend" mode and 🎲 simulate another player, whose
+// bubble appears over some other model in the world.
 import * as THREE from 'three';
 import { symbolImg, readAs, validateMessage } from './symbols.js';
 
@@ -22,8 +23,8 @@ const FRIEND_LINES = [
 ];
 
 export class Chat {
-  constructor({ app, net, camera, controls, world }) {
-    Object.assign(this, { app, net, camera, controls, world });
+  constructor({ app, camera, controls, world }) {
+    Object.assign(this, { app, camera, controls, world });
     this.asFriend = false;
     this.busy = false;
     this.bubbles = []; // {el, anchor: () => Vector3, until}
@@ -99,7 +100,6 @@ export class Chat {
       } else {
         this._show('me', out.phrases, { said: text, notes });
         this._bubble(out.phrases, this._myAnchor(), 'me');
-        this.net?.sendChat(out.phrases, this.app.selected?.id);
       }
       input.value = '';
     } catch (err) {
@@ -112,30 +112,37 @@ export class Chat {
     }
   }
 
-  // A message from someone else: a real tab (via net) or a simulated friend.
-  receive({ phrases, from, modelId, simulated, said, notes = [] }) {
+  // A message from a (simulated) friend.
+  receive({ phrases, simulated, said, notes = [] }) {
     if (!validateMessage(phrases).ok) return; // never render anything that isn't valid Brick Talk
     this._show('friend', phrases, { said: simulated ? said : null, notes, simulated });
-    this._bubble(phrases, this._friendAnchor(from, modelId), 'friend');
+    this._bubble(phrases, this._friendAnchor(), 'friend');
     if (this.el.classList.contains('collapsed')) { this.unread++; $('chat-badge').textContent = this.unread; }
   }
 
   // ---- anchors in the world -------------------------------------------------------
+  // Just above a thing (an Actor), for as long as it's in the world.
+  _above(a) { return () => (a.alive ? a.position.setY(a.bounds().max.y + 1.5) : null); }
+
   _myAnchor() {
-    const e = this.app.selected;
-    if (e && !e.removed) return () => (e.removed ? null : e.position.add(new THREE.Vector3(0, 5, 0)));
+    const a = this.app.selected;
+    if (a?.alive && !a.isWorld) return this._above(a);
     const p = this.controls.target.clone().add(new THREE.Vector3(0, 4, 0));
     return () => p;
   }
 
-  _friendAnchor(from, modelId) {
-    const remotes = [...this.world.entities.values()].filter((e) => e.remote && !e.removed);
-    const e = remotes.find((r) => from && modelId && r.id === `r-${from}:${modelId}`)
-      ?? remotes.find((r) => from && r.id.startsWith(`r-${from}:`))
-      ?? (!from ? remotes[0] : null);
-    if (e) return () => (e.removed ? null : e.position.add(new THREE.Vector3(0, 5, 0)));
-    // No friend model around (e.g. simulating alone): float the bubble at a spot near
-    // the middle of the view, and keep using that spot so the "friend" stays put.
+  _friendAnchor() {
+    // The friend "is" the model nearest the middle of the view that isn't selected,
+    // and stays the same model while it's still around.
+    if (!this.friend?.alive || this.friend === this.app.selected) {
+      const models = [...this.world.entities.values()].filter((e) => e.kind === 'model' && !e.removed)
+        .map((e) => this.world.actorOf(e)).filter((a) => a !== this.app.selected);
+      models.sort((a, b) => a.position.distanceTo(this.controls.target) - b.position.distanceTo(this.controls.target));
+      this.friend = models[0] ?? null;
+    }
+    if (this.friend) return this._above(this.friend);
+    // No other model around: float the bubble at a spot near the middle of the
+    // view, and keep using that spot so the "friend" stays put.
     if (!this.friendSpot || this.friendSpot.distanceTo(this.controls.target) > 30) {
       const off = new THREE.Vector3(-12, 0, 6);
       this.friendSpot = this.controls.target.clone().add(off).setY(4);

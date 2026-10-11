@@ -17,13 +17,16 @@
 
   <header id="topbar">
     <div class="brand"><span class="logo"></span>Brick Behaviors</div>
+    <label class="tb world-pick" title="Switch to a different world">
+      <select id="world-select" aria-label="World"></select>
+    </label>
+    <button id="btn-world" class="tb" title="Teach the World itself: gravity, dropping and copying things (or click the ground)">🌍 World rules</button>
     <button id="btn-library" class="tb" title="Add a model from the library">＋ Add model</button>
     <button id="btn-pause" class="tb" title="Pause / resume the world">⏸ Pause</button>
     <button id="btn-reset" class="tb" title="Put everything back where it started">⟲ Reset world</button>
     <button id="btn-follow" class="tb" title="Camera follows the selected model">🎥 Follow</button>
     <button id="btn-mute" class="tb" title="Sound on/off">🔊</button>
     <span id="gen-status" class="pill" title="How descriptions become code">…</span>
-    <span id="net-status" class="pill" title="Open this page in another tab to see a friend's models">👥 1 player</span>
   </header>
 
   <aside id="library" class="hidden">
@@ -34,21 +37,29 @@
 
   <aside id="inspector">
     <div id="no-selection">
-      <h2>Click a model to teach it</h2>
-      <p>Then describe what it should do in your own words. You can point at its parts or at things in the world to use them in your sentence.</p>
-      <p class="hint">Drag to orbit · Right-drag to pan · Scroll to zoom</p>
+      <h2>Click anything to teach it</h2>
+      <p>A model, a house, a tree, a single brick, or the ground for rules about the whole world. Then describe what it should do in your own words.</p>
+      <p>Only the thing you've selected hears the keys you press. Drag it to move it around.</p>
+      <p class="hint">Drag the sky or ground to orbit · Right-drag to pan · Scroll to zoom · Double-click a brick in a house or castle to pick just that brick</p>
     </div>
     <div id="selection" class="hidden">
       <div class="sel-head">
         <span id="sel-swatch" class="swatch"></span>
         <h2 id="sel-name"></h2>
+        <button id="btn-whole" class="mini" title="Back to the whole thing">⬆</button>
+        <button id="btn-copy" class="mini" title="Make a copy, with everything it knows">⧉</button>
+        <button id="btn-turn" class="mini" title="Turn it 45°">↻</button>
         <button id="btn-respawn" class="mini" title="Put it back where it started">⟲</button>
-        <button id="btn-remove" class="mini" title="Remove this model">🗑</button>
+        <button id="btn-remove" class="mini" title="Remove it from this world">🗑</button>
       </div>
+      <div id="sel-kind" class="kind-tag"></div>
       <p id="sel-blurb" class="blurb"></p>
+      <p id="sel-hint" class="hint"></p>
 
-      <div class="section-label">Its parts <span class="hint">(click to use in a sentence)</span></div>
-      <div id="sel-parts" class="chips"></div>
+      <div id="parts-section">
+        <div class="section-label">Its parts <span class="hint">(click to use in a sentence)</span></div>
+        <div id="sel-parts" class="chips"></div>
+      </div>
 
       <div class="section-label">Teach it something new</div>
       <div class="starters" id="starters"></div>
@@ -61,7 +72,7 @@
       </div>
       <div id="examples"></div>
 
-      <div class="section-label">What it knows <span id="behavior-count" class="hint"></span></div>
+      <div class="section-label"><span id="behaviors-title">What it knows</span> <span id="behavior-count" class="hint"></span></div>
       <div id="behaviors"></div>
     </div>
   </aside>

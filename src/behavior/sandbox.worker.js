@@ -19,11 +19,12 @@ for (const name of ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'impo
   try { Object.defineProperty(self, name, { value: undefined, configurable: false, writable: false }); } catch { /* not present */ }
 }
 
-const handlers = { start: [], key: [], keyup: [], hold: [], touch: [], click: [], message: [] };
+const handlers = { start: [], key: [], keyup: [], hold: [], touch: [], click: [], message: [], clone: [] };
 const heldKeys = new Set();
 const pending = new Map();
 let nextQuery = 1;
 let stopped = false;
+let cloned = false;
 
 const cmd = (name, ...args) => { if (!stopped) post({ type: 'cmd', name, args: clone(args) }); };
 const query = (name, ...args) => new Promise((resolve) => {
@@ -62,6 +63,7 @@ const api = {
   },
   onClick: (fn) => handlers.click.push(safe(fn, 'click')),
   onMessage: (name, fn) => handlers.message.push({ name: String(name), fn: safe(fn, `message ${name}`) }),
+  onClone: (fn) => handlers.clone.push(safe(fn, 'clone')),
   forever: (fn) => {
     const run = safe(fn, 'forever');
     handlers.start.push(async () => { while (!stopped) { await run(); await sleep(1 / 30); } });
@@ -73,6 +75,7 @@ const api = {
 
   drive: (speed = 7) => cmd('drive', Number(speed)),
   steer: (rate = 60) => cmd('steer', Number(rate)),
+  rise: (speed = 5) => cmd('rise', Number(speed)),
   stop: () => cmd('stop'),
   jump: (power = 5) => cmd('jump', Number(power)),
   push: (direction = 'forward', power = 5) => cmd('push', String(direction), Number(power)),
@@ -91,6 +94,9 @@ const api = {
   play: (sound) => cmd('play', String(sound)),
   say: (text, seconds = 2) => cmd('say', String(text), Number(seconds)),
   broadcast: (name) => cmd('broadcast', String(name)),
+  clone: (what = null, where = null) => query('clone', ref(what), ref(where)),
+  remove: () => cmd('remove'),
+  gravity: (amount = 1) => cmd('gravity', Number(amount)),
   wait: (seconds = 1) => sleep(seconds),
   look: (distance = 20) => query('look', Number(distance)),
   nearest: (filter = null) => query('nearest', ref(filter)),
@@ -98,6 +104,7 @@ const api = {
   position: () => query('position'),
   thing: (id) => ({ __ref: 'thing', id: String(id) }),
   place: (x, z) => ({ __ref: 'place', x: Number(x), z: Number(z) }),
+  isClone: () => cloned,
   is: (thing, filter) => matchFilter(filter, thing),
   random: (min = 1, max = 10) => Math.floor(min + Math.random() * (max - min + 1)),
   log: (...v) => cmd('log', v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' ')),
@@ -107,6 +114,7 @@ listen('message', async (ev) => {
   const m = ev.data;
   switch (m.type) {
     case 'load': {
+      cloned = !!m.isClone;
       let program;
       try {
         const AsyncFunction = (async () => {}).constructor;
@@ -128,6 +136,7 @@ listen('message', async (ev) => {
         keys: [...new Set([...handlers.key, ...handlers.keyup, ...handlers.hold].map((h) => h.key))],
       });
       handlers.start.forEach((fn) => fn());
+      if (cloned) handlers.clone.forEach((fn) => fn());
       break;
     }
     case 'reply': {

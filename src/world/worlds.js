@@ -1,0 +1,260 @@
+// The premade worlds you can switch between. Each has a look (sky, ground,
+// light), gravity, props, models, and a few behaviors that come already
+// taught, so there's something to try right away. Behaviors are keyed by
+// thing id ('world' holds the World's rules); a behavior is either a sentence
+// for the offline compiler ({text}) or ready-made {text, summary, code}.
+import * as P from './props.js';
+import { BRICK_H as B } from './bricks.js';
+
+const ARROWS = 'When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.';
+const STEER = ARROWS;
+
+const SKY = {
+  day: { sky: 0x9fd3f5, fog: [90, 190], hemi: [0xdff1ff, 0x5d7a3a, 1.4], sun: [0xfff4dd, 2.4] },
+};
+
+// Every coin in the platform game knows the same thing.
+const COIN = {
+  text: 'When the hero touches it, play coin and disappear. Spin slowly.',
+  summary: ['Always: spin slowly', 'When the Hero touches it: play coin and disappear'],
+  code: 'onStart(() => steer(90)); // spin slowly\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
+};
+
+export const WORLDS = [
+  {
+    id: 'playground',
+    name: 'Playground',
+    emoji: '🧱',
+    blurb: 'Trees, two brick houses and a rainbow tower to knock over.',
+    theme: { ...SKY.day, ground: { base: '#3f9e44', stud: '#4db352', edge: '#2f7f34' } },
+    camera: { pos: [-6, 19, -27], target: [0, 1, 3] },
+    build(w) {
+      const trees = [[-30, 6], [-26, 18], [-14, 30], [8, 34], [30, 18], [36, 0], [-36, -8], [12, -34], [-6, -30], [40, -28]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 3 === 0 ? 1.3 : 1 }));
+      P.house(w, 'house-1', -20, -14, 'tan', 'red');
+      P.house(w, 'house-2', 24, -16, 'white', 'blue');
+      P.tower(w, 'tower', 14, 12);
+      P.ramp(w, 'ramp', -6, 22);
+      w.addBall({ x: 4, y: 1.3, z: 14, color: 'white', name: 'Ball', thingId: 'ball' });
+      const loose = [['red', -13, 5], ['blue', -9, 8], ['yellow', -13, 11], ['green', -8.5, 3.5], ['orange', 5, -11], ['purple', 9.5, -12]];
+      loose.forEach(([color, x, z], i) => w.addBrick({ size: i % 2 ? '2x2' : '2x4', color, x, y: B / 2, z, yaw: i * 37, sleeping: true, thingId: `brick-${i + 1}` }));
+    },
+    models: [
+      { id: 'racecar', def: 'racecar', x: 0, z: 0 },
+      { id: 'robot', def: 'robot', x: -8, z: -4, yaw: 20 },
+      { id: 'catapult', def: 'catapult', x: 9, z: -3, yaw: 25 },
+    ],
+    behaviors: { racecar: [{ text: ARROWS }] },
+    select: 'racecar',
+  },
+
+  {
+    id: 'castle',
+    name: 'Castle',
+    emoji: '🏰',
+    blurb: 'A castle on a hill, a catapult aimed right at it, and a knight, a horse and a dragon.',
+    theme: { sky: 0xa9cbe8, fog: [80, 180], hemi: [0xe8f0ff, 0x56703a, 1.35], sun: [0xffe6c0, 2.3], ground: { base: '#4f8f3a', stud: '#5ea446', edge: '#3c702c' } },
+    camera: { pos: [-24, 19, -8], target: [0, 2, 18] },
+    build(w) {
+      const top = P.hill(w, 'hill', 0, 29.5, [[22, 21]]);
+      P.castle(w, 'castle', 0, 28, { y: top });
+      P.tent(w, 'tent', 16, -6, { color: 'red' });
+      P.tent(w, 'tent-2', 23, -1, { color: 'blue', name: 'Blue Tent' });
+      P.well(w, 'well', -16, -4);
+      P.dummy(w, 'dummy', -8, -10);
+      P.hay(w, 'hay', 14, 8, { yaw: 30 });
+      P.fence(w, 'fence', -26, 6, 12, { yaw: 90 });
+      P.flagPole(w, 'banner', 7, -10, { color: 'blue', name: 'Banner' });
+      const trees = [[-30, 24], [-24, 38], [26, 34], [32, 18], [-34, -10], [30, -20], [-12, 46], [14, 48]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 2 ? 1 : 1.25, leaf: i % 3 ? 'green' : 'lime', top: 'green' }));
+    },
+    models: [
+      { id: 'catapult', def: 'catapult', x: -3, z: 14 },
+      { id: 'knight', def: 'knight', x: -11, z: 8, yaw: 10 },
+      { id: 'horse', def: 'horse', x: -16, z: 6, yaw: 30 },
+      { id: 'dragon', def: 'dragon', x: 24, z: 14, yaw: -110 },
+    ],
+    behaviors: {
+      catapult: [
+        { text: 'When I press space, put a brick in the throwing arm, wait 1 second, then fling.' },
+        { text: 'While I hold left, turn left. While I hold right, turn right.' },
+      ],
+      knight: [{ text: STEER }, { text: 'When I press s, swing the sword arm.' }],
+      dragon: [{ text: 'Every 4 seconds, wag the tail and roar.' }],
+    },
+    select: 'catapult',
+  },
+
+  {
+    id: 'space',
+    name: 'Space',
+    emoji: '🚀',
+    blurb: 'No gravity! A starfighter, a UFO, a rocket, floating asteroids and a couple of aliens.',
+    theme: { sky: 0x05060f, fog: null, hemi: [0x9fb4ff, 0x20202a, 1.0], sun: [0xffffff, 2.6], ground: { base: '#30323d', stud: '#3d404e', edge: '#24252e' }, stars: true },
+    camera: { pos: [-10, 18, -30], target: [0, 4, 4] },
+    gravity: 0,
+    build(w) {
+      P.landingPad(w, 'pad', -16, -6);
+      P.station(w, 'base', -22, 16);
+      P.crystal(w, 'crystal-1', 18, 20, { color: 'cyan' });
+      P.crystal(w, 'crystal-2', 24, 8, { color: 'pink' });
+      P.crystal(w, 'crystal-3', -30, -14, { color: 'lime' });
+      const rocks = [[6, 6, 14, 3], [-6, 9, 20, 2.4], [14, 4, 26, 3.4], [-14, 12, 30, 2.6], [20, 10, 2, 2.2], [-4, 14, 8, 2], [10, 13, 36, 3], [-20, 6, 34, 2.8], [26, 7, 22, 2.4], [0, 5, 28, 2]];
+      rocks.forEach(([x, y, z, size], i) => P.asteroid(w, `asteroid-${i + 1}`, x, y, z, { size, color: i % 3 === 0 ? 'brown' : i % 3 === 1 ? 'darkgray' : 'gray', spin: 0.2 + (i % 4) * 0.1 }));
+    },
+    models: [
+      { id: 'spaceship', def: 'spaceship', x: 0, z: 0 },
+      { id: 'ufo', def: 'ufo', x: 14, z: 6, yaw: -40 },
+      { id: 'rocket', def: 'rocket', x: -16, z: -6, lift: 0.5 },
+      { id: 'alien', def: 'alien', x: -8, z: 8, yaw: 160, name: 'Zib' },
+      { id: 'alien-2', def: 'alien', x: 22, z: -6, yaw: -60, name: 'Zab' },
+    ],
+    behaviors: {
+      world: [{ text: 'At the start, turn off gravity.' }],
+      spaceship: [
+        { text: STEER },
+        { text: 'While I hold w, fly up. While I hold s, fly down.' },
+        { text: 'When I press space, play laser and shoot a red brick.' },
+      ],
+      ufo: [{ text: 'Forever, spin the dome.' }, { text: 'Wander slowly.' }],
+      rocket: [{
+        text: 'When I click it, say "3, 2, 1, blast off!", play whoosh and rise for 4 seconds.',
+        summary: ['When you click it: say "3, 2, 1, blast off!", play whoosh, then fly up for 4 seconds'],
+        code: 'onClick(async () => {\n  say("3, 2, 1, blast off!");\n  await wait(1.5);\n  play("whoosh");\n  rise(8);\n  await wait(4);\n  rise(0);\n});',
+      }],
+      alien: [{ text: 'When I click it, wave the left arm and say "Greetings, Earthling!"' }],
+      'alien-2': [{ text: 'Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.' }],
+    },
+    select: 'spaceship',
+  },
+
+  {
+    id: 'platformer',
+    name: 'Platform Game',
+    emoji: '🍄',
+    blurb: 'Jump across platforms, grab the coins, dodge the slimes and reach the flag.',
+    theme: { sky: 0x7cc8ff, fog: [100, 200], hemi: [0xffffff, 0x6aa84f, 1.5], sun: [0xfff2cc, 2.4], ground: { base: '#55b04a', stud: '#66c45a', edge: '#3f8f36' } },
+    camera: { pos: [-26, 16, -10], target: [0, 3, 12] },
+    build(w) {
+      P.platform(w, 'step-1', 0, B, 0, 6, 6, { color: 'orange', name: 'Step' });
+      P.platform(w, 'step-2', 0, 2 * B, 7, 6, 6, { color: 'orange', name: 'Big Step', thickness: 2 * B });
+      P.platform(w, 'ledge', 0, 4.2, 15, 6, 6, { color: 'brown', name: 'Ledge', thickness: 0.8 });
+      P.platform(w, 'lift', 0, 4.8, 23, 6, 6, { color: 'blue', name: 'Moving Platform', thickness: 0.8, yaw: 90 });
+      P.platform(w, 'high-ledge', 0, 6.0, 31, 6, 6, { color: 'brown', name: 'High Ledge', thickness: 0.8 });
+      P.platform(w, 'goal-step', 0, 3.6, 39, 8, 6, { color: 'orange', name: 'Goal Step', thickness: 3.6 });
+      P.flagPole(w, 'goal', 2, 41, { color: 'green', name: 'Goal Flag', kind: 'goal', y: 3.6, height: 6 });
+      P.coin(w, 'coin-1', 0, B + 1.6, 0);
+      P.coin(w, 'coin-2', 0, 2 * B + 1.6, 7);
+      P.coin(w, 'coin-3', 0, 4.2 + 1.6, 15);
+      P.coin(w, 'coin-4', 0, 6.0 + 1.6, 31);
+      P.coin(w, 'coin-5', -8, 1.6, 20);
+      P.coin(w, 'coin-6', 8, 1.6, 12);
+      P.block(w, 'block', -6, 4.2, 4);
+      P.pipe(w, 'pipe-1', 9, 26, 2.4);
+      P.pipe(w, 'pipe-2', -9, 32, 3.6);
+      for (let i = 0; i < 5; i++) P.cloud(w, `cloud-${i + 1}`, -30 + i * 16, 16 + (i % 2) * 4, 30 + (i % 3) * 14);
+      P.tree(w, 'tree-1', 18, 4);
+      P.tree(w, 'tree-2', 16, 36, { scale: 1.2 });
+    },
+    models: [
+      { id: 'hero', def: 'hero', x: 0, z: -9 },
+      { id: 'slime', def: 'slime', x: -7, z: 12, yaw: 90 },
+      { id: 'slime-2', def: 'slime', x: 7, z: 20, yaw: -90 },
+    ],
+    behaviors: {
+      world: [{ text: 'At the start, say "Get all the coins and reach the flag!"' }],
+      hero: [{ text: STEER }, { text: 'When I press space, jump high.' }],
+      slime: [{ text: 'Forever, move 6 studs, then turn around.' }],
+      'slime-2': [{ text: 'Forever, move 6 studs, then turn around.' }],
+      lift: [{
+        text: 'Forever, move 6 studs, wait 1 second, move back 6 studs, wait 1 second.',
+        summary: ['Forever: slide 6 studs one way, wait, slide back, wait'],
+        code: 'forever(async () => {\n  await move(6, 3);\n  await wait(1);\n  await move(-6, 3);\n  await wait(1);\n});',
+      }],
+      ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`coin-${n}`, [COIN]])),
+      block: [{
+        text: 'When the hero bumps it, play ding and drop a yellow brick on top.',
+        summary: ['When the Hero bumps it: play ding and drop a yellow brick on top'],
+        code: 'onTouch(thing("hero"), async () => {\n  play("ding");\n  spawn({ color: "yellow", size: "1x1", at: "top" });\n});',
+      }],
+      goal: [{
+        text: 'When the hero touches it, play yay and say "You win!"',
+        summary: ['When the Hero touches it: play yay and say "You win!"'],
+        code: 'onTouch(thing("hero"), async () => {\n  play("yay");\n  say("You win!", 4);\n});',
+      }],
+    },
+    select: 'hero',
+  },
+
+  {
+    id: 'village',
+    name: 'Village',
+    emoji: '🏘️',
+    blurb: 'Brick houses along the roads, a fountain, market stalls, a bell tower and a dump truck.',
+    theme: { sky: 0xb5dcf7, fog: [90, 190], hemi: [0xf0f6ff, 0x6b7f4a, 1.4], sun: [0xfff0d8, 2.4], ground: { base: '#5aa34a', stud: '#69b657', edge: '#47853a' } },
+    camera: { pos: [-20, 22, -30], target: [0, 1, 2] },
+    build(w) {
+      P.road(w, 'road', [[0, 0, 70, 6], [0, 19.5, 6, 33], [0, -19.5, 6, 33]]);
+      P.house(w, 'house-1', -12, 10, 'tan', 'red', { name: 'Bakery' });
+      P.house(w, 'house-2', 12, 10, 'white', 'blue', { name: 'Blue-Roof House' });
+      P.house(w, 'house-3', -12, -11, 'yellow', 'green', { name: 'Green-Roof House' });
+      P.house(w, 'house-4', 24, -11, 'pink', 'purple', { name: 'Purple-Roof House' });
+      P.house(w, 'house-5', -26, 10, 'orange', 'brown', { name: 'Brown-Roof House' });
+      P.tower(w, 'bell-tower', 12, -12, { layers: 14, colors: ['white', 'tan'], name: 'Bell Tower', kind: 'tower' });
+      P.fountain(w, 'fountain', 8, 24);
+      P.stall(w, 'stall-1', -9, 24, { color: 'red', goods: 'orange', yaw: 90, name: 'Fruit Stall' });
+      P.stall(w, 'stall-2', -9, 31, { color: 'blue', goods: 'yellow', yaw: 90, name: 'Cheese Stall' });
+      P.well(w, 'well', 24, 10);
+      [[-4.5, 5], [4.5, 5], [-4.5, -5], [4.5, -5], [-20, 4.5], [20, -4.5]].forEach(([x, z], i) => P.lamp(w, `lamp-${i + 1}`, x, z));
+      const trees = [[-30, -6], [-36, 24], [32, 24], [36, -26], [-28, -28], [20, 40], [-20, 42]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 2 ? 1 : 1.2 }));
+    },
+    models: [
+      { id: 'truck', def: 'truck', x: -24, z: 0, yaw: 90 },
+      { id: 'mayor', def: 'robot', x: 14, z: 30, yaw: 200, name: 'Mayor Bot' },
+      { id: 'racecar', def: 'racecar', x: 2, z: -30, yaw: 0 },
+    ],
+    behaviors: {
+      truck: [{ text: ARROWS }, { text: 'When I press space, raise the dump bed, wait 1 second, lower the dump bed.' }],
+      mayor: [{ text: 'When I click it, raise both arms and say "Welcome to Brickton!" then lower both arms.' }],
+    },
+    select: 'truck',
+  },
+
+  {
+    id: 'farm',
+    name: 'Farm',
+    emoji: '🚜',
+    blurb: 'A red barn, a silo, fields of carrots and corn, cows in the pen and a tractor.',
+    theme: { sky: 0xaee0ff, fog: [90, 190], hemi: [0xfffbe8, 0x7b8a3a, 1.45], sun: [0xfff0c8, 2.5], ground: { base: '#7bb24a', stud: '#8bc457', edge: '#61913a' } },
+    camera: { pos: [-24, 22, -26], target: [0, 1, 6] },
+    build(w) {
+      P.barn(w, 'barn', -16, 18);
+      P.silo(w, 'silo', -26, 22);
+      P.crops(w, 'carrots', 14, 18, { rows: 4, length: 12, plant: 'orange', name: 'Carrots' });
+      P.crops(w, 'corn', 14, 32, { rows: 3, length: 12, plant: 'yellow', leaf: 'green', name: 'Corn', tall: true });
+      P.fence(w, 'pen-n', 22, 6, 18);
+      P.fence(w, 'pen-s', 22, -12, 18);
+      P.fence(w, 'pen-e', 31, -3, 16.4, { yaw: 90 });
+      P.pond(w, 'pond', -18, -14);
+      P.hay(w, 'hay', -6, 8);
+      P.hay(w, 'hay-2', -28, 6, { yaw: 90, name: 'More Hay' });
+      const trees = [[-36, -4], [-34, 36], [30, 40], [38, 22], [-6, 40], [36, -30]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 2 ? 1.1 : 1 }));
+    },
+    models: [
+      { id: 'tractor', def: 'tractor', x: 0, z: -4 },
+      { id: 'cow', def: 'cow', x: 22, z: 0, yaw: -70, name: 'Daisy' },
+      { id: 'cow-2', def: 'cow', x: 24, z: -7, yaw: 200, name: 'Buttercup' },
+      { id: 'horse', def: 'horse', x: -6, z: -14, yaw: 60 },
+    ],
+    behaviors: {
+      tractor: [{ text: ARROWS }, { text: 'When I press space, lift the loader, wait 1 second, lower the loader.' }],
+      cow: [{ text: 'Every 5 seconds, play moo and wag the tail.' }],
+      'cow-2': [{ text: 'Every 7 seconds, play moo and nod the head.' }],
+    },
+    select: 'tractor',
+  },
+];
+
+export const WORLDS_BY_ID = Object.fromEntries(WORLDS.map((w) => [w.id, w]));

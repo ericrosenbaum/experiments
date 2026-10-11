@@ -59,6 +59,7 @@ export class Audio {
       case 'roar': noise(0.9, 300, 0.8, 0, 2.2); tone('sawtooth', 110, 70, 0.9, 0, 0.4); break;
       case 'coin': tone('square', 988, 988, 0.08, 0, 0.25); tone('square', 1319, 1319, 0.3, 0.08, 0.25); break;
       case 'drum': tone('sine', 150, 50, 0.3, 0, 1); noise(0.1, 2000, 1, 0, 0.4); break;
+      case 'moo': tone('sawtooth', 140, 110, 0.9, 0, 0.5); tone('sine', 280, 220, 0.9, 0, 0.3); break;
       case 'yay': [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.18, i * 0.09, 0.35)); break;
       default: tone('sine', 440, 440, 0.1, 0, 0.3);
     }

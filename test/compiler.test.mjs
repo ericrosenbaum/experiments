@@ -37,6 +37,20 @@ check('when I press g, go to {place:10,-5}', 'robot', ['goTo(place(10, -5), 7)']
 check('{part:head} spins fast', 'robot', ['part("head").spin(650)']);
 check('when I press space, lift the scoop, wait 1 second, lower the scoop', 'digger', ['part("scoop").turnTo(90)', 'wait(1)', 'part("scoop").turnTo(0)']);
 check('when I press d, dance', 'robot', ['play("yay")']);
+// world rules, flying, copies, disappearing
+check('at the start, turn off gravity', 'robot', ['onStart(', 'gravity(0)']);
+check('when I press g, turn gravity back on', 'robot', ['gravity(1)']);
+check('when I press m, make gravity weak like on the moon', 'robot', ['gravity(0.3)']);
+check('while I hold w, fly up. while I hold s, fly down', 'spaceship', ['onKey("w"', 'rise(6)', 'onKeyUp("w"', 'rise(0)', 'rise(-6)']);
+check('when I click it, rise for 4 seconds', 'rocket', ['rise(6)', 'wait(4)', 'rise(0)']);
+check('when I press c, make a copy of the race car above', 'robot', ['await clone("racecar", "above")']);
+check('when I click it, clone itself', 'robot', ['await clone(null)']);
+check('when I press k, make 3 copies of {thing:tree-3|Tree 3} in front', 'robot', ['for (let i = 0; i < 3; i++)', 'clone(thing("tree-3"), "front")']);
+check('when I press p, make a copy of itself at {place:4,-8}', 'robot', ['clone(null, place(4, -8))']);
+check('when the hero touches it, play coin and disappear', 'robot', ['onTouch("hero"', 'play("coin")', 'remove()']);
+check('when it bumps into a cow, play moo', 'tractor', ['onTouch("cow"', 'play("moo")']);
+// quoted words stay whole, commas, "and" and all
+check('when I click it, say "Hi, friend. Want to play and race?"', 'robot', ['say("Hi, friend. Want to play and race?")']);
 const r = check('when I press x, fly to the moon', 'robot', []);
 assert.deepEqual(r.unknown, ['fly to the moon']);
 console.log('compiler: all checks passed');
