@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { WORLDS_BY_ID } from './world/worlds.js';
 import { LIBRARY_BY_ID, modelBottom } from './world/library.js';
-import { compileLocal } from './behavior/compiler.js';
+import { compileLocal, titleFrom } from './behavior/compiler.js';
 
 const MAX_COPIES = 40;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -18,7 +18,7 @@ export function makeBehavior(b) {
     id: behaviorIds++, enabled: b.enabled ?? true, running: false,
     text: b.text, html: b.html ?? esc(b.text), code: b.code, summary: b.summary ?? [], source: b.source,
     notes: b.notes ?? '',
-    title: (b.summary?.[0] ?? b.text).slice(0, 40),
+    title: b.title || titleFrom([(b.summary?.[0] ?? b.text).replace(/^[^:]*:\s*/, '')]),
   };
 }
 
@@ -76,7 +76,7 @@ export class Stage {
         if (b.code) return makeBehavior({ ...b, source: 'premade' });
         const m = preset.models.find((x) => x.id === key);
         const r = compileLocal(b.text, m ? LIBRARY_BY_ID[m.def] : { parts: [] });
-        return makeBehavior({ text: b.text, ...r, source: 'premade' });
+        return makeBehavior({ text: b.text, ...r, title: b.title ?? r.title, source: 'premade' });
       }));
     }
     return { behaviors, added: [], moves: [], deleted: new Set() };

@@ -439,6 +439,13 @@ function parseActions(rest, ctx) {
   return { actions: out, unknown };
 }
 
+// A short card title from the first couple of action labels: "Wave & Say Hi".
+export function titleFrom(labels) {
+  const words = (l) => l.replace(/\b(the|a|an)\s+/gi, '').split(/\s+/).slice(0, l.includes('"') ? 4 : 3).join(' ');
+  const t = [...new Set(labels.map(words))].slice(0, 2).join(' & ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  return t.length > 34 ? `${t.slice(0, 33).trim()}…` : t;
+}
+
 const indent = (lines, n = 1) => lines.map((l) => '  '.repeat(n) + l);
 
 export function compileLocal(text, model) {
@@ -456,6 +463,7 @@ export function compileLocal(text, model) {
   const code = [];
   const summary = [];
   const unknown = [];
+  const titleBits = [];
   for (const sentence of sentences) {
     const lower = sentence.replace(/^(and|also|so|then)\s+/i, '');
     const trig = parseTrigger(lower.toLowerCase().replace(/\{[^}]*\}/g, (m) => m)); // keep chips
@@ -467,6 +475,7 @@ export function compileLocal(text, model) {
     if (!actions.length) continue;
     const body = actions.flatMap((a) => a.code);
     const labels = actions.map((a) => a.label).join(', then ');
+    titleBits.push(...actions.map((a) => a.label));
     const loops = actions.some((a) => a.loops);
 
     switch (trig.type) {
@@ -520,5 +529,5 @@ export function compileLocal(text, model) {
         }
     }
   }
-  return { code: unquote(code.join('\n'), true), summary: summary.map((x) => unquote(x)), unknown: unknown.map((x) => unquote(x)), source: 'offline' };
+  return { code: unquote(code.join('\n'), true), title: unquote(titleFrom(titleBits)), summary: summary.map((x) => unquote(x)), unknown: unknown.map((x) => unquote(x)), source: 'offline' };
 }

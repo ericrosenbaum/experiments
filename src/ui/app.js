@@ -6,6 +6,7 @@ import { LIBRARY, LIBRARY_BY_ID, CATEGORIES } from '../world/library.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, probeClaude, syntaxError } from '../behavior/generate.js';
+import { renderBlocks } from './blocks.js';
 import { makeBehavior, describeTarget } from '../stage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -650,19 +651,28 @@ export class App {
       const card = document.createElement('div');
       card.className = `behavior ${b.enabled ? '' : 'off'} ${b.running ? 'running' : ''}`;
       const by = { claude: 'Claude', premade: 'the world (it came with it)', edited: 'you' }[b.source] ?? 'the offline helper';
+      const view = this.codeView;
       card.innerHTML = `
         <div class="b-head">
-          <div class="b-said">${b.html ? sanitizeHtml(b.html) : esc(b.text)}</div>
+          <div class="b-title">${esc(b.title)}</div>
           <button class="toggle ${b.enabled ? 'on' : ''}" title="Turn this behavior on or off">${b.enabled ? 'ON' : 'OFF'}</button>
           <button class="mini edit" title="Put these words back in the box to change them">✎</button>
           <button class="mini del" title="Forget this behavior">✕</button>
         </div>
+        <div class="b-said">${b.html ? sanitizeHtml(b.html) : esc(b.text)}</div>
         <ul>${b.summary.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
         ${b.notes ? `<div class="notes">${esc(b.notes)}</div>` : ''}
-        <details><summary>See the code <span class="src">· written by ${by}</span></summary>
-          <textarea spellcheck="false">${esc(b.code)}</textarea>
-          <button class="mini run">Run edited code</button>
-        </details>`;
+        <div class="b-view">
+          <button data-view="blocks" class="${view === 'blocks' ? 'on' : ''}">🧩 Blocks</button>
+          <button data-view="code" class="${view === 'code' ? 'on' : ''}">{ } Code</button>
+          <span class="src">· written by ${by}</span>
+        </div>
+        ${view === 'blocks' ? this._blocksFor(b) : ''}
+        ${view === 'code' ? `<textarea spellcheck="false">${esc(b.code)}</textarea>
+          <button class="mini run">Run edited code</button>` : ''}`;
+      for (const btn of card.querySelectorAll('.b-view button')) {
+        btn.onclick = () => { this.codeView = this.codeView === btn.dataset.view ? 'none' : btn.dataset.view; this.renderBehaviors(); };
+      }
       card.querySelector('.toggle').onclick = () => { b.enabled = !b.enabled; this._restart(a, b); this.renderBehaviors(); };
       card.querySelector('.del').onclick = () => {
         b.enabled = false;
@@ -671,7 +681,7 @@ export class App {
         this.renderBehaviors();
       };
       card.querySelector('.edit').onclick = () => { $('composer').innerHTML = b.html ?? esc(b.text); this.savedRange = null; $('composer').focus(); };
-      card.querySelector('.run').onclick = () => {
+      if (card.querySelector('.run')) card.querySelector('.run').onclick = () => {
         const code = card.querySelector('textarea').value;
         const err = syntaxError(code);
         if (err) { this.log(`That code has a typo: ${err}`, 'error'); return; }
@@ -683,6 +693,29 @@ export class App {
       };
       list.appendChild(card);
     }
+  }
+
+  // How behavior cards show their program: 'blocks', 'code' or 'none' (remembered).
+  get codeView() {
+    if (!this._codeView) {
+      try { this._codeView = localStorage.getItem('bb-code-view'); } catch { /* private mode */ }
+      this._codeView ||= 'blocks';
+    }
+    return this._codeView;
+  }
+
+  set codeView(v) {
+    this._codeView = v;
+    try { localStorage.setItem('bb-code-view', v); } catch { /* private mode: just this page */ }
+  }
+
+  _blocksFor(b) {
+    if (b._blocks?.code !== b.code) {
+      const things = this.world.things();
+      const thingName = (id) => (things.has(id) ? this.world.actor(id).name : null);
+      b._blocks = { code: b.code, html: renderBlocks(b.code, { thingName }) };
+    }
+    return b._blocks.html;
   }
 
   onProgramsChanged() {

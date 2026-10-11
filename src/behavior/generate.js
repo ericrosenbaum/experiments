@@ -33,7 +33,7 @@ export async function generateBehavior({ text, model, things, otherBehaviors, pr
       if (!r.ok) throw new Error(out.error ?? `HTTP ${r.status}`);
       const err = syntaxError(out.code);
       if (err) throw new Error(`generated code didn't parse: ${err}`);
-      return { code: out.code, summary: out.summary, notes: out.notes, unknown: [], source: 'claude' };
+      return { code: out.code, title: out.title, summary: out.summary, notes: out.notes, unknown: [], source: 'claude' };
     } catch (err) {
       const local = compileLocal(text, model);
       return { ...local, notes: `Claude wasn't reachable (${err.message}), so the offline helper wrote this.` };

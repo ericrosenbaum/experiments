@@ -1,14 +1,15 @@
 {
-  "date": "2026-10-10",
+  "date": "2026-10-11",
   "behavior": [
     {
       "text": "when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tree 3}",
       "target": "Robot",
       "claude": {
+        "title": "Wave and Go",
         "summary": [
-          "When you press space: wave the left arm, say \"Hi!\", then go to Tree 3"
+          "When you press space: wave the left arm and say \"Hi!\", then go to Tree 3"
         ],
-        "code": "onKey(\" \", async () => {\n  // lift the left arm and wave\n  await part(\"left arm\").turnTo(150);\n  say(\"Hi!\", 2);\n  await part(\"left arm\").wiggle(3);\n  await part(\"left arm\").turnTo(0);\n  // head over to the tree\n  await goTo(thing(\"tree-3\"), 7);\n});",
+        "code": "onKey(\" \", async () => {\n  say(\"Hi!\", 2);\n  // lift the arm up and wave it\n  await part(\"left arm\").turnTo(150);\n  await part(\"left arm\").wiggle(3);\n  await part(\"left arm\").turnTo(0);\n  // head over to the tree\n  await goTo(thing(\"tree-3\"), 7);\n});",
         "notes": "",
         "source": "claude",
         "model": "claude-opus-5-5"
@@ -18,11 +19,12 @@
       "text": "forever, if you see something red in front of you, honk and back up",
       "target": "Race Car",
       "claude": {
+        "title": "Red Alert Reverse",
         "summary": [
-          "Always: if something red is right in front of you, honk and back up"
+          "All the time: look ahead, and if something red is in front, honk and back up"
         ],
-        "code": "forever(async () => {\n  // Look ahead for something red\n  const seen = await look(8);\n  if (seen && is(seen, \"red\")) {\n    play(\"honk\");\n    await move(-5, 7); // back up\n  }\n});",
-        "notes": "I made it look 8 studs ahead and back up 5 studs. The car doesn't drive on its own, so it only reacts when something red is in front of it.",
+        "code": "forever(async () => {\n  const seen = await look(10);\n  if (seen && is(seen, \"red\")) {\n    play(\"honk\");\n    await move(-5, 7); // back up\n  }\n});",
+        "notes": "I made it look 10 studs ahead and back up 5 studs each time it sees something red.",
         "source": "claude",
         "model": "claude-opus-5-5"
       }
@@ -31,12 +33,13 @@
       "text": "when I click the ground, make everything float for 5 seconds and then drop a bunch of rainbow bricks",
       "target": "World",
       "claude": {
+        "title": "Float and Rainbow Drop",
         "summary": [
           "When you click the ground: everything floats for 5 seconds",
           "Then gravity comes back and a bunch of rainbow bricks fall from the sky"
         ],
-        "code": "const rainbow = [\"red\", \"orange\", \"yellow\", \"green\", \"blue\", \"purple\", \"pink\"];\nlet busy = false;\n\nonClick(async () => {\n  if (busy) return; // don't start again while floating\n  busy = true;\n  gravity(0); // everything floats!\n  play(\"whoosh\");\n  say(\"Floaty time!\", 2);\n  await wait(5);\n  gravity(1); // back to normal\n  play(\"drum\");\n  // drop a bunch of rainbow bricks\n  for (let i = 0; i < 14; i++) {\n    spawn({ color: rainbow[i % rainbow.length], size: \"2x2\", at: place(random(-10, 10), random(-10, 10)) });\n    await wait(0.15);\n  }\n  play(\"yay\");\n  busy = false;\n});",
-        "notes": "Gravity has to come back before the bricks drop, or they would float too. I dropped 14 bricks in rainbow colors at random spots near the middle. Clicking again while things are floating does nothing until the bricks have finished falling.",
+        "code": "const rainbow = [\"red\", \"orange\", \"yellow\", \"green\", \"blue\", \"purple\", \"pink\"];\n\nonClick(async () => {\n  // Everything floats!\n  gravity(0);\n  play(\"whoosh\");\n  say(\"Floaty time!\", 2);\n  await wait(5);\n\n  // Gravity comes back\n  gravity(1);\n  play(\"drum\");\n\n  // Rain down rainbow bricks\n  for (let i = 0; i < 14; i++) {\n    spawn({ color: rainbow[i % rainbow.length], size: \"2x2\", at: place(random(-10, 10), random(-10, 10)) });\n    await wait(0.15);\n  }\n  play(\"yay\");\n});",
+        "notes": "After the 5 floating seconds, gravity goes back to normal so the rainbow bricks actually fall. The bricks land in random spots near the middle of the world.",
         "source": "claude",
         "model": "claude-opus-5-5"
       }
@@ -93,7 +96,8 @@
         ],
         "dropped": [
           "es",
-          "muy"
+          "muy",
+          "qué"
         ],
         "blocked": [
           "Name-calling isn't possible in Brick Talk.",

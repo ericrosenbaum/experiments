@@ -15,6 +15,7 @@ const SKY = {
 
 // Every coin in the platform game knows the same thing.
 const COIN = {
+  title: 'Spinning Coin',
   text: 'When the hero touches it, play coin and disappear. Spin slowly.',
   summary: ['Always: spin slowly', 'When the Hero touches it: play coin and disappear'],
   code: 'onStart(() => steer(90)); // spin slowly\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
@@ -121,6 +122,7 @@ export const WORLDS = [
       ],
       ufo: [{ text: 'Forever, spin the dome.' }, { text: 'Wander slowly.' }],
       rocket: [{
+        title: 'Blast Off',
         text: 'When I click it, say "3, 2, 1, blast off!", play whoosh and rise for 4 seconds.',
         summary: ['When you click it: say "3, 2, 1, blast off!", play whoosh, then fly up for 4 seconds'],
         code: 'onClick(async () => {\n  say("3, 2, 1, blast off!");\n  await wait(1.5);\n  play("whoosh");\n  rise(8);\n  await wait(4);\n  rise(0);\n});',
@@ -171,17 +173,20 @@ export const WORLDS = [
       slime: [{ text: 'Forever, move 6 studs, then turn around.' }],
       'slime-2': [{ text: 'Forever, move 6 studs, then turn around.' }],
       lift: [{
+        title: 'Up and Down Lift',
         text: 'Forever, move 6 studs, wait 1 second, move back 6 studs, wait 1 second.',
         summary: ['Forever: slide 6 studs one way, wait, slide back, wait'],
         code: 'forever(async () => {\n  await move(6, 3);\n  await wait(1);\n  await move(-6, 3);\n  await wait(1);\n});',
       }],
       ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`coin-${n}`, [COIN]])),
       block: [{
+        title: 'Surprise Block',
         text: 'When the hero bumps it, play ding and drop a yellow brick on top.',
         summary: ['When the Hero bumps it: play ding and drop a yellow brick on top'],
         code: 'onTouch(thing("hero"), async () => {\n  play("ding");\n  spawn({ color: "yellow", size: "1x1", at: "top" });\n});',
       }],
       goal: [{
+        title: 'Victory Flag',
         text: 'When the hero touches it, play yay and say "You win!"',
         summary: ['When the Hero touches it: play yay and say "You win!"'],
         code: 'onTouch(thing("hero"), async () => {\n  play("yay");\n  say("You win!", 4);\n});',
@@ -302,6 +307,7 @@ export const WORLDS = [
     behaviors: {
       world: [{ text: 'At the start, say "Minigolf! Aim with ← →. Hold space, let go to putt."' }],
       golfball: [{
+        title: 'Minigolf Ball',
         text: 'Aim with the left and right arrows. Hold space to charge up a putt and let go to hit it; up is a little tap. Count the strokes. When it hears "in the hole", cheer, then go to the next tee. R goes back to the tee.',
         summary: [
           'While ← or → is held: aim left or right',
@@ -357,11 +363,12 @@ onMessage("in the hole", async () => {
 onStart(async () => { await face(thing(cups[0])); });`,
       }],
       ...Object.fromEntries([1, 2, 3].map((n) => [`cup-${n}`, [{
+        title: 'Cup Catcher',
         text: 'When the golf ball drops in, tell everyone "in the hole".',
         summary: ['When the Golf Ball drops in: tell everyone "in the hole"'],
         code: 'onTouch(thing("golfball"), () => {\n  broadcast("in the hole");\n});',
       }]])),
-      spinner: [{ text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(60)); // keep turning' }],
+      spinner: [{ title: 'Spinner', text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(60)); // keep turning' }],
       golfer: [{ text: 'When it hears "in the hole", wave the left arm and say "Nice putt!"' }],
     },
     select: 'golfball',

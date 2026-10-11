@@ -33,6 +33,7 @@ Guidelines:
 - If something they asked for is impossible with these primitives, do the closest fun thing and say so in "notes".
 
 Respond with:
+- title: a short, catchy name for this behavior, 1-4 words in Title Case, that a child would enjoy seeing on a card, like "Honk and Jump", "Rainbow Rain" or "Robot Wave". No ending punctuation.
 - summary: one plain-English line per rule the program creates, written for a 7-10 year old, like "When you press space: honk and jump".
 - code: the program.
 - notes: anything you couldn't do or had to guess (empty string if none).`;
@@ -40,11 +41,12 @@ Respond with:
 export const RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
+    title: { type: 'string' },
     summary: { type: 'array', items: { type: 'string' } },
     code: { type: 'string' },
     notes: { type: 'string' },
   },
-  required: ['summary', 'code', 'notes'],
+  required: ['title', 'summary', 'code', 'notes'],
   additionalProperties: false,
 };
 

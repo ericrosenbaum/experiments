@@ -14,7 +14,7 @@ const msg = buildUserMessage({
   otherBehaviors: ['When ↑ is held: drive forward'],
 });
 for (const s of ['"left arm"', '"head"', 'id "tree-3"', '{part:left arm}', 'drive forward']) assert.ok(msg.includes(s), `user message should include ${s}`);
-assert.deepEqual(RESPONSE_SCHEMA.required, ['summary', 'code', 'notes']);
+assert.deepEqual(RESPONSE_SCHEMA.required, ['title', 'summary', 'code', 'notes']);
 
 const saved = { key: process.env.ANTHROPIC_API_KEY, tok: process.env.ANTHROPIC_AUTH_TOKEN };
 delete process.env.ANTHROPIC_API_KEY;

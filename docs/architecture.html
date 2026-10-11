@@ -156,7 +156,7 @@ ol.steps li { margin-bottom: 6px; }
   <div class="studs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <h1>Brick Behaviors Architecture</h1>
   <p class="lede">Kids describe how something in a brick world should behave, in words plus things they point at. Claude turns that into a short JavaScript program, the program runs in a locked-down Web Worker, and the only things it can do are call high-level primitives that act on a Rapier physics world.</p>
-  <div class="meta"><span>Updated 2026-10-10</span><span>branch claude/brick-behaviors</span><span>examples run <!-- gen:examples-date -->2026-10-10<!-- /gen:examples-date --></span></div>
+  <div class="meta"><span>Updated 2026-10-10</span><span>branch claude/brick-behaviors</span><span>examples run <!-- gen:examples-date -->2026-10-11<!-- /gen:examples-date --></span></div>
 </header>
 
 <span class="eyebrow">01</span>
@@ -226,7 +226,8 @@ ol.steps li { margin-bottom: 6px; }
   <thead><tr><th>Module</th><th>Job</th></tr></thead>
   <tbody>
     <tr><td><code>src/main.js</code></td><td>Boots Rapier and Three.js, creates World, Runtime, App, Stage and Chat, and runs the frame loop (<code>world.step</code> → <code>app.update</code> → render).</td></tr>
-    <tr><td><code>src/ui/app.js</code></td><td>World picker, selection and dragging, the composer with chips, behavior cards, speech bubbles. Calls <code>generateBehavior()</code>.</td></tr>
+    <tr><td><code>src/ui/app.js</code></td><td>World picker, selection and dragging, the composer with chips, behavior cards (title, read-back, then the program as blocks or code), speech bubbles. Calls <code>generateBehavior()</code>.</td></tr>
+    <tr><td><code>src/ui/blocks.js</code></td><td>Draws a program as Scratch-style blocks: parses the JavaScript with acorn and keeps its statements, order and nesting, but uses plain words (<code>onKey(" ", …)</code> becomes a “when space key pressed” hat). Shapes are plain HTML/CSS, not Blockly.</td></tr>
     <tr><td><code>src/stage.js</code></td><td>What is in the current world and what each thing knows. Behaviors are keyed by actor key so they survive Reset and world switches. Owns clone/remove and the 40-copy cap.</td></tr>
     <tr><td><code>src/behavior/</code></td><td>The behavior system: <code>primitives.js</code> (the API spec), <code>prompt.js</code>, <code>generate.js</code>, <code>compiler.js</code> (offline), <code>runtime.js</code> (host), <code>sandbox.worker.js</code>, <code>filter.js</code>.</td></tr>
     <tr><td><code>src/world/</code></td><td>Physics and rendering (<code>world.js</code>), actors, the model library, premade worlds with pre-taught behaviors, prop builders, brick geometry.</td></tr>
@@ -258,7 +259,7 @@ ol.steps li { margin-bottom: 6px; }
   <rect class="box note" x="380" y="226" width="240" height="52" rx="6"/>
   <text class="s" x="394" y="247">4  SYSTEM_PROMPT (fixed) +</text><text class="s" x="408" y="264">buildUserMessage(input)</text>
   <line class="edge" x1="500" y1="302" x2="848" y2="302" marker-end="url(#a2)"/><text class="lbl" x="674" y="294" text-anchor="middle">5  json_schema · effort low · 16k max</text>
-  <line class="edge ret" x1="850" y1="348" x2="502" y2="348" marker-end="url(#a2)"/><text class="lbl" x="674" y="340" text-anchor="middle">6  {summary[], code, notes}</text>
+  <line class="edge ret" x1="850" y1="348" x2="502" y2="348" marker-end="url(#a2)"/><text class="lbl" x="674" y="340" text-anchor="middle">6  {title, summary[], code, notes}</text>
   <line class="edge ret" x1="500" y1="394" x2="172" y2="394" marker-end="url(#a2)"/><text class="lbl" x="334" y="386" text-anchor="middle">7  200 + source, model  (or 503/422/502)</text>
   <rect class="box note" x="30" y="414" width="300" height="52" rx="6"/>
   <text class="s" x="44" y="435">8  syntaxError(code): compile as an</text><text class="s" x="58" y="452">AsyncFunction of the primitives, never run</text>
@@ -294,7 +295,7 @@ ol.steps li { margin-bottom: 6px; }
     <tr><td>Model</td><td><code>claude-opus-5-5</code></td><td>Best code from loose kid language.</td></tr>
     <tr><td>Fallbacks</td><td><code>fallbacks: 'default'</code> with beta <code>server-side-fallback-2026-07-01</code></td><td>The API retries on another model if Opus is overloaded.</td></tr>
     <tr><td>Effort</td><td><code>low</code></td><td>Programs are short; latency matters more than depth.</td></tr>
-    <tr><td>Output</td><td><code>json_schema</code> (below)</td><td>The reply is always <code>{summary, code, notes}</code>, so there's nothing to parse out of prose.</td></tr>
+    <tr><td>Output</td><td><code>json_schema</code> (below)</td><td>The reply is always <code>{title, summary, code, notes}</code>, so there's nothing to parse out of prose.</td></tr>
     <tr><td><code>max_tokens</code></td><td>16000</td><td>A cut-off reply returns 502 and triggers the fallback.</td></tr>
   </tbody>
 </table></div>
@@ -350,6 +351,7 @@ Units: studs (one 1x1 brick wide). Typical speeds: slow 3, normal 7, fast 13. An
 - await turn(degrees) — Turn in place by degrees. Positive = left, negative = right.
 - await goTo(target, speed) — Drive until near target: a thing(&quot;...&quot;) reference, a place(x, z), or a kind like &quot;tree&quot; (the nearest one).
 - await face(target) — Turn to face a target (same kinds of targets as goTo).
+- await teleport(target) — Jump straight to a target (a place(x, z) or a thing), landing on whatever is there, and stop moving. Good for &quot;go back to the start&quot;.
 - await part(name).turnTo(degrees) — Swing a hinged part (arm, head, tail, bucket...) to an angle. 0 is its starting pose.
 - await part(name).wiggle(times) — Wiggle a part back and forth, like a wave or a wag.
 - await clone(what, where) — Make a copy, with all its behaviors. what: null for this thing, or another thing: thing(&quot;...&quot;) or a kind like &quot;tree&quot; (the nearest one). where (optional): place(x, z), &quot;front&quot;, &quot;back&quot;, &quot;left&quot;, &quot;right&quot; or &quot;above&quot;; leave it out for a clear spot right beside. Returns the copy as {name, kind, color, id}, or null if there are too many copies already.
@@ -388,6 +390,7 @@ Guidelines:
 - If something they asked for is impossible with these primitives, do the closest fun thing and say so in &quot;notes&quot;.
 
 Respond with:
+- title: a short, catchy name for this behavior, 1-4 words in Title Case, that a child would enjoy seeing on a card, like &quot;Honk and Jump&quot;, &quot;Rainbow Rain&quot; or &quot;Robot Wave&quot;. No ending punctuation.
 - summary: one plain-English line per rule the program creates, written for a 7-10 year old, like &quot;When you press space: honk and jump&quot;.
 - code: the program.
 - notes: anything you couldn't do or had to guess (empty string if none).</code></pre><!-- /gen:behavior-system --></div>
@@ -419,6 +422,9 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
 <div class="code-box"><!-- gen:behavior-schema --><pre class="code "><code>{
   &quot;type&quot;: &quot;object&quot;,
   &quot;properties&quot;: {
+    &quot;title&quot;: {
+      &quot;type&quot;: &quot;string&quot;
+    },
     &quot;summary&quot;: {
       &quot;type&quot;: &quot;array&quot;,
       &quot;items&quot;: {
@@ -433,6 +439,7 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
     }
   },
   &quot;required&quot;: [
+    &quot;title&quot;,
     &quot;summary&quot;,
     &quot;code&quot;,
     &quot;notes&quot;
@@ -442,7 +449,7 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
 
 <h3>Design choices in the prompt</h3>
 <ul>
-  <li><b>The read-back is the contract with the kid.</b> <code>summary</code> is written for a 7–10 year old and shown above the code, so a kid can check that it understood before reading any JavaScript.</li>
+  <li><b>The read-back is the contract with the kid.</b> <code>title</code> (1–4 words) heads the behavior's card, and <code>summary</code> is written for a 7–10 year old and shown above the blocks, so a kid can check that it understood before reading any JavaScript.</li>
   <li><b>Notes instead of refusals.</b> Impossible requests get "the closest fun thing" plus an explanation in <code>notes</code>.</li>
   <li><b>Chips remove ambiguity.</b> Pointing produces exact part names, thing ids and coordinates; the prompt maps each chip form to a primitive call.</li>
   <li><b>Safety rules are stated, but enforced elsewhere.</b> "Every loop must await" and "never let copies keep cloning" are in the prompt, and the watchdog and copy caps catch the cases where Claude misses them.</li>
@@ -455,11 +462,11 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
   <header class="ex-head"><span class="ex-target">Robot</span><p class="kid">“when I press space, wave <span class="chip part">left arm</span> and say hi, then go to <span class="chip thing">Tree 3</span>”</p></header>
   <div class="ex-cols">
     <section class="ex-col claude"><h4>Claude <span class="tag">claude-opus-5-5</span></h4>
-      <ul class="readback"><li>When you press space: wave the left arm, say &quot;Hi!&quot;, then go to Tree 3</li></ul>
+      <ul class="readback"><li>When you press space: wave the left arm and say &quot;Hi!&quot;, then go to Tree 3</li></ul>
       <pre class="code "><code>onKey(&quot; &quot;, async () =&gt; {
-  // lift the left arm and wave
-  await part(&quot;left arm&quot;).turnTo(150);
   say(&quot;Hi!&quot;, 2);
+  // lift the arm up and wave it
+  await part(&quot;left arm&quot;).turnTo(150);
   await part(&quot;left arm&quot;).wiggle(3);
   await part(&quot;left arm&quot;).turnTo(0);
   // head over to the tree
@@ -502,16 +509,15 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
   <header class="ex-head"><span class="ex-target">Race Car</span><p class="kid">“forever, if you see something red in front of you, honk and back up”</p></header>
   <div class="ex-cols">
     <section class="ex-col claude"><h4>Claude <span class="tag">claude-opus-5-5</span></h4>
-      <ul class="readback"><li>Always: if something red is right in front of you, honk and back up</li></ul>
+      <ul class="readback"><li>All the time: look ahead, and if something red is in front, honk and back up</li></ul>
       <pre class="code "><code>forever(async () =&gt; {
-  // Look ahead for something red
-  const seen = await look(8);
+  const seen = await look(10);
   if (seen &amp;&amp; is(seen, &quot;red&quot;)) {
     play(&quot;honk&quot;);
     await move(-5, 7); // back up
   }
 });</code></pre>
-      <p class="notes"><b>Notes:</b> I made it look 8 studs ahead and back up 5 studs. The car doesn't drive on its own, so it only reacts when something red is in front of it.</p>
+      <p class="notes"><b>Notes:</b> I made it look 10 studs ahead and back up 5 studs each time it sees something red.</p>
     </section>
     <section class="ex-col offline"><h4>Offline compiler</h4>
       <ul class="readback"><li>Forever: play the honk sound, then go backward a little</li></ul>
@@ -547,26 +553,26 @@ forever, if you see something red in front of you, honk and back up
     <section class="ex-col claude"><h4>Claude <span class="tag">claude-opus-5-5</span></h4>
       <ul class="readback"><li>When you click the ground: everything floats for 5 seconds</li><li>Then gravity comes back and a bunch of rainbow bricks fall from the sky</li></ul>
       <pre class="code "><code>const rainbow = [&quot;red&quot;, &quot;orange&quot;, &quot;yellow&quot;, &quot;green&quot;, &quot;blue&quot;, &quot;purple&quot;, &quot;pink&quot;];
-let busy = false;
 
 onClick(async () =&gt; {
-  if (busy) return; // don't start again while floating
-  busy = true;
-  gravity(0); // everything floats!
+  // Everything floats!
+  gravity(0);
   play(&quot;whoosh&quot;);
   say(&quot;Floaty time!&quot;, 2);
   await wait(5);
-  gravity(1); // back to normal
+
+  // Gravity comes back
+  gravity(1);
   play(&quot;drum&quot;);
-  // drop a bunch of rainbow bricks
+
+  // Rain down rainbow bricks
   for (let i = 0; i &lt; 14; i++) {
     spawn({ color: rainbow[i % rainbow.length], size: &quot;2x2&quot;, at: place(random(-10, 10), random(-10, 10)) });
     await wait(0.15);
   }
   play(&quot;yay&quot;);
-  busy = false;
 });</code></pre>
-      <p class="notes"><b>Notes:</b> Gravity has to come back before the bricks drop, or they would float too. I dropped 14 bricks in rainbow colors at random spots near the middle. Clicking again while things are floating does nothing until the bricks have finished falling.</p>
+      <p class="notes"><b>Notes:</b> After the 5 floating seconds, gravity goes back to normal so the rainbow bricks actually fall. The bricks land in random spots near the middle of the world.</p>
     </section>
     <section class="ex-col offline"><h4>Offline compiler</h4>
       <ul class="readback"><li>At the start: turn off gravity, then drop a brick</li></ul>
@@ -620,8 +626,8 @@ when I click the ground, make everything float for 5 seconds and then drop a bun
 <figcaption>The worker defines its functions by hand, so it is the one reader that can fall out of step. The prompt test catches a primitive that is missing from the prompt, not one missing from the worker.</figcaption>
 </figure>
 
-<p>The current set (<!-- gen:prim-count -->43<!-- /gen:prim-count --> entries):</p>
-<div class="prims"><!-- gen:primitives --><div class="prim-group"><h4>Events</h4><ul><li><code>onStart(fn)</code></li><li><code>onKey(key, fn)</code></li><li><code>onKeyUp(key, fn)</code></li><li><code>whileKey(key, fn)</code></li><li><code>onTouch(filter, fn)</code></li><li><code>onClick(fn)</code></li><li><code>onMessage(name, fn)</code></li><li><code>onClone(fn)</code></li><li><code>forever(fn)</code></li><li><code>every(seconds, fn)</code></li></ul></div><div class="prim-group"><h4>Actions</h4><ul><li><code>drive(speed)</code></li><li><code>steer(rate)</code></li><li><code>rise(speed)</code></li><li><code>stop()</code></li><li><code>jump(power)</code></li><li><code>push(direction, power)</code></li><li><code>part(name).spin(speed)</code></li><li><code>part(name).color(color)</code></li><li><code>color(color)</code></li><li><code>spawn(options)</code></li><li><code>play(sound)</code></li><li><code>say(text, seconds)</code></li><li><code>broadcast(name)</code></li><li><code>remove()</code></li><li><code>gravity(amount)</code></li></ul></div><div class="prim-group"><h4>Take time (await)</h4><ul><li><code>move(distance, speed)</code></li><li><code>turn(degrees)</code></li><li><code>goTo(target, speed)</code></li><li><code>face(target)</code></li><li><code>part(name).turnTo(degrees)</code></li><li><code>part(name).wiggle(times)</code></li><li><code>clone(what, where)</code></li><li><code>wait(seconds)</code></li></ul></div><div class="prim-group"><h4>Sensing (await)</h4><ul><li><code>look(distance)</code></li><li><code>nearest(filter)</code></li><li><code>touching(filter)</code></li><li><code>position()</code></li></ul></div><div class="prim-group"><h4>Helpers</h4><ul><li><code>thing(id)</code></li><li><code>place(x, z)</code></li><li><code>isClone()</code></li><li><code>is(thing, filter)</code></li><li><code>random(min, max)</code></li><li><code>log(...values)</code></li></ul></div><!-- /gen:primitives --></div>
+<p>The current set (<!-- gen:prim-count -->44<!-- /gen:prim-count --> entries):</p>
+<div class="prims"><!-- gen:primitives --><div class="prim-group"><h4>Events</h4><ul><li><code>onStart(fn)</code></li><li><code>onKey(key, fn)</code></li><li><code>onKeyUp(key, fn)</code></li><li><code>whileKey(key, fn)</code></li><li><code>onTouch(filter, fn)</code></li><li><code>onClick(fn)</code></li><li><code>onMessage(name, fn)</code></li><li><code>onClone(fn)</code></li><li><code>forever(fn)</code></li><li><code>every(seconds, fn)</code></li></ul></div><div class="prim-group"><h4>Actions</h4><ul><li><code>drive(speed)</code></li><li><code>steer(rate)</code></li><li><code>rise(speed)</code></li><li><code>stop()</code></li><li><code>jump(power)</code></li><li><code>push(direction, power)</code></li><li><code>part(name).spin(speed)</code></li><li><code>part(name).color(color)</code></li><li><code>color(color)</code></li><li><code>spawn(options)</code></li><li><code>play(sound)</code></li><li><code>say(text, seconds)</code></li><li><code>broadcast(name)</code></li><li><code>remove()</code></li><li><code>gravity(amount)</code></li></ul></div><div class="prim-group"><h4>Take time (await)</h4><ul><li><code>move(distance, speed)</code></li><li><code>turn(degrees)</code></li><li><code>goTo(target, speed)</code></li><li><code>face(target)</code></li><li><code>teleport(target)</code></li><li><code>part(name).turnTo(degrees)</code></li><li><code>part(name).wiggle(times)</code></li><li><code>clone(what, where)</code></li><li><code>wait(seconds)</code></li></ul></div><div class="prim-group"><h4>Sensing (await)</h4><ul><li><code>look(distance)</code></li><li><code>nearest(filter)</code></li><li><code>touching(filter)</code></li><li><code>position()</code></li></ul></div><div class="prim-group"><h4>Helpers</h4><ul><li><code>thing(id)</code></li><li><code>place(x, z)</code></li><li><code>isClone()</code></li><li><code>is(thing, filter)</code></li><li><code>random(min, max)</code></li><li><code>log(...values)</code></li></ul></div><!-- /gen:primitives --></div>
 
 <span class="eyebrow">06</span>
 <h2 id="sandbox">Sandbox and runtime</h2>
@@ -870,7 +876,7 @@ Examples:
   <p class="kid">“tu castillo es muy grande, ¡qué guay!”</p>
   <div class="phrases"><div class="phrase"><span class="sym"><img src="data:image/webp;base64,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" width="44" height="44" alt="cool, nice one"><span>cool</span></span></div></div>
   <dl class="chat-meta">
-    <dt>Dropped</dt><dd>es, muy</dd>
+    <dt>Dropped</dt><dd>es, muy, qué</dd>
     <dt>Blocked by validator</dt><dd>Name-calling isn't possible in Brick Talk. When a person is in a message, they need to do or feel something.</dd>
   </dl>
 </article><!-- /gen:chat-examples --></div>
