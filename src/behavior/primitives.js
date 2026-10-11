@@ -28,7 +28,6 @@ export const PRIMITIVES = [
   ['onKeyUp(key, fn)', 'Run fn when a key is released.', 'event'],
   ['whileKey(key, fn)', 'Run fn over and over (about 30 times a second) while a key is held down. Use for steering.', 'event'],
   ['onTouch(filter, fn)', 'Run fn(thing) when this model bumps into something. filter can be null (anything but the ground), a color "red", a kind "tree" | "house" | "brick" | "model" | "ground", or a thing("...") reference. thing = {name, kind, color, id}.', 'event'],
-  ['onClick(fn)', 'Run fn when someone clicks on this thing (for the World: clicks on the ground).', 'event'],
   ['onMessage(name, fn)', 'Run fn when anything calls broadcast(name). Lets things talk to each other.', 'event'],
   ['onClone(fn)', 'Run fn in a copy right after clone() makes it (copies also run their other behaviors, like onStart and forever).', 'event'],
   ['forever(fn)', 'Run fn again and again, forever. A short pause is added between runs automatically.', 'event'],

@@ -18,7 +18,6 @@ const SPECS = {
   onKeyUp: ['event', 'when {0:key} key let go', 'hat'],
   whileKey: ['event', 'while {0:key} key is held', 'hat'],
   onTouch: ['event', 'when it bumps {0:filter}', 'hat'],
-  onClick: ['event', 'when clicked', 'hat'],
   onMessage: ['event', 'when I hear {0:msg}', 'hat'],
   onClone: ['event', 'when I start as a copy', 'hat'],
   every: ['event', 'every {0} seconds', 'hat'],
@@ -224,11 +223,14 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
     return out.join('');
   }
 
-  const list = (stmts) => stmts.map((s) => notesFor(s) + stmt(s)).join('');
+  // Each block carries its statement's offset in the code (data-at), which is
+  // also the id trace.js reports while that statement runs.
+  const tag = (html, at) => html.replace(/^<div /, `<div data-at="${at}" `);
+  const list = (stmts) => stmts.map((s) => notesFor(s) + tag(stmt(s), s.start)).join('');
   const fnBody = (fn) => {
     if (!fn) return '';
-    if (fn.type === 'Identifier') return stmt({ type: 'ExpressionStatement', expression: { type: 'CallExpression', callee: fn, arguments: [] }, start: fn.start, end: fn.end });
-    return fn.body.type === 'BlockStatement' ? list(fn.body.body) : stmt({ type: 'ExpressionStatement', expression: fn.body, start: fn.body.start, end: fn.body.end });
+    if (fn.type === 'Identifier') return tag(stmt({ type: 'ExpressionStatement', expression: { type: 'CallExpression', callee: fn, arguments: [] }, start: fn.start, end: fn.end }), fn.start);
+    return fn.body.type === 'BlockStatement' ? list(fn.body.body) : tag(stmt({ type: 'ExpressionStatement', expression: fn.body, start: fn.body.start, end: fn.body.end }), fn.body.start);
   };
   const fnParams = (fn) => (fn?.params?.length ? ` ${fn.params.map((p) => reporter('variable', esc(src(p)))).join(' ')}` : '');
 
@@ -245,15 +247,15 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
     const call = s.type === 'ExpressionStatement' && unwrapAwait(s.expression);
     if (call?.type === 'CallExpression' && call.callee.type === 'Identifier') {
       if (call.callee.name === 'forever' && isFn(call.arguments[0])) {
-        return script(stack('event', word('when it starts'), 'bk-hat'), cBlock('control', word('forever'), fnBody(call.arguments[0])));
+        return script(tag(stack('event', word('when it starts'), 'bk-hat'), s.start), tag(cBlock('control', word('forever'), fnBody(call.arguments[0])), s.start));
       }
       const ev = eventParts(call);
-      if (ev) return script(stack('event', ev.head, 'bk-hat'), fnBody(ev.fn));
+      if (ev) return script(tag(stack('event', ev.head, 'bk-hat'), s.start), fnBody(ev.fn));
     }
-    if (s.type === 'FunctionDeclaration') return script(stack('custom', `${word('define')} ${word(s.id.name)}${fnParams(s)}`, 'bk-hat'), fnBody(s));
+    if (s.type === 'FunctionDeclaration') return script(tag(stack('custom', `${word('define')} ${word(s.id.name)}${fnParams(s)}`, 'bk-hat'), s.start), fnBody(s));
     if (s.type === 'VariableDeclaration' && s.declarations.length === 1 && isFn(s.declarations[0].init)) {
       const d = s.declarations[0];
-      return script(stack('custom', `${word('define')} ${word(src(d.id))}${fnParams(d.init)}`, 'bk-hat'), fnBody(d.init));
+      return script(tag(stack('custom', `${word('define')} ${word(src(d.id))}${fnParams(d.init)}`, 'bk-hat'), s.start), fnBody(d.init));
     }
     return null;
   }
@@ -268,7 +270,7 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
       case 'FunctionDeclaration':
         return cBlock('custom', `${word('define')} ${word(s.id.name)}${fnParams(s)}`, fnBody(s));
       case 'IfStatement': {
-        const more = s.alternate ? [[word('else'), s.alternate.type === 'BlockStatement' ? list(s.alternate.body) : stmt(s.alternate)]] : [];
+        const more = s.alternate ? [[word('else'), s.alternate.type === 'BlockStatement' ? list(s.alternate.body) : tag(stmt(s.alternate), s.alternate.start)]] : [];
         return cBlock('control', `${word('if')} ${expr(s.test)} ${word('then')}`, body(s.consequent), more);
       }
       case 'WhileStatement':
@@ -285,6 +287,7 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
         return cBlock('control', `${word('for each')} ${pick(v)} ${word('in')} ${expr(s.right)}`, body(s.body));
       }
       case 'BlockStatement': return list(s.body);
+      case 'LabeledStatement': return stmt(s.body); // outer: while (...) — the label stays in the code view
       case 'ReturnStatement':
         return s.argument ? stack('custom', `${word('report')} ${expr(s.argument)}`, 'bk-cap') : stack('control', word('stop this script'), 'bk-cap');
       case 'BreakStatement': return stack('control', word('stop repeating'), 'bk-cap');
@@ -295,7 +298,7 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
       default: return generic(s, true);
     }
   }
-  const body = (b) => (b.type === 'BlockStatement' ? list(b.body) : notesFor(b) + stmt(b));
+  const body = (b) => (b.type === 'BlockStatement' ? list(b.body) : notesFor(b) + tag(stmt(b), b.start));
 
   // for (let i = 0; i < N; i++) → "repeat N times"
   function countedLoop(s) {
@@ -356,7 +359,7 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
   for (const s of ast.body) {
     const notes = notesFor(s);
     const top = topLevel(s);
-    if (top) { flush(); out.push(notes + top); } else loose += notes + stmt(s);
+    if (top) { flush(); out.push(notes + top); } else loose += notes + tag(stmt(s), s.start);
   }
   flush();
   const tail = comments.filter((c) => !used.has(c)).map((c) => `<div class="bk-note">${esc(c.text)}</div>`).join('');

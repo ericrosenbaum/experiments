@@ -19,7 +19,7 @@ for (const name of ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'impo
   try { Object.defineProperty(self, name, { value: undefined, configurable: false, writable: false }); } catch { /* not present */ }
 }
 
-const handlers = { start: [], key: [], keyup: [], hold: [], touch: [], click: [], message: [], clone: [] };
+const handlers = { start: [], key: [], keyup: [], hold: [], touch: [], message: [], clone: [] };
 const heldKeys = new Set();
 const pending = new Map();
 let nextQuery = 1;
@@ -52,6 +52,20 @@ const sleep = (s) => new Promise((r) => setTimeout(r, Math.max(0, Number(s) || 0
 
 const ref = (r) => r;
 
+// Tracing (calls added by trace.js): which statements are running right now,
+// plus any that started and finished since the last report. Reported to the
+// host at most every 50ms so the blocks view can light them up.
+const live = new Map();
+const seen = new Set();
+let traceTimer = null;
+const flushTrace = () => {
+  traceTimer = null;
+  if (stopped) return;
+  post({ type: 'trace', live: [...live.keys()], seen: [...seen] });
+  seen.clear();
+};
+const traced = () => { traceTimer ??= setTimeout(flushTrace, 50); };
+
 const api = {
   onStart: (fn) => handlers.start.push(safe(fn, 'start')),
   onKey: (key, fn) => handlers.key.push({ key: normKey(key), fn: safe(fn, `key ${key}`) }),
@@ -61,7 +75,6 @@ const api = {
     if (typeof filter === 'function') { fn = filter; filter = null; }
     handlers.touch.push({ filter: ref(filter), fn: safe(fn, 'touch'), busy: false });
   },
-  onClick: (fn) => handlers.click.push(safe(fn, 'click')),
   onMessage: (name, fn) => handlers.message.push({ name: String(name), fn: safe(fn, `message ${name}`) }),
   onClone: (fn) => handlers.clone.push(safe(fn, 'clone')),
   forever: (fn) => {
@@ -108,6 +121,8 @@ const api = {
   isClone: () => cloned,
   is: (thing, filter) => matchFilter(filter, thing),
   random: (min = 1, max = 10) => Math.floor(min + Math.random() * (max - min + 1)),
+  __on: (id) => { live.set(id, (live.get(id) ?? 0) + 1); seen.add(id); traced(); },
+  __off: (id) => { const n = (live.get(id) ?? 1) - 1; if (n > 0) live.set(id, n); else live.delete(id); traced(); },
   log: (...v) => cmd('log', v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' ')),
 };
 
@@ -165,7 +180,6 @@ listen('message', async (ev) => {
         if (h && !h.busy) { h.busy = true; h.fn(m.thing).finally(() => { h.busy = false; }); }
       }
       break;
-    case 'click': handlers.click.forEach((fn) => fn()); break;
     case 'message': handlers.message.filter((h) => h.name === m.name).forEach((h) => h.fn()); break;
     case 'ping': post({ type: 'pong', t: m.t }); break;
     case 'stop':

@@ -403,7 +403,7 @@ function parseTrigger(s) {
     return { type: 'see', filter: touchFilter(m[4]), rest: s.slice(m[0].length) };
   }
   if ((m = s.match(/^(when|whenever)\s+(i\s+|you\s+|someone\s+)?(click|clicks|tap|taps)( on)?( it| me| this)?\s*(,|then|$)/))) {
-    return { type: 'click', rest: s.slice(m[0].length) };
+    return { type: 'key', key: ' ', clicked: true, rest: s.slice(m[0].length) }; // clicking selects, so use space
   }
   if ((m = s.match(/^(when|whenever)\s+(it\s+|you\s+)?(hears?|gets?|receives?)\s+(the\s+)?(message\s+)?["“]?([\w ]+?)["”]?\s*(,|then|$)/))) {
     return { type: 'message', name: m[6].trim(), rest: s.slice(m[0].length) };
@@ -439,10 +439,50 @@ function parseActions(rest, ctx) {
   return { actions: out, unknown };
 }
 
-// A short card title from the first couple of action labels: "Wave & Say Hi".
+// A short card title, the way a kid would name it. First the patterns that
+// deserve a name of their own ("Move with Arrows", "Turn Head Back and
+// Forth"), otherwise the first couple of actions: "Wave Arm & Say Hi".
+const SMALL = new Set(['and', 'or', 'with', 'of', 'to', 'in', 'on', 'at']);
+const cap = (t) => t.replace(/[a-z]\w*/g, (w, i) => (i > 0 && SMALL.has(w) ? w : w[0].toUpperCase() + w.slice(1)));
+const OPPOSITES = [['left', 'right'], ['forward', 'backward'], ['up', 'down'], ['raise', 'lower'], ['lift', 'lower'], ['open', 'close']];
+
+export function titleFor(rules) {
+  const keys = rules.map((r) => ((r.trig.type === 'key' || r.trig.type === 'keyup') ? r.trig.key : null));
+  if (rules.length > 1 && keys.every((k) => k?.startsWith('Arrow'))) {
+    return keys.some((k) => k === 'ArrowUp' || k === 'ArrowDown') ? 'Move with Arrows' : 'Steer with Arrows';
+  }
+  const labels = rules.flatMap((r) => r.labels).filter((l) => !/^wait\b/.test(l));
+  if (labels.some((l) => /^turn (left|right) 180°/.test(l)) && labels.some((l) => /^(go|drive|back up)\b/.test(l))) return 'Pace Back and Forth';
+  for (let i = 0; i < labels.length; i++) {
+    for (let j = i + 1; j < labels.length; j++) {
+      const t = backAndForth(labels[i], labels[j]);
+      if (t) return t;
+    }
+  }
+  return titleFrom(labels);
+}
+
+// "turn the head left" + "turn the head right" → "Turn Head Back and Forth";
+// "raise the dump bed" + "lower the dump bed" → "Raise and Lower Dump Bed".
+function backAndForth(a, b) {
+  const split = (l) => l.replace(/\b(the|a|an)\s+/gi, '').replace(/\s+\d+(°| studs?| times?)?$/, '').split(/\s+/);
+  const [wa, wb] = [split(a), split(b)];
+  if (wa.length !== wb.length) return null;
+  const diff = wa.flatMap((w, i) => (w === wb[i] ? [] : [i]));
+  if (diff.length !== 1) return null;
+  const i = diff[0];
+  const pair = OPPOSITES.find(([x, y]) => (wa[i] === x && wb[i] === y) || (wa[i] === y && wb[i] === x));
+  if (!pair) return null;
+  const rest = wa.filter((_, k) => k !== i).join(' ');
+  if (i === 0) return cap(`${pair[0]} and ${pair[1]} ${rest}`);
+  return cap(`${rest} ${pair[0] === 'up' ? 'up and down' : 'back and forth'}`);
+}
+
 export function titleFrom(labels) {
-  const words = (l) => l.replace(/\b(the|a|an)\s+/gi, '').split(/\s+/).slice(0, l.includes('"') ? 4 : 3).join(' ');
-  const t = [...new Set(labels.map(words))].slice(0, 2).join(' & ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  const words = (l) => l
+    .replace(/^play (the )?(\w+) sound$/, '$2') // "play the moo sound" → "moo"
+    .replace(/\b(the|a|an)\s+/gi, '').split(/\s+/).slice(0, l.includes('"') ? 4 : 3).join(' ');
+  const t = cap([...new Set(labels.map(words))].slice(0, 2).join(' & '));
   return t.length > 34 ? `${t.slice(0, 33).trim()}…` : t;
 }
 
@@ -463,7 +503,8 @@ export function compileLocal(text, model) {
   const code = [];
   const summary = [];
   const unknown = [];
-  const titleBits = [];
+  const rules = [];
+  let clicked = false;
   for (const sentence of sentences) {
     const lower = sentence.replace(/^(and|also|so|then)\s+/i, '');
     const trig = parseTrigger(lower.toLowerCase().replace(/\{[^}]*\}/g, (m) => m)); // keep chips
@@ -475,7 +516,8 @@ export function compileLocal(text, model) {
     if (!actions.length) continue;
     const body = actions.flatMap((a) => a.code);
     const labels = actions.map((a) => a.label).join(', then ');
-    titleBits.push(...actions.map((a) => a.label));
+    rules.push({ trig, labels: actions.map((a) => a.label) });
+    clicked ||= !!trig.clicked;
     const loops = actions.some((a) => a.loops);
 
     switch (trig.type) {
@@ -503,10 +545,6 @@ export function compileLocal(text, model) {
           ...indent(body, 2), '  }', '});');
         summary.push(`Whenever it sees ${trig.filter.label} ahead: ${labels}`);
         break;
-      case 'click':
-        code.push('onClick(async () => {', ...indent(body), '});');
-        summary.push(`When you click it: ${labels}`);
-        break;
       case 'message':
         code.push(`onMessage(${q(trig.name)}, async () => {`, ...indent(body), '});');
         summary.push(`When it hears "${trig.name}": ${labels}`);
@@ -529,5 +567,5 @@ export function compileLocal(text, model) {
         }
     }
   }
-  return { code: unquote(code.join('\n'), true), title: unquote(titleFrom(titleBits)), summary: summary.map((x) => unquote(x)), unknown: unknown.map((x) => unquote(x)), source: 'offline' };
+  return { code: unquote(code.join('\n'), true), title: unquote(titleFor(rules)), notes: clicked ? 'Clicking picks things, so this happens when you press space instead.' : '', summary: summary.map((x) => unquote(x)), unknown: unknown.map((x) => unquote(x)), source: 'offline' };
 }

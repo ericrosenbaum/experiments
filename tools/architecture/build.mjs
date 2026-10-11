@@ -38,7 +38,7 @@ const WORLD = { kind: 'world', name: 'World', motion: 'none', parts: [], blurb: 
 const BEHAVIOR_CASES = [
   { text: 'when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tree 3}', model: { ...LIBRARY_BY_ID.robot, kind: 'model', name: 'Robot' }, things: THINGS, otherBehaviors: ['While ↑ is held: drive forward'] },
   { text: 'forever, if you see something red in front of you, honk and back up', model: { ...LIBRARY_BY_ID.racecar, kind: 'model', name: 'Race Car' }, things: THINGS },
-  { text: 'when I click the ground, make everything float for 5 seconds and then drop a bunch of rainbow bricks', model: WORLD, things: THINGS },
+  { text: 'when I press f, make everything float for 5 seconds and then drop a bunch of rainbow bricks', model: WORLD, things: THINGS },
 ];
 const CHAT_CASES = ['can we build a rocket together? 🚀', 'wait for me, my car broke lol', 'tu castillo es muy grande, ¡qué guay!'];
 

@@ -22,7 +22,7 @@ check('while I hold left, turn left', 'racecar', ['onKey("ArrowLeft"', /steer\(\
 check('when I press space, honk and jump high', 'racecar', ['play("honk")', 'jump(9)']);
 check('when it bumps into a tree, say "Ouch!" and back up', 'racecar', ['onTouch("tree"', 'say("Ouch!")', 'await move(-5']);
 check('forever, wave the left arm and turn the head right', 'robot', ['forever(', 'part("left arm").wiggle(', 'part("head").turnTo(-60)']);
-check('when I click it, raise both arms then say hi', 'robot', ['onClick(', 'part("left arm").turnTo(90)', 'part("right arm").turnTo(90)', 'say("hi")']);
+check('when I click it, raise both arms then say hi', 'robot', ['onKey(" ",', 'part("left arm").turnTo(90)', 'part("right arm").turnTo(90)', 'say("hi")']);
 check('go to {thing:tower|Rainbow Tower} fast', 'digger', ['goTo(thing("tower"), 13)']);
 check('when I press f, throw a red brick', 'racecar', ['onKey("f"', 'spawn({color: "red", launch: 18})']);
 check('when I press space, put a brick in the {part:throwing arm} then fling', 'catapult', ['spawn({from: "throwing arm"})', 'part("throwing arm").turnTo(130)']);
@@ -53,4 +53,12 @@ check('when it bumps into a cow, play moo', 'tractor', ['onTouch("cow"', 'play("
 check('when I click it, say "Hi, friend. Want to play and race?"', 'robot', ['say("Hi, friend. Want to play and race?")']);
 const r = check('when I press x, fly to the moon', 'robot', []);
 assert.deepEqual(r.unknown, ['fly to the moon']);
+
+// card titles name the whole behavior, not its first step
+const title = (text, model = 'robot') => compileLocal(text, LIBRARY_BY_ID[model]).title;
+assert.equal(title('When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.', 'racecar'), 'Move with Arrows');
+assert.equal(title('While I hold left, turn left. While I hold right, turn right.'), 'Steer with Arrows');
+assert.equal(title('Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.'), 'Turn Head Back and Forth');
+assert.equal(title('Forever, move 6 studs, then turn around.'), 'Pace Back and Forth');
+assert.equal(title('Every 5 seconds, play moo and wag the tail.', 'cow'), 'Moo & Wag Tail');
 console.log('compiler: all checks passed');

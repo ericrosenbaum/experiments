@@ -7,6 +7,7 @@ import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, probeClaude, syntaxError } from '../behavior/generate.js';
 import { renderBlocks } from './blocks.js';
+import { keyLabels, padGroups, padHtml } from './pad.js';
 import { makeBehavior, describeTarget } from '../stage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,27 +17,27 @@ const DEG = Math.PI / 180;
 
 const STARTERS = [
   'When I press the up arrow, ', 'When I press space, ', 'Forever, ', 'When it bumps into ',
-  'When I click it, ', 'Every 2 seconds, ', 'When it sees ', 'When it hears ',
+  'When I press h, ', 'Every 2 seconds, ', 'When it sees ', 'When it hears ',
 ];
-const WORLD_STARTERS = ['At the start, ', 'When I press space, ', 'Every 2 seconds, ', 'When I click the ground, ', 'When it hears '];
+const WORLD_STARTERS = ['At the start, ', 'When I press space, ', 'Every 2 seconds, ', 'When I press g, ', 'When it hears '];
 
 const THING_EXAMPLES = {
-  tree: ['When I click it, turn orange and say "Autumn!"', 'When I press the up arrow, move forward.', 'When I press c, make a copy of itself.'],
-  house: ['When I press the arrows, drive and steer.', 'When I click it, jump high.', 'When I press space, turn around.'],
-  castle: ['When I click it, play drum and say "Who goes there?"', 'When I press c, make a copy of itself to the right.', 'When I press space, jump.'],
+  tree: ['When I press o, turn orange and say "Autumn!"', 'When I press the up arrow, move forward.', 'When I press c, make a copy of itself.'],
+  house: ['When I press the arrows, drive and steer.', 'When I press j, jump high.', 'When I press space, turn around.'],
+  castle: ['When I press space, play drum and say "Who goes there?"', 'When I press c, make a copy of itself to the right.', 'When I press j, jump.'],
   coin: ['When it bumps into the hero, play coin and disappear.', 'Forever, turn left.', 'Every 2 seconds, fly up for 1 second then fly down for 1 second.'],
   asteroid: ['Forever, turn left slowly.', 'When it bumps into the spaceship, play crash and disappear.', 'Every 4 seconds, make a copy of itself.'],
   platform: ['Forever, move 6 studs, then move back 6 studs.', 'When it bumps into the hero, fly up for 2 seconds then fly down for 2 seconds.'],
 };
-const PIECE_EXAMPLES = ['When I click it, jump high and turn red.', 'When I press space, push it up.', 'When I click it, make a copy of itself above.'];
-const BRICK_EXAMPLES = ['When I click it, jump high and play boing.', 'When I press the arrows, drive and steer.', 'When I press c, make a copy of itself in front.', 'Every 3 seconds, turn a random color.'];
+const PIECE_EXAMPLES = ['When I press j, jump high and turn red.', 'When I press space, push it up.', 'When I press c, make a copy of itself above.'];
+const BRICK_EXAMPLES = ['When I press j, jump high and play boing.', 'When I press the arrows, drive and steer.', 'When I press c, make a copy of itself in front.', 'Every 3 seconds, turn a random color.'];
 const WORLD_EXAMPLES = [
   'At the start, turn off gravity.',
   'When I press g, turn gravity back on.',
   'When I press m, make the gravity weak like on the moon.',
   'Every 3 seconds, drop a red brick.',
   'When I press c, make a copy of the race car.',
-  'When I click the ground, say "Hello, world!"',
+  'When I press h, say "Hello, world!"',
 ];
 
 export class App {
@@ -220,7 +221,7 @@ export class App {
       thing: members.length > 1 ? `${members.length} loose bricks` : members[0]?.chassis.isKinematic() ? 'Prop' : `Loose ${members[0]?.kind}`,
     }[kind] ?? '';
     $('sel-blurb').textContent = actor.isWorld
-      ? 'Rules for the whole world: gravity, dropping bricks, copying things, and what happens when you click the ground. Only things in the world can move, so the World never drives.'
+      ? 'Rules for the whole world: gravity, dropping bricks, copying things, and what happens when you press a key. Only things in the world can move, so the World never drives.'
       : describeTarget(actor).blurb;
     $('sel-hint').innerHTML = actor.isWorld ? 'Click the ground any time to come back here.'
       : `Drag it to move it · scroll while dragging to turn it${kind === 'thing' && members.length > 1 ? ' · <b>double-click</b> one brick to teach just that brick' : ''}`;
@@ -366,15 +367,12 @@ export class App {
     if (hit.ground) {
       const w = this.world.actor('world');
       this.select(w);
-      this.runtime.click(w);
       return;
     }
     const whole = this.world.actorOf(hit.entity);
     const piece = this.world.actor(hit.entity.id);
     // keep a picked-out brick selected when it's the one clicked
     this.select(this.selected === piece ? piece : whole);
-    this.runtime.click(whole);
-    if (piece !== whole) this.runtime.click(piece);
   }
 
   _startDrag(hit, ev) {
@@ -642,6 +640,7 @@ export class App {
   renderBehaviors() {
     const a = this.selected;
     const list = $('behaviors');
+    this.renderPad();
     if (!a) return;
     list.innerHTML = '';
     const behaviors = this.stage.behaviorsOf(a.key);
@@ -650,6 +649,7 @@ export class App {
     for (const b of behaviors) {
       const card = document.createElement('div');
       card.className = `behavior ${b.enabled ? '' : 'off'} ${b.running ? 'running' : ''}`;
+      card.dataset.bid = b.id;
       const by = { claude: 'Claude', premade: 'the world (it came with it)', edited: 'you' }[b.source] ?? 'the offline helper';
       const view = this.codeView;
       card.innerHTML = `
@@ -686,6 +686,7 @@ export class App {
         const err = syntaxError(code);
         if (err) { this.log(`That code has a typo: ${err}`, 'error'); return; }
         b.code = code;
+        b.keys = null; // the labels may not fit the new code
         b.source = 'edited';
         b.enabled = true;
         this._restart(a, b);
@@ -693,6 +694,47 @@ export class App {
       };
       list.appendChild(card);
     }
+  }
+
+  // ---- key pad ------------------------------------------------------------------
+
+  // A button for every key the selected thing's behaviors listen to. Holding
+  // a button is the same as holding the key.
+  renderPad() {
+    const pad = $('pad');
+    const labels = {};
+    for (const b of this.selected ? this.stage.behaviorsOf(this.selected.key) : []) {
+      if (!b.enabled) continue;
+      if (b._keyLabels?.code !== b.code) b._keyLabels = { code: b.code, labels: keyLabels(b.code) };
+      const read = b._keyLabels.labels;
+      for (const k of Object.keys(read)) {
+        const l = b.keys?.[k] ?? read[k];
+        labels[k] = labels[k] && labels[k] !== l ? `${labels[k]} · ${l}` : l;
+      }
+    }
+    const html = padHtml(padGroups(labels));
+    if (html === this._padHtml) return; // don't rebuild under a finger that's holding a button
+    this._padHtml = html;
+    for (const k of [...this.runtime.heldKeys]) this.runtime.keyUp(k);
+    pad.innerHTML = html;
+    pad.classList.toggle('hidden', !html);
+    for (const btn of pad.querySelectorAll('.pad-key')) {
+      const key = btn.dataset.key;
+      const up = () => { btn.classList.remove('down'); this.runtime.keyUp(key); };
+      btn.onpointerdown = (ev) => {
+        ev.preventDefault();
+        btn.setPointerCapture(ev.pointerId);
+        btn.classList.add('down');
+        this.runtime.keyDown(key);
+      };
+      btn.onpointerup = up;
+      btn.onpointercancel = up;
+      btn.onlostpointercapture = up;
+    }
+  }
+
+  _padShowKey(key, down) {
+    for (const btn of $('pad').querySelectorAll('.pad-key')) if (btn.dataset.key === key) btn.classList.toggle('down', down);
   }
 
   // How behavior cards show their program: 'blocks', 'code' or 'none' (remembered).
@@ -718,6 +760,22 @@ export class App {
     return b._blocks.html;
   }
 
+  // Light up the blocks the selected thing's programs are running right now
+  // (or ran in the last moment, so quick blocks still flash).
+  _lightBlocks() {
+    const a = this.selected;
+    if (!a || this.codeView !== 'blocks') return;
+    const now = performance.now();
+    const programs = [...this.runtime.programs].filter((p) => p.actor === a);
+    for (const card of $('behaviors').children) {
+      const p = programs.find((x) => x.behavior.id === +card.dataset.bid);
+      for (const el of card.querySelectorAll('[data-at]')) {
+        const id = +el.dataset.at;
+        el.classList.toggle('lit', !!p && (p.live.has(id) || now - (p.lastSeen.get(id) ?? -1e9) < 400));
+      }
+    }
+  }
+
   onProgramsChanged() {
     clearTimeout(this._rerender);
     this._rerender = setTimeout(() => {
@@ -738,8 +796,9 @@ export class App {
       if (typing() || ev.metaKey || ev.ctrlKey) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(ev.key)) ev.preventDefault();
       this.runtime.keyDown(norm(ev.key));
+      this._padShowKey(norm(ev.key), true);
     });
-    addEventListener('keyup', (ev) => this.runtime.keyUp(norm(ev.key)));
+    addEventListener('keyup', (ev) => { this.runtime.keyUp(norm(ev.key)); this._padShowKey(norm(ev.key), false); });
     addEventListener('blur', () => { for (const k of [...this.runtime.heldKeys]) this.runtime.keyUp(k); });
   }
 
@@ -780,6 +839,7 @@ export class App {
 
   update() {
     if (this.drag) { this._holdDrag(); this.world.sync(); }
+    this._lightBlocks();
     const a = this.selected;
     if (a && !a.alive) this.select(null);
     this.ring.visible = false;

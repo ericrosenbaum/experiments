@@ -63,37 +63,37 @@ const PEOPLE = [
   minifig({
     id: 'astronaut', name: 'Astronaut',
     blurb: 'A classic spaceman in a white suit and helmet.',
-    examples: ['When I press w, fly up. When I press s, fly down.', 'When I click it, wave the left arm and say "To the stars!"', 'Go to the rocket.'],
+    examples: ['When I press w, fly up. When I press s, fly down.', 'When I press h, wave the left arm and say "To the stars!"', 'Go to the rocket.'],
     figure: { torso: 'white', arms: 'white', legs: 'white', print: 'space', hat: 'space', hatColor: 'white' },
   }),
   minifig({
     id: 'farmer', name: 'Farmer',
     blurb: 'A farmer in a straw hat with a pitchfork.',
-    examples: ['Every 5 seconds, go to the nearest cow.', 'When I click it, wave the left arm and say "Howdy!"', 'When I press space, jump.'],
+    examples: ['Every 5 seconds, go to the nearest cow.', 'When I press h, wave the left arm and say "Howdy!"', 'When I press space, jump.'],
     figure: { torso: 'green', arms: 'green', legs: 'blue', print: 'overalls', face: 'freckles', hat: 'straw', hatColor: 'tan', held: { right: 'pitchfork' } },
   }),
   minifig({
     id: 'villager', name: 'Villager',
     blurb: 'A friendly villager in a button-up shirt.',
-    examples: ['Wander slowly.', 'When I click it, wave the right arm and say "Lovely day!"', 'Go to the fountain.'],
+    examples: ['Wander slowly.', 'When I press h, wave the right arm and say "Lovely day!"', 'Go to the fountain.'],
     figure: { torso: 'blue', arms: 'blue', legs: 'tan', print: 'buttons', hat: 'hair', hatColor: 'brown' },
   }),
   minifig({
     id: 'wizard', name: 'Wizard',
     blurb: 'A wizard with a pointy hat and a magic wand.',
-    examples: ['When I click it, wave the right arm, play ding and make a copy of the nearest tree.', 'When I press space, say "Abracadabra!" and turn a random color.', 'Forever, turn the head left, wait 1 second, turn the head right.'],
+    examples: ['When I press t, wave the right arm, play ding and make a copy of the nearest tree.', 'When I press space, say "Abracadabra!" and turn a random color.', 'Forever, turn the head left, wait 1 second, turn the head right.'],
     figure: { torso: 'purple', arms: 'purple', legs: 'blue', face: 'smile', hat: 'wizard', hatColor: 'blue', held: { right: 'wand' } },
   }),
   minifig({
     id: 'golfer', name: 'Golfer',
     blurb: 'A golfer in a sun visor, putter in hand.',
-    examples: ['When it hears "in the hole", wave the left arm and say "Nice putt!"', 'When I click it, swing the right arm.', 'Follow the ball slowly.'],
+    examples: ['When it hears "in the hole", wave the left arm and say "Nice putt!"', 'When I press space, swing the right arm.', 'Follow the ball slowly.'],
     figure: { torso: 'white', arms: 'white', legs: 'tan', print: 'buttons', face: 'smile', hat: 'cap', hatColor: 'blue', held: { right: 'club' } },
   }),
   minifig({
     id: 'alien', name: 'Alien', category: 'space',
     blurb: 'A friendly green alien with big eyes and bobbly antennae.',
-    examples: ['When I click it, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],
+    examples: ['When I press h, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],
     figure: { torso: 'green', arms: 'green', legs: 'green', head: 'lime', hands: 'lime', print: 'zip', face: 'alien', hat: 'antennae', hatColor: 'pink' },
   }),
 ];
@@ -129,7 +129,7 @@ export const LIBRARY = [
   {
     id: 'robot',
     category: 'characters',
-    examples: ["When I click it, raise both arms and say \"Hello!\" then lower both arms.", "Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.", "When I press space, dance.", "Wander. When it bumps into anything, play beep and turn around."],
+    examples: ["When I press h, raise both arms and say \"Hello!\" then lower both arms.", "Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.", "When I press space, dance.", "Wander. When it bumps into anything, play beep and turn around."],
     name: 'Robot',
     blurb: 'Glides around. Has a turning head and two arms.',
     color: 'blue',
@@ -246,7 +246,7 @@ export const LIBRARY = [
   {
     id: 'dino',
     category: 'animals',
-    examples: ["Chase the nearest car and roar.", "Forever, wag the tail.", "When it sees a red brick, roar and chomp.", "When I click it, jump high and roar."],
+    examples: ["Chase the nearest car and roar.", "Forever, wag the tail.", "When it sees a red brick, roar and chomp.", "When I press space, jump high and roar."],
     name: 'Dino',
     blurb: 'A green dinosaur that glides along. Chomping jaw and a wagging tail.',
     color: 'green',
@@ -450,7 +450,7 @@ export const LIBRARY = [
     name: 'Rocket',
     blurb: 'A tall rocket with a spinning nose cone. Make it rise to blast off.',
     category: 'space',
-    examples: ['When I click it, say "3, 2, 1, blast off!", play whoosh and rise fast.', 'Forever, spin the nose cone.', 'When I press space, rise for 3 seconds then stop.'],
+    examples: ['When I press space, say "3, 2, 1, blast off!", play whoosh and rise fast.', 'Forever, spin the nose cone.', 'When I press the up arrow, rise for 3 seconds then stop.'],
     color: 'white',
     motion: 'glide',
     bricks: [
@@ -536,7 +536,7 @@ export const LIBRARY = [
     name: 'Horse',
     blurb: 'A brown horse with a nodding head and a swishing tail. Saddle included.',
     category: 'animals',
-    examples: ['When I press the arrows, drive and steer.', 'Every 3 seconds, swish the tail.', 'When I click it, nod the head and say "Neigh!"', 'Follow the knight.'],
+    examples: ['When I press the arrows, drive and steer.', 'Every 3 seconds, swish the tail.', 'When I press n, nod the head and say "Neigh!"', 'Follow the knight.'],
     color: 'brown',
     motion: 'glide',
     bricks: [
@@ -569,7 +569,7 @@ export const LIBRARY = [
     name: 'Cow',
     blurb: 'A spotty cow. Nods, swishes its tail, and says moo.',
     category: 'animals',
-    examples: ['Every 5 seconds, play moo and wag the tail.', 'When I click it, nod the head and play moo.', 'Wander slowly.'],
+    examples: ['Every 5 seconds, play moo and wag the tail.', 'When I press m, nod the head and play moo.', 'Wander slowly.'],
     color: 'white',
     motion: 'glide',
     bricks: [

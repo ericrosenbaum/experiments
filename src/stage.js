@@ -18,6 +18,8 @@ export function makeBehavior(b) {
     id: behaviorIds++, enabled: b.enabled ?? true, running: false,
     text: b.text, html: b.html ?? esc(b.text), code: b.code, summary: b.summary ?? [], source: b.source,
     notes: b.notes ?? '',
+    // button labels for the key pad, {key: label}; read from the code when missing
+    keys: Array.isArray(b.keys) ? Object.fromEntries(b.keys.map((k) => [k.key, k.label])) : b.keys ?? null,
     title: b.title || titleFrom([(b.summary?.[0] ?? b.text).replace(/^[^:]*:\s*/, '')]),
   };
 }
@@ -76,7 +78,7 @@ export class Stage {
         if (b.code) return makeBehavior({ ...b, source: 'premade' });
         const m = preset.models.find((x) => x.id === key);
         const r = compileLocal(b.text, m ? LIBRARY_BY_ID[m.def] : { parts: [] });
-        return makeBehavior({ text: b.text, ...r, title: b.title ?? r.title, source: 'premade' });
+        return makeBehavior({ text: b.text, ...r, title: b.title ?? r.title, keys: b.keys, source: 'premade' });
       }));
     }
     return { behaviors, added: [], moves: [], deleted: new Set() };

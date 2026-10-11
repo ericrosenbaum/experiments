@@ -136,7 +136,7 @@ await page.keyboard.press('g');
 await page.waitForTimeout(500);
 check(await page.evaluate(() => window.__bb.world.gravityScale) === 0, 'a World rule turns off gravity');
 
-b = await teach('ball', 'When I click it, jump high and turn red.');
+b = await teach('ball', 'When I press j, jump high and turn red.');
 console.log('  ball behavior:', b.source, b.summary, b.notes || '');
 
 // the 🗑 / ⧉ buttons

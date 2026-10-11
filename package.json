@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs"
+    "test": "node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/trace.test.mjs && node test/pad.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

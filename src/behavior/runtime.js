@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { COLORS, SOUNDS, HOST_COMMANDS, HOST_QUERIES } from './primitives.js';
 import { SIZES, BRICK_H, material, colorHex } from '../world/bricks.js';
 import { matchFilter } from './filter.js';
+import { instrument } from './trace.js';
 
 export { matchFilter };
 
@@ -69,9 +70,6 @@ export class Runtime {
   keyUp(key) {
     if (!this.heldKeys.delete(key)) return;
     for (const p of this.programs) if (this._hearsKeys(p)) p.send({ type: 'keyup', key }, key);
-  }
-  click(actor) {
-    for (const p of this.programs) if (p.actor === actor) p.send({ type: 'click' });
   }
   broadcast(name) {
     for (const p of this.programs) p.send({ type: 'message', name });
@@ -174,6 +172,8 @@ class Program {
     this.touchCooldown = new Map();
     this.spawnTimes = [];
     this.cloneTimes = [];
+    this.live = new Set(); // statements running now (block ids, see trace.js)
+    this.lastSeen = new Map(); // block id -> when it last ran
   }
 
   get label() { return `${this.actor.name} · ${this.behavior.title ?? 'behavior'}`; }
@@ -183,7 +183,7 @@ class Program {
     this.worker = new Worker(new URL('./sandbox.worker.js', import.meta.url), { type: 'module' });
     this.worker.onmessage = (ev) => this._onMessage(ev.data);
     this.worker.onerror = (ev) => { ev.preventDefault?.(); this._error(ev.message ?? 'worker error', true); };
-    this.worker.postMessage({ type: 'load', code: this.behavior.code, isClone: this.isClone });
+    this.worker.postMessage({ type: 'load', code: instrument(this.behavior.code), isClone: this.isClone });
     this.lastPong = performance.now();
   }
 
@@ -242,6 +242,13 @@ class Program {
         this.rt.ui.onProgramsChanged?.();
         break;
       case 'pong': this.lastPong = performance.now(); break;
+      case 'trace': {
+        const ids = (a) => (Array.isArray(a) ? a.slice(0, 500).filter(Number.isInteger) : []);
+        const now = performance.now();
+        this.live = new Set(ids(m.live));
+        for (const id of [...this.live, ...ids(m.seen)]) this.lastSeen.set(id, now);
+        break;
+      }
       case 'error': this._error(m.message, m.fatal); break;
       case 'cmd':
         if (!HOST_COMMANDS.has(m.name)) return this._error(`unknown command ${m.name}`);
