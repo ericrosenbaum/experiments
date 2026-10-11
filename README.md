@@ -22,6 +22,7 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
   - 🚀 **Space**: no gravity (it's a World rule you can switch off). A starfighter that flies with w/s and shoots, a UFO, a rocket that blasts off when clicked, two aliens, floating asteroids, a moon base, stars and a ringed planet.
   - 🍄 **Platform Game**: steps and ledges, a moving platform, spinning coins that vanish when the Hero touches them, patrolling slimes, a surprise block and a goal flag.
   - 🏘️ **Village**: houses along the roads, a fountain, market stalls, a bell tower. A dump truck, Mayor Bot.
+  - ⛳ **Minigolf**: a playable three-hole course: a straight hole, a dogleg, and one guarded by a spinning gate. The golf ball is the player: ← → aim it (an arrow on the ground shows where), hold space to charge a putt and let go to hit, ↑ taps, R goes back to the tee. Each cup is a real hole in the green with a sensor that tells the ball "in the hole"; the ball counts strokes and moves itself to the next tee. All of it is ordinary behaviors you can read and change.
   - 🚜 **Farm**: barn, silo, carrots and corn, a pond, a cow pen with two cows that moo, a horse and a tractor.
 
   Each world keeps its own state, so switching away and back finds everything as you left it.
@@ -71,7 +72,7 @@ Each behavior can be switched on and off, edited, or deleted. A model can run se
 Every program belongs to one **actor** (`src/world/actor.js`): a model, an assembly (everything sharing a thing id), one brick of an assembly, or the World. Actors are looked up by stable ids, so behaviors survive the world being rebuilt.
 
 - **events**: `onStart`, `onKey`, `onKeyUp`, `whileKey`, `onTouch(filter)`, `onClick`, `onMessage`, `onClone`, `forever`, `every`
-- **movement**: `drive(speed)`, `steer(rate)`, `rise(speed)` (fly up/down), `stop()`, `jump()`, `push()`, and the awaitable `move(dist)`, `turn(deg)`, `goTo(target)`, `face(target)`. Assemblies of loose bricks drive as one block (frictionless while driven, so the bottom row keeps up); props slide kinematically.
+- **movement**: `drive(speed)`, `steer(rate)`, `rise(speed)` (fly up/down), `stop()`, `jump()`, `push()`, and the awaitable `move(dist)`, `turn(deg)`, `goTo(target)`, `face(target)`, `teleport(target)` (jump there and land on whatever is below). Assemblies of loose bricks drive as one block (frictionless while driven, so the bottom row keeps up); props slide kinematically.
 - **copies**: `await clone(what, where)` copies a thing with all its behaviors (`what`: null for itself, `thing("id")` or a kind; `where`: `place(x, z)`, `"front"`, `"back"`, `"left"`, `"right"`, `"above"`, or nothing for a clear spot beside it). Copies run their behaviors too, plus `onClone`; `isClone()` tells them apart. At most 40 copies and 3 per second. `remove()` takes a thing out of the world.
 - **world rules**: `gravity(amount)` (1 normal, 0 floating, negative falls up), only from the World.
 - **parts**: `part(name).spin()`, `part(name).turnTo(deg)`, `part(name).wiggle()`, `part(name).color()`
@@ -139,7 +140,7 @@ src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
 tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
 server/        /api/generate, /api/bricktalk (Vite middleware)
 test/          compiler / prompt / physics / geometry / stage checks
-tools/         smoke.mjs (headless browser run), model-probe, castle-probe, physics probes
+tools/         smoke.mjs (headless browser run), model-probe, castle-probe, golf-probe, physics probes
 tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouettes and color views);
                overlay.py overlays the silhouettes on the patent drawing to compare
 ```

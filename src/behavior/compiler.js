@@ -240,6 +240,13 @@ const ACTIONS = [
     return { code: [`await goTo(${t.code}, ${sp});`], label: `${m[4] ?? 'go to'} ${t.label}`, loops: /^(follow|chase)/.test(p) };
   },
 
+  // teleport: "teleport to {place}", "go back to the start"
+  (p) => {
+    if (!/^(teleport|beam|warp|zap)( me| it| itself| yourself)? (back )?to\b/.test(p)) return null;
+    const t = findTarget(p);
+    return t ? { code: [`await teleport(${t.code});`], label: `teleport to ${t.label.replace(/^the nearest /, 'the ')}` } : null;
+  },
+
   // face
   (p) => {
     if (!/^(face|look at|turn to(wards?)?|point at)\b/.test(p)) return null;

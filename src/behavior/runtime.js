@@ -13,7 +13,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : 
 const wrap180 = (a) => ((a + 540) % 360) - 180;
 const MAX_SPAWNED_PER_ACTOR = 60;
 // What the World can't do, and how to say so.
-const NOT_FOR_WORLD = new Set(['drive', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'remove', 'move', 'turn', 'goTo', 'face', 'partTurnTo', 'partWiggle', 'look']);
+const NOT_FOR_WORLD = new Set(['drive', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
 
 export class Runtime {
   constructor({ world, audio, ui }) {
@@ -505,6 +505,25 @@ class Program {
       a.control.drive = sp * Math.max(0, Math.cos(ang * DEG)) * (Math.abs(ang) > 60 ? 0.2 : 1);
       return false;
     }, 30, () => { a.control.drive = 0; a.control.steer = 0; });
+  }
+
+  // Land on whatever is at the target: find the surface with a ray from above.
+  q_teleport(target) {
+    const a = this.actor, w = this.world;
+    const tgt = this.rt.resolveTarget(a, target);
+    if (!tgt) return false;
+    const box = a.bounds();
+    const center = a.position;
+    const hit = w.raycast(new THREE.Vector3(tgt.pos.x, 80, tgt.pos.z), new THREE.Vector3(0, -1, 0), 120, (e) => a.has(e));
+    const surface = hit ? 80 - hit.distance : 0;
+    const delta = new THREE.Vector3(tgt.pos.x - center.x, surface + 0.05 - box.min.y, tgt.pos.z - center.z);
+    w.transform(a.members, { delta, pivot: center, keepSpawn: true });
+    for (const { body } of a.bodies()) {
+      if (!body.isDynamic()) continue;
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
+    return true;
   }
 
   q_partTurnTo(name, degrees) {

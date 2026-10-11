@@ -185,17 +185,21 @@ export class Actor {
     const c = this._control;
     const active = !!(c.drive || c.steer || c.rise);
     if (!active && !this._wasActive) return;
-    const wasActive = this._wasActive;
     this._wasActive = active;
     const ms = this.members;
     if (!ms.length) return;
-    this._setSlick(active);
+    // Moving means setting velocities. Turning a single loose thing in place
+    // only turns it (a rolling ball keeps rolling while you aim it).
+    const moving = !!(c.drive || c.rise || (c.steer && ms.length > 1));
+    const wasMoving = this._wasMoving;
+    this._wasMoving = moving;
+    this._setSlick(moving);
     const center = this.position;
     const omega = c.steer * DEG;
     const f = this.forward();
     if (this.usesOwnYaw) this.yaw = (this.yaw ?? 0) + c.steer * dt;
     const turn = new THREE.Quaternion().setFromAxisAngle(UP, omega * dt);
-    for (const { body } of this.bodies()) {
+    for (const { body, entity } of this.bodies()) {
       const t = body.translation();
       if (body.isKinematic()) {
         if (!active) continue;
@@ -206,13 +210,15 @@ export class Actor {
         const q = body.rotation();
         body.setNextKinematicRotation(turn.clone().multiply(new THREE.Quaternion(q.x, q.y, q.z, q.w)));
       } else if (body.isDynamic()) {
-        const lv = body.linvel();
-        const rx = t.x - center.x, rz = t.z - center.z;
-        // velocity = forward * drive + (turning about the middle) ω × r
-        const tx = f.x * c.drive + omega * rz, tz = f.z * c.drive - omega * rx;
-        const vy = c.rise ? c.rise : (wasActive && !active && this.world.gravityScale === 0 ? 0 : lv.y);
-        body.setLinvel({ x: tx, y: vy, z: tz }, true); // when it stops, it stops
-        if (c.steer || !active) {
+        if (moving || wasMoving) {
+          const lv = body.linvel();
+          const rx = t.x - center.x, rz = t.z - center.z;
+          // velocity = forward * drive + (turning about the middle) ω × r
+          const tx = f.x * c.drive + omega * rz, tz = f.z * c.drive - omega * rx;
+          const vy = c.rise ? c.rise : (wasMoving && !moving && this.world.gravityScale === 0 ? 0 : lv.y);
+          body.setLinvel({ x: tx, y: vy, z: tz }, true); // when it stops, it stops
+        }
+        if (entity.kind !== 'ball' && (c.steer || !active)) {
           const av = body.angvel();
           body.setAngvel({ x: av.x, y: omega, z: av.z }, true);
         }

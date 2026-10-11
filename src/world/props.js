@@ -414,3 +414,56 @@ export function pond(world, id, x, z, w = 10, d = 7) {
     ],
   });
 }
+
+// ---- minigolf -----------------------------------------------------------------
+
+// A raised green: surface pieces with a square cup cut out, and walls on top
+// so the ball stays in. rects and walls are [cx, cz, w, d] in local studs.
+export function green(world, id, x, z, { rects, walls, cup, name = 'Green', height = B, cupSize = 1.8 }) {
+  const boxes = [];
+  const c = cupSize / 2;
+  const [hx, hz] = cup;
+  for (const [cx, cz, w, d] of rects) {
+    const x0 = cx - w / 2, x1 = cx + w / 2, z0 = cz - d / 2, z1 = cz + d / 2;
+    const hasCup = hx - c >= x0 && hx + c <= x1 && hz - c >= z0 && hz + c <= z1;
+    const pieces = hasCup
+      ? [[x0, z0, x1, hz - c], [x0, hz + c, x1, z1], [x0, hz - c, hx - c, hz + c], [hx + c, hz - c, x1, hz + c]]
+      : [[x0, z0, x1, z1]];
+    for (const [a, b, e, f] of pieces) {
+      if (e - a > 0.01 && f - b > 0.01) boxes.push(box((a + e) / 2, height / 2, (b + f) / 2, e - a, height, f - b, 'green', { studs: false }));
+    }
+  }
+  for (const [cx, cz, w, d] of walls) boxes.push(box(cx, height + 0.4, cz, w, 0.8, d, 'brown', { studs: false }));
+  world.addStatic({ kind: 'green', name, color: 'green', x, z, thingId: id, boxes });
+}
+
+// The bottom of a cup: dark, and a sensor, so its behaviors feel the ball drop in.
+export function cup(world, id, x, z, { name = 'Cup', size = 1.7 } = {}) {
+  world.addStatic({
+    kind: 'cup', name, color: 'black', x, z, thingId: id, sensor: true,
+    boxes: [box(0, 0.45, 0, size, 0.9, size, 'black', { studs: false })],
+  });
+}
+
+// The flag that marks a cup, standing at its corner.
+export function pin(world, id, x, y, z, { color = 'red', name = 'Flag' } = {}) {
+  world.addStatic({
+    kind: 'flag', name, color, x, y, z, thingId: id,
+    boxes: [
+      box(0, 2.0, 0, 0.15, 4, 0.15, 'white', { studs: false }),
+      box(0, 3.5, 0.75, 0.05, 1, 1.4, color, { studs: false }),
+    ],
+  });
+}
+
+// A spinning gate: a post with two crossed blades (teach it to turn).
+export function spinner(world, id, x, y, z, { reach = 3.3, name = 'Spinner' } = {}) {
+  world.addStatic({
+    kind: 'spinner', name, color: 'red', x, y, z, thingId: id,
+    boxes: [
+      box(0, 1.0, 0, 0.6, 2.0, 0.6, 'yellow', { studs: false }),
+      box(0, 0.5, 0, reach * 2, 0.8, 0.4, 'red', { studs: false }),
+      box(0, 0.6, 0, 0.4, 0.9, reach * 2, 'white', { studs: false }),
+    ],
+  });
+}

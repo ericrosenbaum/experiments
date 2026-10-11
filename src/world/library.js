@@ -85,6 +85,12 @@ const PEOPLE = [
     figure: { torso: 'purple', arms: 'purple', legs: 'blue', face: 'smile', hat: 'wizard', hatColor: 'blue', held: { right: 'wand' } },
   }),
   minifig({
+    id: 'golfer', name: 'Golfer',
+    blurb: 'A golfer in a sun visor, putter in hand.',
+    examples: ['When it hears "in the hole", wave the left arm and say "Nice putt!"', 'When I click it, swing the right arm.', 'Follow the ball slowly.'],
+    figure: { torso: 'white', arms: 'white', legs: 'tan', print: 'buttons', face: 'smile', hat: 'cap', hatColor: 'blue', held: { right: 'club' } },
+  }),
+  minifig({
     id: 'alien', name: 'Alien', category: 'space',
     blurb: 'A friendly green alien with big eyes and bobbly antennae.',
     examples: ['When I click it, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],

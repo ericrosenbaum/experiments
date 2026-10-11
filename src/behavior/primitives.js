@@ -47,6 +47,7 @@ export const PRIMITIVES = [
   ['await turn(degrees)', 'Turn in place by degrees. Positive = left, negative = right.', 'wait'],
   ['await goTo(target, speed)', 'Drive until near target: a thing("...") reference, a place(x, z), or a kind like "tree" (the nearest one).', 'wait'],
   ['await face(target)', 'Turn to face a target (same kinds of targets as goTo).', 'wait'],
+  ['await teleport(target)', 'Jump straight to a target (a place(x, z) or a thing), landing on whatever is there, and stop moving. Good for "go back to the start".', 'wait'],
 
   // parts (identified by name or pointing)
   ['part(name).spin(speed)', 'Spin a part continuously (degrees per second, negative = other way). part(name).spin(0) stops it.', 'action'],
@@ -88,7 +89,7 @@ export const HOST_COMMANDS = new Set([
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).
 export const HOST_QUERIES = new Set([
-  'move', 'turn', 'goTo', 'face', 'partTurnTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone',
+  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone',
 ]);
 
 export function primitivesReference() {

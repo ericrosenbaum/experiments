@@ -83,6 +83,7 @@ const api = {
   turn: (degrees = 90) => query('turn', Number(degrees)),
   goTo: (target, speed = 7) => query('goTo', ref(target), Number(speed)),
   face: (target) => query('face', ref(target)),
+  teleport: (target) => query('teleport', ref(target)),
   part: (name) => ({
     spin: (speed = 180) => cmd('partSpin', String(name), Number(speed)),
     turnTo: (degrees = 45) => query('partTurnTo', String(name), Number(degrees)),

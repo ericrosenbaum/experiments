@@ -350,24 +350,28 @@ export class World {
     return this._register(e);
   }
 
-  addBall({ radius = 1.2, color = 'white', x, y, z, quat, name = 'Ball', kind = 'ball', thingId, id }) {
+  // damping slows its roll (a golf ball rolls to a stop on the green); bounce is restitution.
+  addBall({ radius = 1.2, color = 'white', x, y, z, quat, name = 'Ball', kind = 'ball', thingId, id, damping = 0.1, spinDamping = 0.4, bounce = 0.6, spots = true }) {
     const R = this.R;
     const e = new Entity({ kind, name, color, thingId, id: id ?? thingId });
-    const desc = R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setAngularDamping(0.4).setLinearDamping(0.1);
+    const desc = R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setAngularDamping(spinDamping).setLinearDamping(damping).setCcdEnabled(true);
     if (quat) desc.setRotation(quat);
     const body = this.physics.createRigidBody(desc);
-    this._attachCollider(R.ColliderDesc.ball(radius).setFriction(0.6).setRestitution(0.6).setDensity(0.2), body, e, null, color);
+    this._attachCollider(R.ColliderDesc.ball(radius).setFriction(0.6).setRestitution(bounce).setDensity(0.2), body, e, null, color);
     const m = new THREE.Mesh(new THREE.IcosahedronGeometry(radius, 2), material(color));
     m.castShadow = true;
     m.userData.entity = e;
-    const spots = new THREE.Mesh(new THREE.IcosahedronGeometry(radius * 1.01, 0), new THREE.MeshStandardMaterial({ color: 0x222222, wireframe: true }));
-    spots.userData.entity = e;
     const obj = new THREE.Group();
-    obj.add(m, spots);
+    obj.add(m);
+    if (spots) { // lines on it, so you can see it roll
+      const lines = new THREE.Mesh(new THREE.IcosahedronGeometry(radius * 1.01, 0), new THREE.MeshStandardMaterial({ color: 0x222222, wireframe: true }));
+      lines.userData.entity = e;
+      obj.add(lines);
+    }
     this.scene.add(obj);
     e.chassis = body;
     e.bodies.push({ body, object3d: obj, part: null });
-    e.recipe = { type: 'ball', opts: { radius, color, name, kind } };
+    e.recipe = { type: 'ball', opts: { radius, color, name, kind, damping, spinDamping, bounce, spots } };
     return this._register(e);
   }
 
@@ -401,7 +405,7 @@ export class World {
   clear() {
     for (const e of [...this.entities.values()]) if (e.kind !== 'ground') this.remove(e);
     this.memberCount.clear();
-    for (const a of this.actors.values()) { a._control.drive = a._control.steer = a._control.rise = 0; a.yaw = null; a._wasActive = false; }
+    for (const a of this.actors.values()) { a._control.drive = a._control.steer = a._control.rise = 0; a.yaw = null; a._wasActive = a._wasMoving = false; }
   }
 
   // ---- motors ---------------------------------------------------------------
@@ -548,7 +552,7 @@ export class World {
 
   // Move and turn a set of entities rigidly: rotate by dyaw (degrees) about
   // `pivot`, then shift by `delta`. Used for dragging and for layouts.
-  transform(entities, { delta = new THREE.Vector3(), dyaw = 0, pivot }) {
+  transform(entities, { delta = new THREE.Vector3(), dyaw = 0, pivot, keepSpawn = false }) {
     const q = yawQuat(dyaw);
     pivot ??= new THREE.Vector3();
     for (const e of entities) {
@@ -560,7 +564,7 @@ export class World {
         body.setRotation(nq, false);
         if (body.isKinematic()) { body.setNextKinematicTranslation(p); body.setNextKinematicRotation(nq); }
       }
-      if (e.spawnPose) {
+      if (e.spawnPose && !keepSpawn) {
         const sp = new THREE.Vector3(e.spawnPose.x, e.spawnPose.y, e.spawnPose.z).sub(pivot).applyQuaternion(q).add(pivot).add(delta);
         e.spawnPose = { x: sp.x, y: sp.y, z: sp.z, yaw: e.spawnPose.yaw + dyaw };
       }

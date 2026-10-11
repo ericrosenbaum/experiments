@@ -334,6 +334,18 @@ const HELD = {
     g.add(bar);
     return g;
   },
+  club() { // a putter, hanging down from the hand to the ground
+    const g = new THREE.Group();
+    const shaft = mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.1, 8), 'darkgray');
+    shaft.position.y = -1.0;
+    const grip = mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.5, 10), 'black');
+    grip.position.y = -0.1;
+    const head = mesh(new THREE.BoxGeometry(0.22, 0.2, 0.7), 'gray');
+    head.position.set(0, -2.05, 0.2);
+    g.add(shaft, grip, head);
+    g.rotation.x = 0.45; // the shaft hangs down and a little forward
+    return g;
+  },
   wand() {
     const g = new THREE.Group();
     const stick = mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.4, 8), 'brown');

@@ -203,4 +203,32 @@ stage.load('castle');
   console.log(`ok: the catapult knocked ${moved} castle bricks loose in 3 throws`);
 }
 
+// Minigolf: aimed at the cup, a well-charged putt sinks the ball on hole 1,
+// the cup feels it drop in, and no putt gets out over the walls.
+stage.load('minigolf');
+{
+  const ball = w.actor('golfball');
+  let cupTouched = false;
+  w.onCollision = (a, b, started) => { if (started && [a, b].some((x) => x.entity.thingId === 'cup-1') && [a, b].some((x) => x.entity.thingId === 'golfball')) cupTouched = true; };
+  run(w, 0.3);
+  ball.yaw = 0; // the cup is straight ahead (+z)
+  ball.kick({ x: 0, y: 0, z: 6 * 2.5 }); // push("forward", 6)
+  run(w, 6);
+  const p = ball.position;
+  assert.ok(p.y < 1 && Math.hypot(p.x - 16, p.z - 9) < 1.2, `the putt should end in cup 1 (ball at ${p.toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(cupTouched, 'cup 1 feels the ball drop in');
+  for (const yaw of [30, -60, 150]) { // full-power putts in odd directions stay on the course
+    stage.reset();
+    const b2 = w.actor('golfball');
+    b2.yaw = yaw;
+    const f = b2.forward();
+    b2.kick({ x: f.x * 25, y: 0, z: f.z * 25 });
+    run(w, 6);
+    const q = b2.position;
+    assert.ok(Math.abs(q.x - 16) < 3 && Math.abs(q.z) < 13, `a hard putt at ${yaw}° should stay on hole 1 (ball at ${q.toArray().map((v) => v.toFixed(1))})`);
+  }
+  w.onCollision = null;
+  console.log('ok: a charged putt sinks hole 1 and the cup feels it; hard putts stay inside the walls');
+}
+
 console.log('stage: all checks passed');

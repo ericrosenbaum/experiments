@@ -58,7 +58,14 @@ export class App {
     this.ring.rotation.x = -Math.PI / 2;
     this.ring.visible = false;
     scene.add(this.ring);
-    for (const o of [this.hoverBox, this.selBox, this.ring]) o.raycast = () => {};
+    // Which way the selected thing will go, for things with no front of their
+    // own (a ball, a whole house): an arrow on the ground.
+    const arrow = new THREE.Shape([[-0.25, 0], [0.25, 0], [0.25, 3], [0.7, 3], [0, 4.2], [-0.7, 3], [-0.25, 3]].map(([x, y]) => new THREE.Vector2(x, y)));
+    this.aim = new THREE.Mesh(new THREE.ShapeGeometry(arrow), new THREE.MeshBasicMaterial({ color: 0xffd400, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
+    this.aim.geometry.rotateX(Math.PI / 2); // lie flat, pointing along +z
+    this.aim.visible = false;
+    scene.add(this.aim);
+    for (const o of [this.hoverBox, this.selBox, this.ring, this.aim]) o.raycast = () => {};
     this.unread = 0;
   }
 
@@ -744,7 +751,16 @@ export class App {
     if (a && !a.alive) this.select(null);
     this.ring.visible = false;
     this.selBox.visible = false;
+    this.aim.visible = false;
     if (this.selected && !this.selected.isWorld) {
+      if (this.selected.usesOwnYaw) {
+        const s = this.selected, c = s.position, box = s.bounds();
+        const reach = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
+        const f = s.forward();
+        this.aim.position.set(c.x + f.x * (reach + 0.3), box.min.y + 0.06, c.z + f.z * (reach + 0.3));
+        this.aim.rotation.y = s.heading() * DEG;
+        this.aim.visible = true;
+      }
       const p = this.selected.position;
       if (this.selected.model) {
         this.ring.visible = true;

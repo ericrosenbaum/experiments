@@ -265,6 +265,107 @@ export const WORLDS = [
     },
     select: 'tractor',
   },
+
+  {
+    id: 'minigolf',
+    name: 'Minigolf',
+    emoji: '⛳',
+    blurb: 'Three holes of minigolf: aim the ball with ← →, hold space to charge a putt and let go to hit (↑ is a little tap). R puts it back on the tee.',
+    theme: { sky: 0x9bd6ff, fog: [100, 200], hemi: [0xffffff, 0x5f8f3a, 1.45], sun: [0xfff4dd, 2.4], ground: { base: '#5aa34a', stud: '#69b657', edge: '#47853a' } },
+    camera: { pos: [-6, 30, -42], target: [-6, 0, 3] },
+    build(w) {
+      const H = B; // greens are one brick high; the cups go down to the ground
+      P.green(w, 'green-1', 16, 0, {
+        name: 'Hole 1', cup: [0, 9], rects: [[0, 0, 6, 26]],
+        walls: [[0, -12.75, 6, 0.5], [0, 12.75, 6, 0.5], [-2.75, 0, 0.5, 25], [2.75, 0, 0.5, 25]],
+      });
+      P.green(w, 'green-2', 2, 0, { // a dogleg (to the right, as you putt)
+        name: 'Hole 2', cup: [-8, 5], rects: [[0, 0, 6, 16], [-7, 5, 8, 6]],
+        walls: [[0, -7.75, 6, 0.5], [-4, 7.75, 14, 0.5], [2.75, 0, 0.5, 15], [-2.75, -2.75, 0.5, 9.5], [-6.75, 2.25, 8.5, 0.5], [-10.75, 5, 0.5, 5]],
+      });
+      P.green(w, 'green-3', -16, 0, { // past the spinner
+        name: 'Hole 3', cup: [0, 10], rects: [[0, 0, 8, 26]],
+        walls: [[0, -12.75, 8, 0.5], [0, 12.75, 8, 0.5], [-3.75, 0, 0.5, 25], [3.75, 0, 0.5, 25]],
+      });
+      [[16, 9], [-6, 5], [-16, 10]].forEach(([x, z], i) => {
+        P.cup(w, `cup-${i + 1}`, x, z, { name: `Cup ${i + 1}` });
+        P.pin(w, `pin-${i + 1}`, x - 1.1, H, z + 1.1, { color: ['red', 'yellow', 'blue'][i], name: `Flag ${i + 1}` });
+      });
+      P.spinner(w, 'spinner', -16, H, 0);
+      w.addBall({ radius: 0.5, color: 'white', x: 16, y: H + 0.55, z: -10, name: 'Golf Ball', thingId: 'golfball', damping: 0.35, spinDamping: 0.8, bounce: 0.7, spots: false });
+      const trees = [[-30, -6], [-30, 16], [-8, 24], [10, 24], [30, -2], [30, 18], [0, 32]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 2 ? 1 : 1.2 }));
+    },
+    models: [
+      { id: 'golfer', def: 'golfer', x: 21.5, z: -9, yaw: -90 },
+    ],
+    behaviors: {
+      world: [{ text: 'At the start, say "Minigolf! Aim with ← →. Hold space, let go to putt."' }],
+      golfball: [{
+        text: 'Aim with the left and right arrows. Hold space to charge up a putt and let go to hit it; up is a little tap. Count the strokes. When it hears "in the hole", cheer, then go to the next tee. R goes back to the tee.',
+        summary: [
+          'While ← or → is held: aim left or right',
+          'While space is held: charge up the putt; let go to hit it. ↑: a little tap (each one is a stroke)',
+          'When it hears "in the hole": cheer and go to the next hole',
+          'When R is pressed: back to the tee',
+        ],
+        code: `// Minigolf! The ball keeps track of which hole it's on and how many strokes.
+const tees = [place(16, -10), place(2, -5), place(-16, -10)];
+const cups = ["cup-1", "cup-2", "cup-3"];
+let hole = 0;
+let strokes = 0;
+
+async function startHole() {
+  strokes = 0;
+  await teleport(tees[hole]);
+  await face(thing(cups[hole]));
+  say("Hole " + (hole + 1), 2);
+}
+
+// aim
+onKey("ArrowLeft", () => steer(70));
+onKeyUp("ArrowLeft", () => steer(0));
+onKey("ArrowRight", () => steer(-70));
+onKeyUp("ArrowRight", () => steer(0));
+
+// putt: hold space to charge up, let go to hit
+let power = 1;
+whileKey(" ", () => {
+  power = Math.min(10, power + 0.15);
+  const bars = Math.round(power);
+  say("Power " + "▮".repeat(bars) + "▯".repeat(10 - bars), 1);
+});
+onKeyUp(" ", () => {
+  strokes = strokes + 1;
+  push("forward", power);
+  play("pop");
+  say("Stroke " + strokes, 1);
+  power = 1;
+});
+onKey("ArrowUp", () => { strokes = strokes + 1; push("forward", 1.5); play("pop"); });
+
+onKey("r", startHole);
+
+onMessage("in the hole", async () => {
+  play("yay");
+  say(strokes === 1 ? "Hole in one!" : "In the hole in " + strokes + "!", 3);
+  await wait(3);
+  hole = (hole + 1) % tees.length;
+  await startHole();
+});
+
+onStart(async () => { await face(thing(cups[0])); });`,
+      }],
+      ...Object.fromEntries([1, 2, 3].map((n) => [`cup-${n}`, [{
+        text: 'When the golf ball drops in, tell everyone "in the hole".',
+        summary: ['When the Golf Ball drops in: tell everyone "in the hole"'],
+        code: 'onTouch(thing("golfball"), () => {\n  broadcast("in the hole");\n});',
+      }]])),
+      spinner: [{ text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(60)); // keep turning' }],
+      golfer: [{ text: 'When it hears "in the hole", wave the left arm and say "Nice putt!"' }],
+    },
+    select: 'golfball',
+  },
 ];
 
 export const WORLDS_BY_ID = Object.fromEntries(WORLDS.map((w) => [w.id, w]));
