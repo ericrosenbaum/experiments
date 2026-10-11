@@ -35,6 +35,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 150 });
 sun.shadow.bias = -0.0005;
+sun.shadow.normalBias = 0.03; // keeps hat brims from striping the faces under them
 scene.add(sun, sun.target);
 
 const controls = new OrbitControls(camera, renderer.domElement);

@@ -25,7 +25,8 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
   - 🚜 **Farm**: barn, silo, carrots and corn, a pond, a cow pen with two cows that moo, a horse and a tractor.
 
   Each world keeps its own state, so switching away and back finds everything as you left it.
-- **Library** (＋ Add model): 17 models in four groups. Vehicles (race car, digger, catapult, tractor, dump truck), characters (robot, knight, hero, slime), animals (dino, dragon, horse, cow) and space (alien, spaceship, UFO, rocket).
+- **Library** (＋ Add model): 21 models in five groups. People (knight, hero, astronaut, farmer, villager, wizard), vehicles (race car, digger, catapult, tractor, dump truck), characters (robot, slime), animals (dino, dragon, horse, cow) and space (alien, spaceship, UFO, rocket).
+- **Minifigures**: the people are real minifigs, not stacks of bricks. Their proportions are measured from the minifigure design patent (US D253,711, figs. 1 and 2) and match its front and side silhouettes to within about 0.05 studs. `src/world/minifig.js` builds them from new primitives: a lathed head and neck, a tapered torso, extruded leg profiles, bent tube arms, C-clip hands, and canvas decals for faces and torso prints. On top of those go hats and hair (helmet, cap, straw hat, space helmet, wizard hat, hair, antennae) and things to hold (sword, shield, pitchfork, wand). Physics uses a few hidden boxes; the head turns, the arms swing, and the legs stride when it walks.
 - **Inspector** (right): what's selected, its parts, the composer, examples, and the behaviors it knows.
 - **Camera**: drag the sky or ground to orbit, right-drag to pan, scroll to zoom. 🎥 Follow keeps the selection in view.
 
@@ -124,6 +125,7 @@ src/behavior/  primitives.js  the API spec (source of truth)
                sandbox.worker.js
                filter.js      shared "does this thing match 'red' / 'tree'?"
 src/world/     world.js       Rapier + Three entities, joints, motors, gravity
+               minifig.js     minifigure meshes, hats, faces, prints, held things
                actor.js       what a program runs on: model, assembly, brick, World
                library.js     premade models as data
                worlds.js      the premade worlds (theme, props, models, pre-taught behaviors)
@@ -138,6 +140,8 @@ tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
 server/        /api/generate, /api/bricktalk (Vite middleware)
 test/          compiler / prompt / physics / geometry / stage checks
 tools/         smoke.mjs (headless browser run), model-probe, castle-probe, physics probes
+tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouettes and color views);
+               overlay.py overlays the silhouettes on the patent drawing to compare
 ```
 
 ## Open questions this prototype raises

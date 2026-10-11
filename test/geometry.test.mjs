@@ -11,9 +11,9 @@ const EPS = 1e-3;
 
 // Boxes of a model at rest, in model space.
 function modelBoxes(def) {
-  const boxes = def.bricks.map((br) => ({ name: `${br.color} brick`, c: br.at, h: br.size.map((s) => s / 2) }));
+  const boxes = def.bricks.filter((br) => !br.hidden).map((br) => ({ name: `${br.color} brick`, c: br.at, h: br.size.map((s) => s / 2) }));
   for (const p of def.parts) {
-    for (const br of p.bricks ?? []) boxes.push({ name: `${p.name} ${br.color} brick`, c: br.at.map((v, k) => v + p.pivot[k]), h: br.size.map((s) => s / 2) });
+    for (const br of (p.bricks ?? []).filter((x) => !x.hidden)) boxes.push({ name: `${p.name} ${br.color} brick`, c: br.at.map((v, k) => v + p.pivot[k]), h: br.size.map((s) => s / 2) });
   }
   return boxes;
 }

@@ -73,6 +73,7 @@ export const WORLDS = [
       { id: 'knight', def: 'knight', x: -11, z: 8, yaw: 10 },
       { id: 'horse', def: 'horse', x: -16, z: 6, yaw: 30 },
       { id: 'dragon', def: 'dragon', x: 24, z: 14, yaw: -110 },
+      { id: 'wizard', def: 'wizard', x: 12, z: 2, yaw: -30 },
     ],
     behaviors: {
       catapult: [
@@ -81,6 +82,7 @@ export const WORLDS = [
       ],
       knight: [{ text: STEER }, { text: 'When I press s, swing the sword arm.' }],
       dragon: [{ text: 'Every 4 seconds, wag the tail and roar.' }],
+      wizard: [{ text: 'When I click it, wave the right arm, play ding and say "Abracadabra!"' }],
     },
     select: 'catapult',
   },
@@ -108,6 +110,7 @@ export const WORLDS = [
       { id: 'rocket', def: 'rocket', x: -16, z: -6, lift: 0.5 },
       { id: 'alien', def: 'alien', x: -8, z: 8, yaw: 160, name: 'Zib' },
       { id: 'alien-2', def: 'alien', x: 22, z: -6, yaw: -60, name: 'Zab' },
+      { id: 'astronaut', def: 'astronaut', x: 6, z: -8, yaw: 20 },
     ],
     behaviors: {
       world: [{ text: 'At the start, turn off gravity.' }],
@@ -123,6 +126,7 @@ export const WORLDS = [
         code: 'onClick(async () => {\n  say("3, 2, 1, blast off!");\n  await wait(1.5);\n  play("whoosh");\n  rise(8);\n  await wait(4);\n  rise(0);\n});',
       }],
       alien: [{ text: 'When I click it, wave the left arm and say "Greetings, Earthling!"' }],
+      astronaut: [{ text: 'When I click it, wave the left arm and say "To the stars!"' }],
       'alien-2': [{ text: 'Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.' }],
     },
     select: 'spaceship',
@@ -213,9 +217,13 @@ export const WORLDS = [
       { id: 'truck', def: 'truck', x: -24, z: 0, yaw: 90 },
       { id: 'mayor', def: 'robot', x: 14, z: 30, yaw: 200, name: 'Mayor Bot' },
       { id: 'racecar', def: 'racecar', x: 2, z: -30, yaw: 0 },
+      { id: 'villager', def: 'villager', x: -5, z: 27, yaw: 90, name: 'Rosa' },
+      { id: 'villager-2', def: 'villager', x: 18, z: 4, yaw: 200, name: 'Ben' },
     ],
     behaviors: {
       truck: [{ text: ARROWS }, { text: 'When I press space, raise the dump bed, wait 1 second, lower the dump bed.' }],
+      villager: [{ text: 'When I click it, wave the right arm and say "Lovely day!"' }],
+      'villager-2': [{ text: 'Wander slowly.' }],
       mayor: [{ text: 'When I click it, raise both arms and say "Welcome to Brickton!" then lower both arms.' }],
     },
     select: 'truck',
@@ -247,10 +255,12 @@ export const WORLDS = [
       { id: 'cow', def: 'cow', x: 22, z: 0, yaw: -70, name: 'Daisy' },
       { id: 'cow-2', def: 'cow', x: 24, z: -7, yaw: 200, name: 'Buttercup' },
       { id: 'horse', def: 'horse', x: -6, z: -14, yaw: 60 },
+      { id: 'farmer', def: 'farmer', x: 8, z: 3, yaw: -20 },
     ],
     behaviors: {
       tractor: [{ text: ARROWS }, { text: 'When I press space, lift the loader, wait 1 second, lower the loader.' }],
       cow: [{ text: 'Every 5 seconds, play moo and wag the tail.' }],
+      farmer: [{ text: 'When I click it, wave the left arm and say "Howdy!"' }],
       'cow-2': [{ text: 'Every 7 seconds, play moo and nod the head.' }],
     },
     select: 'tractor',

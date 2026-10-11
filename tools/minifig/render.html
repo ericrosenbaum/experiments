@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>body{margin:0;background:#fff}canvas{display:block}</style></head>
+<body>
+<script type="module">
+// Renders a minifig for design review (tools/minifig/review.mjs drives this).
+// ?mode=front|side   flat silhouette, orthographic, 64 px per stud, feet on
+//                    the bottom margin (matches the patent drawings)
+// ?mode=color        shaded perspective views of several minifigs
+import * as THREE from 'three';
+import { buildMinifig, FIG } from '/src/world/minifig.js';
+
+const q = new URLSearchParams(location.search);
+const mode = q.get('mode') ?? 'color';
+const specs = JSON.parse(q.get('specs') ?? '[{}]');
+const PX = 64, MARGIN = 10;
+
+function figure(spec) {
+  const f = buildMinifig(spec);
+  const g = new THREE.Group();
+  g.add(f.body, f.head, f.leftArm, f.rightArm);
+  if (spec.stride) { f.legs[0].rotation.x = spec.stride; f.legs[1].rotation.x = -spec.stride; } // mid-walk
+  return g;
+}
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+const scene = new THREE.Scene();
+let camera;
+if (mode === 'front' || mode === 'side') {
+  const w = 280, h = Math.ceil(FIG.top * PX) + 2 * MARGIN;
+  renderer.setSize(w, h);
+  scene.background = new THREE.Color(0xffffff);
+  const g = figure(specs[0]);
+  g.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }); });
+  scene.add(g);
+  const halfW = w / 2 / PX, bottom = -MARGIN / PX;
+  camera = new THREE.OrthographicCamera(-halfW, halfW, bottom + h / PX, bottom, 0.1, 100);
+  if (mode === 'front') camera.position.set(0, 0, 50);
+  else camera.position.set(50, 0, 0); // looking at its left side: forward (+z) is to the left
+  camera.lookAt(camera.position.x ? 0 : 0, 0, 0);
+  camera.position.y = 0;
+  camera.updateProjectionMatrix();
+} else {
+  const n = specs.length;
+  renderer.setSize(300 * n, 420);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.shadowMap.enabled = true;
+  scene.background = new THREE.Color(0xe9e4d8);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8070, 1.3));
+  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  key.position.set(4, 9, 7);
+  key.castShadow = true;
+  key.shadow.bias = -0.0005; // as in the app
+  key.shadow.normalBias = 0.02;
+  key.shadow.mapSize.set(2048, 2048);
+  Object.assign(key.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 40 });
+  scene.add(key);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 50), new THREE.MeshStandardMaterial({ color: 0xd9d2c3 }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  specs.forEach((s, i) => {
+    const g = figure(s);
+    g.position.x = (i - (n - 1) / 2) * 3.4;
+    g.rotation.y = s.turn ?? -0.45;
+    scene.add(g);
+  });
+  camera = new THREE.PerspectiveCamera(28, (300 * n) / 420, 0.1, 200);
+  camera.position.set(0, 4.4, 4 + 2.3 * n);
+  camera.lookAt(0, 2.6, 0);
+}
+document.body.appendChild(renderer.domElement);
+renderer.render(scene, camera);
+window.done = true;
+</script>
+</body></html>

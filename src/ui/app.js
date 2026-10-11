@@ -748,7 +748,7 @@ export class App {
       const p = this.selected.position;
       if (this.selected.model) {
         this.ring.visible = true;
-        this.ring.position.set(p.x, 0.03, p.z);
+        this.ring.position.set(p.x, 0.07, p.z); // above roads and ponds
       } else {
         this.selBox.box.copy(this.selected.bounds()).expandByScalar(0.15);
         this.selBox.visible = true;

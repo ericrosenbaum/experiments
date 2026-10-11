@@ -16,8 +16,81 @@
 // slides, like a walking character).
 
 import { BRICK_H as B, PLATE_H as P } from './bricks.js';
+import { FIG } from './minifig.js';
 
 const b = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h, d], color, ...extra });
+
+// A minifigure: physics is a few plain boxes (hidden); what you see is built
+// by minifig.js from `figure` (colors, face, torso print, hat, held things).
+// Parts: a turning head and two arms that swing forward from the shoulder.
+// Chassis origin is the top of the hips (figure space y = FIG.torsoY).
+function minifig({ id, name, blurb, category = 'people', examples, figure, arms = ['left arm', 'right arm'] }) {
+  const O = FIG.torsoY;
+  const hide = { hidden: true };
+  const [sx, sy] = FIG.shoulder;
+  const armBox = (side) => [b(side * 0.25, -0.95, 0.05, 0.55, 1.9, 0.6, figure.torso ?? 'red', hide)];
+  return {
+    id, name, blurb, category, examples, figure,
+    color: figure.torso ?? 'red',
+    motion: 'glide',
+    bricks: [
+      b(0, FIG.torsoY / 2 - O, 0, FIG.torsoBottomW, FIG.torsoY, 1.11, figure.legs ?? 'blue', hide),
+      b(0, FIG.torsoY + FIG.torsoH / 2 - O, 0, 1.7, FIG.torsoH, FIG.torsoD, figure.torso ?? 'red', hide),
+    ],
+    parts: [
+      { name: 'head', kind: 'hinge', pivot: [0, FIG.neckY - O, 0], axis: [0, 1, 0], sign: 1, limits: [-90, 90], strength: 1,
+        bricks: [b(0, 0.8, 0, 1.36, 1.4, 1.36, figure.head ?? 'yellow', hide)] },
+      { name: arms[0], kind: 'hinge', pivot: [sx, sy - O, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1.5, bricks: armBox(1) },
+      { name: arms[1], kind: 'hinge', pivot: [-sx, sy - O, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1.5, bricks: armBox(-1) },
+    ],
+  };
+}
+
+const PEOPLE = [
+  minifig({
+    id: 'knight', name: 'Knight',
+    blurb: 'A brave knight with a sword, a shield and a helmet.',
+    examples: ['When I press space, swing the sword arm.', 'When I press s, raise the shield arm, wait 1 second, lower the shield arm.', 'When it bumps into the dragon, say "Back, dragon!" and back up.', 'Go to the castle.'],
+    figure: { torso: 'gray', arms: 'gray', legs: 'black', print: 'knight', face: 'stern', hat: 'helmet', hatColor: 'gray', held: { right: 'sword', left: 'shield' } },
+    arms: ['shield arm', 'sword arm'],
+  }),
+  minifig({
+    id: 'hero', name: 'Hero',
+    blurb: 'A jumpy hero in a red cap and overalls, made for platform games.',
+    examples: ['When I press space, jump high.', 'When it bumps into a coin, play coin.', 'When I press w, wave the right arm and say "Hi!"'],
+    figure: { torso: 'red', arms: 'red', legs: 'blue', print: 'overalls', face: 'mustache', hat: 'cap', hatColor: 'red' },
+  }),
+  minifig({
+    id: 'astronaut', name: 'Astronaut',
+    blurb: 'A classic spaceman in a white suit and helmet.',
+    examples: ['When I press w, fly up. When I press s, fly down.', 'When I click it, wave the left arm and say "To the stars!"', 'Go to the rocket.'],
+    figure: { torso: 'white', arms: 'white', legs: 'white', print: 'space', hat: 'space', hatColor: 'white' },
+  }),
+  minifig({
+    id: 'farmer', name: 'Farmer',
+    blurb: 'A farmer in a straw hat with a pitchfork.',
+    examples: ['Every 5 seconds, go to the nearest cow.', 'When I click it, wave the left arm and say "Howdy!"', 'When I press space, jump.'],
+    figure: { torso: 'green', arms: 'green', legs: 'blue', print: 'overalls', face: 'freckles', hat: 'straw', hatColor: 'tan', held: { right: 'pitchfork' } },
+  }),
+  minifig({
+    id: 'villager', name: 'Villager',
+    blurb: 'A friendly villager in a button-up shirt.',
+    examples: ['Wander slowly.', 'When I click it, wave the right arm and say "Lovely day!"', 'Go to the fountain.'],
+    figure: { torso: 'blue', arms: 'blue', legs: 'tan', print: 'buttons', hat: 'hair', hatColor: 'brown' },
+  }),
+  minifig({
+    id: 'wizard', name: 'Wizard',
+    blurb: 'A wizard with a pointy hat and a magic wand.',
+    examples: ['When I click it, wave the right arm, play ding and make a copy of the nearest tree.', 'When I press space, say "Abracadabra!" and turn a random color.', 'Forever, turn the head left, wait 1 second, turn the head right.'],
+    figure: { torso: 'purple', arms: 'purple', legs: 'blue', face: 'smile', hat: 'wizard', hatColor: 'blue', held: { right: 'wand' } },
+  }),
+  minifig({
+    id: 'alien', name: 'Alien', category: 'space',
+    blurb: 'A friendly green alien with big eyes and bobbly antennae.',
+    examples: ['When I click it, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],
+    figure: { torso: 'green', arms: 'green', legs: 'green', head: 'lime', hands: 'lime', print: 'zip', face: 'alien', hat: 'antennae', hatColor: 'pink' },
+  }),
+];
 
 export const LIBRARY = [
   {
@@ -267,94 +340,6 @@ export const LIBRARY = [
     ],
   },
   {
-    id: 'knight',
-    name: 'Knight',
-    blurb: 'A brave knight with a sword arm, a shield arm and a helmet that turns.',
-    category: 'characters',
-    examples: ['When I press space, swing the sword arm.', 'When I press s, raise the shield arm, wait 1 second, lower the shield arm.', 'When it bumps into the dragon, say "Back, dragon!" and back up.', 'Go to the castle.'],
-    color: 'gray',
-    motion: 'glide',
-    bricks: [
-      b(0.6, -2.4, 0.2, 1, P, 1.6, 'darkgray'),
-      b(-0.6, -2.4, 0.2, 1, P, 1.6, 'darkgray'),
-      b(0.6, -1.5, 0, 0.8, 1.4, 0.8, 'gray', { studs: false }),
-      b(-0.6, -1.5, 0, 0.8, 1.4, 0.8, 'gray', { studs: false }),
-      b(0, 0.4, 0, 2.6, 2.4, 1.6, 'gray'),
-      b(0, 0.2, 0.85, 1.6, 1.8, 0.1, 'blue', { studs: false }),
-      b(0, 0.6, 0.95, 0.5, 0.5, 0.1, 'yellow', { studs: false }),
-    ],
-    parts: [
-      {
-        name: 'head', kind: 'hinge', pivot: [0, 1.6, 0], axis: [0, 1, 0], sign: 1, limits: [-90, 90], strength: 1,
-        bricks: [
-          b(0, 0.7, 0, 1.6, 1.4, 1.6, 'gray', { studs: false }),
-          b(0, 0.85, 0.85, 1.0, 0.2, 0.1, 'black', { studs: false }),
-          b(0, 1.7, -0.1, 0.3, 0.6, 1.2, 'red', { studs: false }),
-        ],
-      },
-      {
-        name: 'sword arm', kind: 'hinge', pivot: [-1.6, 1.2, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 150], strength: 1.5,
-        bricks: [
-          b(0, -0.8, 0, 0.6, 1.8, 0.7, 'gray', { studs: false }),
-          b(0, -1.85, 0, 0.7, 0.4, 0.8, 'tan', { studs: false }),
-          b(0, -1.85, 1.6, 0.2, 0.2, 2.4, 'white', { studs: false }),
-          b(0, -1.9, 0.55, 0.8, 0.4, 0.2, 'yellow', { studs: false }),
-        ],
-      },
-      {
-        name: 'shield arm', kind: 'hinge', pivot: [1.6, 1.2, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 150], strength: 1.5,
-        bricks: [
-          b(0, -0.8, 0, 0.6, 1.8, 0.7, 'gray', { studs: false }),
-          b(0, -1.85, 0, 0.7, 0.4, 0.8, 'tan', { studs: false }),
-          b(0.45, -1.2, 0.2, 0.2, 2.0, 1.8, 'blue', { studs: false }),
-          b(0.6, -1.2, 0.2, 0.1, 0.6, 0.6, 'yellow', { studs: false }),
-        ],
-      },
-    ],
-  },
-  {
-    id: 'hero',
-    name: 'Hero',
-    blurb: 'A jumpy little hero in a red cap, made for platform games.',
-    category: 'characters',
-    examples: ['When I press space, jump high.', 'When it bumps into a coin, play coin.', 'When I press w, wave the right arm and say "Hi!"'],
-    color: 'red',
-    motion: 'glide',
-    bricks: [
-      b(0.45, -1.5, 0.15, 0.7, P, 1.1, 'brown'),
-      b(-0.45, -1.5, 0.15, 0.7, P, 1.1, 'brown'),
-      b(0.45, -0.9, 0, 0.6, 0.8, 0.6, 'blue', { studs: false }),
-      b(-0.45, -0.9, 0, 0.6, 0.8, 0.6, 'blue', { studs: false }),
-      b(0, 0.1, 0, 1.6, B, 1.0, 'red'),
-    ],
-    parts: [
-      {
-        name: 'head', kind: 'hinge', pivot: [0, 0.7, 0], axis: [0, 1, 0], sign: 1, limits: [-90, 90], strength: 1,
-        bricks: [
-          b(0, 0.6, 0, 1.2, 1.2, 1.2, 'tan', { studs: false }),
-          b(0, 1.35, 0, 1.4, 0.3, 1.4, 'red', { studs: false }),
-          b(0, 1.25, 0.95, 1.2, 0.1, 0.5, 'red', { studs: false }),
-          b(0.3, 0.7, 0.65, 0.2, 0.3, 0.1, 'black', { studs: false }),
-          b(-0.3, 0.7, 0.65, 0.2, 0.3, 0.1, 'black', { studs: false }),
-        ],
-      },
-      {
-        name: 'left arm', kind: 'hinge', pivot: [0.95, 0.5, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1,
-        bricks: [
-          b(0.2, -0.45, 0, 0.4, 1.0, 0.4, 'red', { studs: false }),
-          b(0.2, -1.1, 0, 0.45, 0.3, 0.45, 'white', { studs: false }),
-        ],
-      },
-      {
-        name: 'right arm', kind: 'hinge', pivot: [-0.95, 0.5, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1,
-        bricks: [
-          b(-0.2, -0.45, 0, 0.4, 1.0, 0.4, 'red', { studs: false }),
-          b(-0.2, -1.1, 0, 0.45, 0.3, 0.45, 'white', { studs: false }),
-        ],
-      },
-    ],
-  },
-  {
     id: 'slime',
     name: 'Slime',
     blurb: 'A wobbly purple blob with a chomping mouth. Every platform game needs one.',
@@ -374,50 +359,6 @@ export const LIBRARY = [
       {
         name: 'mouth', kind: 'hinge', pivot: [0, -0.3, 1.2], axis: [1, 0, 0], sign: -1, limits: [-30, 30], strength: 8, density: 2,
         bricks: [b(0, 0, 0.2, 1.2, 0.3, 0.4, 'black', { studs: false })],
-      },
-    ],
-  },
-  {
-    id: 'alien',
-    name: 'Alien',
-    blurb: 'A friendly little green alien with a big head and bobbly antennas.',
-    category: 'space',
-    examples: ['When I click it, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],
-    color: 'green',
-    motion: 'glide',
-    bricks: [
-      b(0.5, -1.6, 0.2, 0.8, P, 1.2, 'lime'),
-      b(-0.5, -1.6, 0.2, 0.8, P, 1.2, 'lime'),
-      b(0.5, -1.0, 0, 0.5, 0.8, 0.5, 'green', { studs: false }),
-      b(-0.5, -1.0, 0, 0.5, 0.8, 0.5, 'green', { studs: false }),
-      b(0, 0, 0, 1.6, B, 1.2, 'green'),
-    ],
-    parts: [
-      {
-        name: 'head', kind: 'hinge', pivot: [0, 0.6, 0], axis: [0, 1, 0], sign: 1, limits: [-90, 90], strength: 1,
-        bricks: [
-          b(0, 0.8, 0, 2.2, 1.6, 1.8, 'lime', { studs: false }),
-          b(0.5, 1.0, 0.95, 0.6, 0.5, 0.1, 'black', { studs: false }),
-          b(-0.5, 1.0, 0.95, 0.6, 0.5, 0.1, 'black', { studs: false }),
-          b(0.6, 2.0, 0, 0.15, 0.8, 0.15, 'green', { studs: false }),
-          b(-0.6, 2.0, 0, 0.15, 0.8, 0.15, 'green', { studs: false }),
-          b(0.6, 2.55, 0, 0.4, 0.3, 0.4, 'pink', { studs: false }),
-          b(-0.6, 2.55, 0, 0.4, 0.3, 0.4, 'pink', { studs: false }),
-        ],
-      },
-      {
-        name: 'left arm', kind: 'hinge', pivot: [0.95, 0.4, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1,
-        bricks: [
-          b(0.2, -0.6, 0, 0.4, B, 0.4, 'green', { studs: false }),
-          b(0.2, -1.3, 0, 0.5, 0.3, 0.5, 'lime', { studs: false }),
-        ],
-      },
-      {
-        name: 'right arm', kind: 'hinge', pivot: [-0.95, 0.4, 0], axis: [1, 0, 0], sign: -1, limits: [-60, 180], strength: 1,
-        bricks: [
-          b(-0.2, -0.6, 0, 0.4, B, 0.4, 'green', { studs: false }),
-          b(-0.2, -1.3, 0, 0.5, 0.3, 0.5, 'lime', { studs: false }),
-        ],
       },
     ],
   },
@@ -659,10 +600,12 @@ export const LIBRARY = [
   },
 ];
 
+LIBRARY.push(...PEOPLE);
+
 export const LIBRARY_BY_ID = Object.fromEntries(LIBRARY.map((d) => [d.id, d]));
 
 export const CATEGORIES = [
-  ['vehicles', 'Vehicles'], ['characters', 'Characters'], ['animals', 'Animals'], ['space', 'Space'],
+  ['people', 'People'], ['vehicles', 'Vehicles'], ['characters', 'Characters'], ['animals', 'Animals'], ['space', 'Space'],
 ];
 
 // Local-space bounding box of a model at rest: { min: [x,y,z], max: [x,y,z] }.

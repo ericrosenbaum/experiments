@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { brickMesh, wheelMesh, material, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
+import { buildMinifig, FIG } from './minifig.js';
 
 const DEG = Math.PI / 180;
 export const GRAVITY = -25; // studs/s^2 — "toy scale" gravity, snappy but readable
@@ -169,10 +170,22 @@ export class World {
       if (def.motion === 'glide') desc.setFriction(0).setFrictionCombineRule(R.CoefficientCombineRule.Min);
       else desc.setFriction(0.6);
       this._attachCollider(desc, chassis, e, null, br.color);
+      if (br.hidden) continue; // a collider only; something else is drawn there
       const m = brickMesh(w, h, d, br.color, br.studs !== false);
       m.position.set(...br.at);
       m.userData.entity = e;
       chassisObj.add(m);
+    }
+    // Minifigures are drawn by minifig.js, in figure space (y = 0 at the feet);
+    // the chassis origin sits at the top of the hips.
+    const fig = def.figure ? buildMinifig(def.figure) : null;
+    const tag = (obj, part) => obj.traverse((o) => { o.userData.entity = e; if (part) o.userData.part = part; });
+    if (fig) {
+      fig.body.position.y = -FIG.torsoY;
+      tag(fig.body);
+      chassisObj.add(fig.body);
+      e.figureLegs = fig.legs;
+      e.walk = 0;
     }
     this.scene.add(chassisObj);
     e.chassis = chassis;
@@ -196,11 +209,21 @@ export class World {
           const [w, h, d] = br.size;
           const desc = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...br.at).setFriction(0.7).setDensity(p.density ?? 0.5);
           this._attachCollider(desc, body, e, p.name, br.color);
+          if (br.hidden) continue;
           const m = brickMesh(w, h, d, br.color, br.studs !== false);
           m.position.set(...br.at);
           m.userData.entity = e;
           m.userData.part = p.name;
           obj.add(m);
+        }
+      }
+      // a minifigure's head and arms ride on these part bodies
+      if (fig) {
+        const look = p.name === 'head' ? fig.head : p === def.parts[1] ? fig.leftArm : p === def.parts[2] ? fig.rightArm : null;
+        if (look) {
+          look.position.set(-p.pivot[0], -p.pivot[1] - FIG.torsoY, -p.pivot[2]);
+          tag(look, p.name);
+          obj.add(look);
         }
       }
       this.scene.add(obj);
@@ -460,7 +483,22 @@ export class World {
       steps++;
     }
     this.sync();
+    this._animateFigures(Math.min(frameDt, 0.1));
     this._cleanupFallen();
+  }
+
+  // Minifigures swing their legs as they walk, faster the faster they go.
+  _animateFigures(dt) {
+    for (const e of this.entities.values()) {
+      if (!e.figureLegs) continue;
+      const v = e.chassis.linvel();
+      const speed = Math.hypot(v.x, v.z);
+      const moving = Math.min(1, speed / 4);
+      e.walk += dt * Math.min(speed, 14) * 1.6;
+      const swing = Math.sin(e.walk) * 0.55 * moving;
+      e.figureLegs[0].rotation.x = swing;
+      e.figureLegs[1].rotation.x = -swing;
+    }
   }
 
   _syncOne(body, obj) {
