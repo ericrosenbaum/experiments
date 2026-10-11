@@ -6,7 +6,9 @@ import { chromium } from 'playwright-core';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 
-const url = process.argv[2] ?? 'http://localhost:5173/';
+// Headless software rendering is far too slow for the full graphics (a few
+// frames a second, so physics runs in slow motion); use the plain look.
+const url = (() => { const u = new URL(process.argv[2] ?? 'http://localhost:5173/'); if (!u.searchParams.has('fx')) u.searchParams.set('fx', 'low'); return u.href; })();
 const out = process.argv[3] ?? '.';
 const exe = process.argv[4] ?? [
   '/opt/pw-browsers/chromium',
