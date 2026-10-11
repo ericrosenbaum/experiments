@@ -214,10 +214,10 @@ export class Stage {
   // ---- the look of the world -----------------------------------------------
 
   applyTheme(theme) {
-    const { scene, hemi, sun } = this.view;
-    scene.background = new THREE.Color(theme.sky);
+    const { scene, hemi, sun, gfx } = this.view;
     scene.fog = theme.fog ? new THREE.Fog(theme.sky, ...theme.fog) : null;
     hemi.color.set(theme.hemi[0]); hemi.groundColor.set(theme.hemi[1]); hemi.intensity = theme.hemi[2];
+    if (gfx) gfx.setSky(theme); else scene.background = new THREE.Color(theme.sky);
     sun.color.set(theme.sun[0]); sun.intensity = theme.sun[1];
     this.world.setGroundLook(theme.ground);
     if (theme.stars && !this._stars) this._stars = makeSpace();
@@ -238,7 +238,8 @@ function makeSpace() {
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-  g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, fog: false })));
+  // brighter than white, so the stars bloom a little
+  g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: new THREE.Color(2.5, 2.5, 2.8), size: 1.6, sizeAttenuation: false, fog: false })));
   const planet = new THREE.Mesh(new THREE.SphereGeometry(40, 48, 32), new THREE.MeshStandardMaterial({ color: 0xe0874a, roughness: 0.8, fog: false }));
   planet.position.set(-150, 90, 220);
   const ring = new THREE.Mesh(new THREE.RingGeometry(55, 75, 64), new THREE.MeshBasicMaterial({ color: 0xf2d39b, side: THREE.DoubleSide, transparent: true, opacity: 0.6, fog: false }));
