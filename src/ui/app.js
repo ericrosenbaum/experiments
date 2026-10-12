@@ -74,6 +74,12 @@ export class App {
     this.loadWorld(location.hash.slice(1) || 'playground');
   }
 
+  setLibrary(open) {
+    $('library').classList.toggle('hidden', !open);
+    $('btn-library').classList.toggle('on', open);
+    $('btn-library').setAttribute('aria-expanded', String(open));
+  }
+
   setFollow(on) {
     this.follow = on;
     $('btn-follow').classList.toggle('on', on);
@@ -83,7 +89,7 @@ export class App {
   // The World button shows how many behaviors the World has.
   renderWorldCount() {
     const n = this.stage ? this.stage.behaviorsOf('world').length : 0;
-    $('world-count').textContent = n;
+    $('world-count').textContent = n || ''; // no badge when the World has no behaviors
     $('btn-world').title = `World rules (${n === 1 ? '1 behavior' : `${n} behaviors`}): teach the World itself (gravity, dropping and copying things), or click the ground`;
   }
 
@@ -119,7 +125,7 @@ export class App {
         const b = document.createElement('button');
         b.className = 'lib-card';
         b.innerHTML = `<span class="swatch" style="background:${css(def.color)}"></span><span><b>${esc(def.name)}</b><small>${esc(def.blurb)}</small><br><small>Parts: ${esc(def.parts.map((p) => p.name).join(', ') || 'none')}</small></span>`;
-        b.onclick = () => { this.addModel(def.id); $('library').classList.add('hidden'); };
+        b.onclick = () => { this.addModel(def.id); this.setLibrary(false); };
         list.appendChild(b);
       }
     }
@@ -137,8 +143,8 @@ export class App {
   }
 
   _wireButtons() {
-    $('btn-library').onclick = () => $('library').classList.toggle('hidden');
-    document.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => $(b.dataset.close).classList.add('hidden'); });
+    $('btn-library').onclick = () => this.setLibrary($('library').classList.contains('hidden'));
+    document.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => (b.dataset.close === 'library' ? this.setLibrary(false) : $(b.dataset.close).classList.add('hidden')); });
     $('btn-pause').onclick = () => {
       this.world.paused = !this.world.paused;
       $('btn-pause').querySelector('span').textContent = this.world.paused ? 'Resume' : 'Pause';

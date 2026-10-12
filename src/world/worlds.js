@@ -464,8 +464,6 @@ onStart(async () => { await face(thing(cups[0])); });`,
       P.giantPin(w, 'giant-flag', c.cup[0] + 6, c.GREEN, c.cup[1] + 6);
       P.bigRex(w, 'rex', 76, 80, { yaw: -90 });
       w.addBall({ radius: 3.5, color: 'white', x: c.tee[0], y: c.FAIR + 3.55, z: c.tee[1], name: 'Mega Ball', thingId: 'megaball', damping: 0.2, spinDamping: 0.6, bounce: 0.3, spots: false, density: 1 });
-      const trees = [[-28, -40], [-26, 0], [-24, 36], [-6, 40], [14, 60], [66, 20], [70, 48], [64, -16], [30, -40], [60, 104], [20, 100]];
-      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: 1.6 + (i % 3) * 0.3 }));
     },
     models: [
       { id: 'golfer', def: 'golfer', x: 0, z: -45, lift: 0.4, name: 'You' },
