@@ -25,6 +25,11 @@ const pending = new Map();
 let nextQuery = 1;
 let stopped = false;
 let cloned = false;
+// Start handlers run once, right after the program loads. One registered after
+// that (a forever inside an onStart, an onStart inside a key handler) starts
+// straight away instead, or it would never run.
+let started = false;
+const atStart = (run) => { if (started) run(); else handlers.start.push(run); };
 // Clicking a stack of blocks runs it once: its top block's id -> how to run it.
 // The traced code calls __hat(ID) just before each top-level event registers.
 const byHat = new Map();
@@ -72,7 +77,7 @@ const flushTrace = () => {
 const traced = () => { traceTimer ??= setTimeout(flushTrace, 50); };
 
 const api = {
-  onStart: (fn) => { const run = safe(fn, 'start'); handlers.start.push(run); scriptOf(run); },
+  onStart: (fn) => { const run = safe(fn, 'start'); atStart(run); scriptOf(run); },
   onKey: (key, fn) => { const run = safe(fn, `key ${key}`); handlers.key.push({ key: normKey(key), fn: run }); scriptOf(run); },
   onKeyUp: (key, fn) => { const run = safe(fn, `key up ${key}`); handlers.keyup.push({ key: normKey(key), fn: run }); scriptOf(run); },
   whileKey: (key, fn) => { const run = safe(fn, `hold ${key}`); handlers.hold.push({ key: normKey(key), fn: run, busy: false }); scriptOf(run); },
@@ -87,12 +92,12 @@ const api = {
   forever: (fn) => {
     const run = safe(fn, 'forever');
     scriptOf(run); // clicking runs one time around
-    handlers.start.push(async () => { while (!stopped) { await run(); await sleep(1 / 30); } });
+    atStart(async () => { while (!stopped) { await run(); await sleep(1 / 30); } });
   },
   every: (seconds, fn) => {
     const run = safe(fn, 'every');
     scriptOf(run);
-    handlers.start.push(async () => { while (!stopped) { await sleep(Math.max(0.05, seconds)); await run(); } });
+    atStart(async () => { while (!stopped) { await sleep(Math.max(0.05, seconds)); await run(); } });
   },
 
   drive: (speed = 7) => cmd('drive', Number(speed)),
@@ -166,6 +171,7 @@ listen('message', async (ev) => {
         touchFilters: handlers.touch.map((h) => h.filter),
         keys: [...new Set([...handlers.key, ...handlers.keyup, ...handlers.hold].map((h) => h.key))],
       });
+      started = true;
       handlers.start.forEach((fn) => fn());
       if (cloned) handlers.clone.forEach((fn) => fn());
       break;
