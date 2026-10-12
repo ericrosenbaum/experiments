@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-11",
+  "date": "2026-10-12",
   "behavior": [
     {
       "text": "when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tree 3}",
@@ -9,7 +9,7 @@
         "summary": [
           "When you press space: wave the left arm, say hi, then go to Tree 3"
         ],
-        "code": "onKey(\" \", async () => {\n  say(\"Hi!\", 2);\n  // lift the arm and wave\n  await part(\"left arm\").turnTo(150);\n  await part(\"left arm\").wiggle(3);\n  await part(\"left arm\").turnTo(0);\n  // walk over to the tree\n  await goTo(thing(\"tree-3\"), 7);\n});",
+        "code": "onKey(\" \", async () => {\n  play(\"beep\");\n  say(\"Hi!\", 2);\n  // wave the left arm\n  await part(\"left arm\").turnTo(150);\n  await part(\"left arm\").wiggle(3);\n  await part(\"left arm\").turnTo(0);\n  // head over to the tree\n  await goTo(thing(\"tree-3\"), 7);\n});",
         "keys": [
           {
             "key": " ",
@@ -17,6 +17,7 @@
           }
         ],
         "notes": "",
+        "modifies": "",
         "source": "claude",
         "model": "claude-opus-5-5"
       }
@@ -25,13 +26,14 @@
       "text": "forever, if you see something red in front of you, honk and back up",
       "target": "Race Car",
       "claude": {
-        "title": "Red Alert Honk",
+        "title": "Honk at Red",
         "summary": [
-          "Forever: if something red is ahead, honk and back up"
+          "All the time: if something red is right in front, honk and back up"
         ],
-        "code": "forever(async () => {\n  const seen = await look(10);\n  if (seen && is(seen, \"red\")) {\n    play(\"honk\");\n    await move(-5, 7); // back up\n  } else {\n    await wait(0.2);\n  }\n});",
+        "code": "forever(async () => {\n  const seen = await look(8);\n  if (seen && is(seen, \"red\")) {\n    play(\"honk\");\n    await move(-5, 7); // back up\n  }\n  await wait(0.2);\n});",
         "keys": [],
-        "notes": "It looks 10 studs ahead and backs up 5 studs when it sees something red, like the Red House. It doesn't drive forward by itself, so you'll need to drive it toward something red.",
+        "notes": "It looks about 8 studs ahead for something red, like the Red House.",
+        "modifies": "",
         "source": "claude",
         "model": "claude-opus-5-5"
       }
@@ -40,19 +42,20 @@
       "text": "when I press f, make everything float for 5 seconds and then drop a bunch of rainbow bricks",
       "target": "World",
       "claude": {
-        "title": "Float Then Rainbow Rain",
+        "title": "Float and Rainbow Drop",
         "summary": [
           "When you press f: everything floats for 5 seconds",
-          "Then gravity comes back and rainbow bricks fall from the sky"
+          "Then gravity comes back and a bunch of rainbow bricks fall from the sky"
         ],
-        "code": "const rainbow = [\"red\", \"orange\", \"yellow\", \"green\", \"blue\", \"purple\", \"pink\"];\n\nonKey(\"f\", async () => {\n  // Everything floats!\n  gravity(0);\n  play(\"whoosh\");\n  say(\"Floating!\", 2);\n  await wait(5);\n\n  // Back to normal, then rainbow rain\n  gravity(1);\n  play(\"yay\");\n  for (let i = 0; i < 14; i++) {\n    spawn({ color: rainbow[i % rainbow.length], size: \"2x2\", at: place(random(-10, 10), random(-10, 10)) });\n    await wait(0.2);\n  }\n});",
+        "code": "const rainbow = [\"red\", \"orange\", \"yellow\", \"green\", \"blue\", \"purple\"];\n\nonKey(\"f\", async () => {\n  // Turn off gravity so everything floats\n  gravity(0);\n  play(\"magic\");\n  say(\"Everything is floating!\", 2);\n  await wait(5);\n\n  // Gravity back on\n  gravity(1);\n  play(\"slide\");\n\n  // Drop a bunch of rainbow bricks\n  for (let i = 0; i < 18; i++) {\n    spawn({ color: rainbow[i % rainbow.length], size: \"2x2\", at: place(random(-12, 12), random(-12, 12)) });\n    await wait(0.15);\n  }\n});",
         "keys": [
           {
             "key": "f",
             "label": "float"
           }
         ],
-        "notes": "Gravity goes back to normal before the bricks drop so they actually fall. Select the World before pressing f.",
+        "notes": "",
+        "modifies": "",
         "source": "claude",
         "model": "claude-opus-5-5"
       }
@@ -71,7 +74,6 @@
           ]
         ],
         "dropped": [
-          "can",
           "a",
           "together"
         ],
@@ -83,8 +85,8 @@
       "result": {
         "phrases": [
           [
-            "me",
-            "wait"
+            "wait",
+            "me"
           ],
           [
             "car",
@@ -104,14 +106,19 @@
     {
       "text": "tu castillo es muy grande, ¡qué guay!",
       "result": {
-        "phrases": [],
+        "phrases": [
+          [
+            "cool"
+          ]
+        ],
         "dropped": [
           "es",
           "muy",
           "qué"
         ],
         "blocked": [
-          "Name-calling isn't possible in Brick Talk."
+          "Name-calling isn't possible in Brick Talk.",
+          "When a person is in a message, they need to do or feel something."
         ]
       }
     }

@@ -42,7 +42,6 @@ export const WORLDS = [
     },
     models: [
       { id: 'racecar', def: 'racecar', x: 0, z: 0 },
-      { id: 'robot', def: 'robot', x: -8, z: -4, yaw: 20 },
       { id: 'catapult', def: 'catapult', x: 9, z: -3, yaw: 25 },
     ],
     behaviors: { racecar: [{ text: ARROWS }] },
@@ -82,7 +81,7 @@ export const WORLDS = [
         { text: 'While I hold left, turn left. While I hold right, turn right.' },
       ],
       knight: [{ text: STEER }, { text: 'When I press s, swing the sword arm.' }],
-      dragon: [{ text: 'Every 4 seconds, wag the tail and roar.' }],
+      dragon: [{ text: 'Every 4 seconds, wag the tail.' }],
       wizard: [{ title: 'Abracadabra', keys: { ' ': 'magic' }, text: 'When I press space, wave the right arm, play ding and say "Abracadabra!"' }],
     },
     select: 'catapult',
@@ -265,9 +264,9 @@ export const WORLDS = [
     ],
     behaviors: {
       tractor: [{ text: ARROWS }, { text: 'When I press space, lift the loader, wait 1 second, lower the loader.' }],
-      cow: [{ text: 'Every 5 seconds, play moo and wag the tail.' }],
+      cow: [{ text: 'Every 5 seconds, wag the tail.' }],
       farmer: [{ title: 'Howdy Wave', text: 'When I press h, wave the left arm and say "Howdy!"' }],
-      'cow-2': [{ text: 'Every 7 seconds, play moo and nod the head.' }],
+      'cow-2': [{ text: 'Every 7 seconds, nod the head.' }],
     },
     select: 'tractor',
   },

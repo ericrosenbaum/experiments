@@ -173,6 +173,8 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 .behavior { background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px 8px; transition: border-color .15s; }
 .behavior.collapsed { padding-bottom: 10px; }
 .behavior.running { border-color: var(--on); }
+.behavior.changed { animation: changed 1.2s ease-out; }
+@keyframes changed { from { box-shadow: 0 0 0 4px rgba(133, 92, 214, .45); } to { box-shadow: 0 0 0 4px rgba(133, 92, 214, 0); } }
 .behavior .b-head { display: flex; gap: 6px; align-items: center; }
 .behavior .fold { width: 30px; height: 30px; margin-left: -4px; border: 0; border-radius: 8px; background: none; padding: 0; display: grid; place-items: center; }
 .behavior .fold svg { stroke-width: 2.5; transition: transform .15s; }
@@ -246,10 +248,20 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 }
 .console-head { display: flex; gap: 8px; align-items: center; padding: 6px 12px; font-weight: 800; font-size: 13px; }
 .console-head span:first-child { flex: 1; }
-#console-badge { background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; padding: 0 7px; }
-#console-badge:empty { display: none; }
 #console-body { max-height: 160px; overflow: auto; font: 12px/1.5 'JetBrains Mono', monospace; padding: 0 12px 8px; }
-#console.collapsed #console-body { display: none; }
+#console .console-fab { display: none; }
+#console.collapsed { width: auto; background: none; box-shadow: none; overflow: visible; }
+#console.collapsed .console-head, #console.collapsed #console-body { display: none; }
+#console.collapsed .console-fab {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--panel); color: var(--muted); box-shadow: var(--shadow); transition: color .15s, transform .15s;
+}
+.console-fab:hover { color: var(--ink); transform: translateY(-1px); }
+#console-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center;
+}
+#console-badge:empty { display: none; }
 #console-body .error { color: #dc2626; }
 
 /* speech bubbles */
@@ -276,9 +288,10 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 /* Brick Talk chat */
 #chat {
   position: fixed; left: 12px; bottom: 56px; width: 380px; max-width: calc(100vw - 24px); background: var(--panel); border-radius: var(--radius);
-  box-shadow: var(--shadow); z-index: 10; overflow: hidden; transition: bottom .15s;
+  box-shadow: var(--shadow); z-index: 10; overflow: hidden; transition: bottom .15s, left .15s;
 }
 #console:not(.collapsed) ~ #chat { bottom: 236px; }
+#console.collapsed ~ #chat { left: 62px; bottom: 16px; max-width: calc(100vw - 74px); } /* beside the log's round button */
 #chat.collapsed { width: auto; }
 .chat-head { display: flex; gap: 8px; align-items: center; width: 100%; border: 0; background: none; padding: 7px 12px; font-weight: 800; font-size: 13px; text-align: left; }
 .chat-head span:first-child { flex: 1; display: flex; gap: 7px; align-items: center; }

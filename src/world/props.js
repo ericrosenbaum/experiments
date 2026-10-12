@@ -76,7 +76,7 @@ export function ramp(world, id, x, z, { yaw = 0 } = {}) {
   world.addStatic({
     kind: 'ramp', name: 'Ramp', color: 'gray', x, z, yaw, thingId: id,
     boxes: [
-      box(0, 1.15, 0, 8, 0.4, 10, 'gray', { rot: [-0.24, 0, 0], studs: false }),
+      box(0, 1.15, 0, 8, 0.4, 10, 'gray', { rot: [0.24, 0, 0], studs: false }), // high end on the support (-z)
       box(0, 1.25, -5.7, 8, 2.5, 1.6, 'darkgray', { studs: false }),
     ],
   });

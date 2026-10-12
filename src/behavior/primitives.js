@@ -10,7 +10,8 @@
 // 1x1 brick. A brick is 1.2 studs tall, a plate 0.4. "Forward" is the way
 // the model faces. Speeds are studs per second; angles are degrees.
 
-export const SOUNDS = ['beep', 'boing', 'honk', 'pop', 'crash', 'ding', 'whoosh', 'laser', 'roar', 'coin', 'drum', 'yay', 'moo'];
+// The sound names live in sounds.js, with what each sounds like.
+export { SOUNDS } from './sounds.js';
 
 export const COLORS = {
   red: 0xd01712, blue: 0x0a64d6, yellow: 0xf7c600, green: 0x2a9d3a, black: 0x1b1d20,
@@ -57,7 +58,7 @@ export const PRIMITIVES = [
 
   // world effects
   ['spawn(options)', 'Make a new brick. options: {color, size: "1x1" | "2x2" | "2x4" | "1x4" | "4x4", at: "front" | "back" | "top" | "here" | place(x,z), launch: speed (throws it forward), from: part name (spawn near that part)}. All optional.', 'action'],
-  ['play(sound)', 'Play a sound: ' + SOUNDS.map((s) => `"${s}"`).join(', ') + '.', 'action'],
+  ['play(sound)', 'Play a sound by name, like play("vroom"). The sounds are listed below.', 'action'],
   ['say(text, seconds)', 'Show a speech bubble above the model.', 'action'],
   ['broadcast(name)', 'Send a message everything can hear with onMessage(name, ...).', 'action'],
   ['await clone(what, where)', 'Make a copy, with all its behaviors. what: null for this thing, or another thing: thing("...") or a kind like "tree" (the nearest one). where (optional): place(x, z), "front", "back", "left", "right" or "above"; leave it out for a clear spot right beside. Returns the copy as {name, kind, color, id}, or null if there are too many copies already.', 'wait'],

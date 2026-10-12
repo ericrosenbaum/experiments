@@ -1,10 +1,33 @@
-// Synthesized sound effects (no audio files). Volume falls off with distance
-// from the camera.
+// Sound effects: recordings from public/sounds (see src/behavior/sounds.js),
+// with a few synthesized ones for names that have no recording or whose file
+// didn't load. Volume falls off with distance from the camera.
+import { SOUND_LIST, SOUND_BY_ID } from './behavior/sounds.js';
+
 export class Audio {
   constructor(camera) {
     this.camera = camera;
     this.ctx = null;
     this.muted = false;
+    this.buffers = null; // id -> Promise<AudioBuffer | null>
+    // Browsers only start audio after a click or key press, so start then and
+    // load the recordings while the kid is still picking something to teach.
+    const start = () => {
+      removeEventListener('pointerdown', start, true);
+      removeEventListener('keydown', start, true);
+      try { if (!this.buffers) this._load(this._ctx()); } catch { /* no Web Audio */ }
+    };
+    addEventListener('pointerdown', start, true);
+    addEventListener('keydown', start, true);
+  }
+
+  // Fetch and decode every recording once (75 small files, under 1 MB).
+  // A failed one resolves to null and falls back to the synthesizer.
+  _load(ctx) {
+    this.buffers = new Map(SOUND_LIST.filter((s) => s.from).map((s) => [s.id,
+      fetch(`./sounds/${s.id}.mp3`)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))))
+        .then((data) => ctx.decodeAudioData(data))
+        .catch(() => null)]));
   }
 
   _ctx() {
@@ -19,6 +42,28 @@ export class Audio {
     try { ctx = this._ctx(); } catch { return; }
     const d = position ? this.camera.position.distanceTo(position) : 10;
     const vol = Math.max(0.05, Math.min(1, 30 / (d + 10)));
+    if (SOUND_BY_ID[name]?.from) this._file(ctx, name, vol);
+    else this._synth(ctx, name, vol);
+  }
+
+  _file(ctx, name, vol) {
+    if (!this.buffers) this._load(ctx);
+    const asked = performance.now();
+    this.buffers.get(name).then((buf) => {
+      if (!buf) { this._synth(ctx, name, vol); return; }
+      if (performance.now() - asked > 1000) return; // only the first play waits on loading; too late is worse than silent
+      const src = ctx.createBufferSource();
+      const g = ctx.createGain();
+      src.buffer = buf;
+      g.gain.value = vol * 0.8;
+      src.connect(g).connect(ctx.destination);
+      src.start();
+    });
+  }
+
+  // Synthesized voices: the sounds with no recording, plus a stand-in for the
+  // older names if their file didn't load.
+  _synth(ctx, name, vol) {
     const out = ctx.createGain();
     out.gain.value = vol * 0.5;
     out.connect(ctx.destination);

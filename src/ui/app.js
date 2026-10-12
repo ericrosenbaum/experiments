@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { LIBRARY, LIBRARY_BY_ID, CATEGORIES } from '../world/library.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
-import { generateBehavior, probeClaude, syntaxError } from '../behavior/generate.js';
+import { generateBehavior, findNamedBehaviors, probeClaude, syntaxError } from '../behavior/generate.js';
 import { renderBlocks } from './blocks.js';
 import { highlight } from './highlight.js';
 import { keyLabels, padGroups, padHtml } from './pad.js';
@@ -167,11 +167,8 @@ export class App {
     document.addEventListener('click', () => { this.setPop('menu', false); this.setPop('parts', false); });
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { this.setPop('menu', false); this.setPop('parts', false); } });
     this._wireSpeech();
-    $('btn-console').onclick = () => {
-      $('console').classList.toggle('collapsed');
-      this.unread = 0;
-      $('console-badge').textContent = '';
-    };
+    $('btn-console').onclick = () => this.setConsole(false);
+    $('btn-console-open').onclick = () => this.setConsole(true);
   }
 
   // The ⋯ menu and the Parts popover in the inspector
@@ -487,7 +484,10 @@ export class App {
     c.addEventListener('mouseup', save);
     c.addEventListener('input', save);
     c.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); this.make(); }
+      // Enter sends; Shift+Enter starts a new line; Enter that finishes an IME word doesn't send
+      if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing) return;
+      ev.preventDefault();
+      if (!$('btn-make').disabled) this.make();
     });
     c.addEventListener('paste', (ev) => { // plain text only
       ev.preventDefault();
@@ -567,22 +567,27 @@ export class App {
         .filter(([id]) => id !== a.key)
         .map(([id]) => ({ ...this.world.actor(id).describe(), id, distance: Math.round(this.world.thingCenter(id).distanceTo(here)) }))
         .sort((x, y) => x.distance - y.distance);
+      const behaviors = this.stage.behaviorsOf(a.key);
+      const named = findNamedBehaviors(text, behaviors);
       const res = await generateBehavior({
         text, model: describeTarget(a), things,
-        otherBehaviors: this.stage.behaviorsOf(a.key).filter((b) => b.enabled).flatMap((b) => b.summary ?? []),
+        otherBehaviors: behaviors.filter((b) => b.enabled && !named.includes(b)).flatMap((b) => b.summary ?? []),
+        named: named.map((b) => ({ title: b.title, summary: b.summary, code: b.code })),
       });
       if (!res.code.trim()) {
         this.log(`I couldn't turn that into a program${res.unknown?.length ? `: I didn't understand “${res.unknown.join('”, “')}”` : ''}.`, 'error');
         return;
       }
       if (!a.alive) return;
-      this._addBehavior(a, { text, html: $('composer').innerHTML, ...res });
+      const target = res.modifies && named.find((b) => b.title === res.modifies && behaviors.includes(b));
+      if (target) this._changeBehavior(a, target, { text, html: $('composer').innerHTML, ...res });
+      else this._addBehavior(a, { text, html: $('composer').innerHTML, ...res });
       $('composer').innerHTML = '';
       this.savedRange = null;
       this.setPointing(false);
     } finally {
       btn.disabled = false;
-      btn.title = 'Generate';
+      btn.title = 'Generate (Enter)';
       if ($('point-hint').textContent === 'Generating…') $('point-hint').textContent = '';
     }
   }
@@ -596,6 +601,20 @@ export class App {
     if (behavior.notes) this.log(`${behavior.title}: ${behavior.notes}`);
     this.runtime.start(a, behavior);
     this.renderBehaviors();
+  }
+
+  // A request that named an existing behavior and asked to change it: swap in
+  // the new program on the same card, keeping its place in the list.
+  _changeBehavior(a, b, res) {
+    const fresh = makeBehavior({ ...res, title: res.title || b.title });
+    Object.assign(b, {
+      code: fresh.code, title: fresh.title, summary: fresh.summary, keys: fresh.keys, notes: fresh.notes, source: fresh.source,
+      text: res.text, html: res.html, enabled: true, collapsed: false, draft: null, changedAt: performance.now(),
+    });
+    this.log(`Changed “${b.title}”${b.notes ? `: ${b.notes}` : ''}`);
+    this._restart(a, b);
+    this.renderBehaviors();
+    $('behaviors').querySelector(`[data-bid="${b.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   _restart(a, b) {
@@ -635,6 +654,11 @@ export class App {
           </div>
         </div>`}`;
       card.classList.toggle('collapsed', !!b.collapsed);
+      const sinceChange = performance.now() - (b.changedAt ?? -1e9);
+      if (sinceChange < 1200) { // flash a card that was just changed, picking up where a re-render left off
+        card.classList.add('changed');
+        card.style.animationDelay = `${-sinceChange}ms`;
+      }
       const fold = () => { b.collapsed = !b.collapsed; this.renderBehaviors(); };
       card.querySelector('.fold').onclick = fold;
       card.querySelector('.b-title').onclick = fold;
@@ -790,6 +814,12 @@ export class App {
     b.until = performance.now() + seconds * 1000;
   }
 
+  // The program log folds down to a round button in the corner while it's not in use.
+  setConsole(open) {
+    $('console').classList.toggle('collapsed', !open);
+    if (open) { this.unread = 0; $('console-badge').textContent = ''; }
+  }
+
   log(msg, level = 'info') {
     const body = $('console-body');
     const line = document.createElement('div');
@@ -799,7 +829,7 @@ export class App {
     while (body.childNodes.length > 200) body.firstChild.remove();
     body.scrollTop = body.scrollHeight;
     if ($('console').classList.contains('collapsed')) {
-      if (level === 'error') $('console').classList.remove('collapsed');
+      if (level === 'error') this.setConsole(true);
       else { this.unread++; $('console-badge').textContent = this.unread; }
     }
   }

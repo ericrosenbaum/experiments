@@ -429,6 +429,29 @@ export function buildMinifig(spec = {}) {
   return { body, head, leftArm, rightArm, legs };
 }
 
+// A minifigure sitting down, for riders that are only there for looks (like a
+// race car's driver). Legs swing forward at the hip and the arms reach out
+// by `reach` degrees. The group's origin is where the backs of the thighs meet
+// the seat, under the middle of the hips.
+export function buildSeatedMinifig(spec = {}, { reach = 55 } = {}) {
+  const fig = buildMinifig(spec);
+  const g = new THREE.Group();
+  for (const leg of fig.legs) leg.rotation.x = -Math.PI / 2; // legs pivot at the hip
+  g.add(fig.body, fig.head);
+  for (const [armObj, side] of [[fig.leftArm, 1], [fig.rightArm, -1]]) {
+    const shoulder = new THREE.Group(); // swing the arm about its shoulder
+    shoulder.position.set(side * FIG.shoulder[0], FIG.shoulder[1], FIG.shoulder[2]);
+    shoulder.rotation.x = -reach * Math.PI / 180;
+    armObj.position.set(-side * FIG.shoulder[0], -FIG.shoulder[1], -FIG.shoulder[2]);
+    shoulder.add(armObj);
+    g.add(shoulder);
+  }
+  const seated = new THREE.Group();
+  g.position.y = -(FIG.legH - 0.3 + FIG.legBack); // the hip pivot, less the thigh's thickness below it
+  seated.add(g);
+  return seated;
+}
+
 // An arm hangs from the shoulder, bends forward at the elbow, and ends in a
 // wrist and a C-shaped hand. side: 1 = left (+x), -1 = right.
 function arm(side, c) {

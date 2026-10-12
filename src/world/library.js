@@ -111,14 +111,16 @@ export const LIBRARY = [
       b(0, 0, 0, 4, P, 8, 'red'),
       b(0, (P + B) / 2, 3.5, 4, B, 1, 'red'),
       b(0, (P + B) / 2, 1.5, 4, P, 1, 'black', { studs: false }),
-      b(0, (P + B) / 2, -0.5, 2, B, 2, 'black'),
-      b(0, P / 2 + B + 0.6, -0.5, 1, B, 1, 'yellow'),
+      b(0, P, -0.5, 2, P, 2, 'black'), // seat
+      b(0, (P + B) / 2, -1.75, 2, B, 0.5, 'black', { studs: false }), // seat back
       b(1.5, (P + B) / 2, -3.5, 1, B, 1, 'red'),
       b(-1.5, (P + B) / 2, -3.5, 1, B, 1, 'red'),
       b(0, P / 2 + B + P / 2, -3.5, 4, P, 1.4, 'black'),
       b(1.2, 0.05, 4.05, 0.8, 0.4, 0.1, 'yellow', { studs: false }),
       b(-1.2, 0.05, 4.05, 0.8, 0.4, 0.1, 'yellow', { studs: false }),
     ],
+    // the driver sits on the seat (top at 1.5 plates), reaching for the dashboard
+    rider: { at: [0, 1.5 * P, -0.7], reach: 60, figure: { torso: 'white', arms: 'white', legs: 'white', print: 'zip', face: 'smile', hat: 'space', hatColor: 'red' } },
     parts: [
       { name: 'front left wheel', kind: 'wheel', side: 'left', at: [2.5, -0.15, 2.6], radius: 0.95, width: 0.8 },
       { name: 'front right wheel', kind: 'wheel', side: 'right', at: [-2.5, -0.15, 2.6], radius: 0.95, width: 0.8 },
@@ -246,7 +248,7 @@ export const LIBRARY = [
   {
     id: 'dino',
     category: 'animals',
-    examples: ["Chase the nearest car and roar.", "Forever, wag the tail.", "When it sees a red brick, roar and chomp.", "When I press space, jump high and roar."],
+    examples: ["Chase the nearest car.", "Forever, wag the tail.", "When it sees a red brick, roar and chomp.", "When I press space, jump high and roar."],
     name: 'Dino',
     blurb: 'A green dinosaur that glides along. Chomping jaw and a wagging tail.',
     color: 'green',
@@ -418,7 +420,7 @@ export const LIBRARY = [
     name: 'UFO',
     blurb: 'A flying saucer with a spinning glass dome. Beep boop.',
     category: 'space',
-    examples: ['Forever, spin the dome.', 'Wander. Every 3 seconds, play beep.', 'When I press w, fly up. When I press s, fly down.'],
+    examples: ['Forever, spin the dome.', 'Wander. When I press b, play beep.', 'When I press w, fly up. When I press s, fly down.'],
     color: 'gray',
     motion: 'glide',
     bricks: [
@@ -480,7 +482,7 @@ export const LIBRARY = [
     name: 'Dragon',
     blurb: 'A red dragon with flapping wings, a swinging tail and a fiery roar. It can fly.',
     category: 'animals',
-    examples: ['When I press space, flap the wings, roar and rise.', 'Forever, wag the tail.', 'Chase the knight and roar.', 'When it bumps into the castle, roar and throw a orange brick.'],
+    examples: ['When I press space, flap the wings, roar and rise.', 'Forever, wag the tail.', 'Chase the knight.', 'When it bumps into the castle, roar and throw a orange brick.'],
     color: 'red',
     motion: 'glide',
     density: 1.5,

@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { brickMesh, wheelMesh, material, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
-import { buildMinifig, FIG } from './minifig.js';
+import { buildMinifig, buildSeatedMinifig, FIG } from './minifig.js';
 
 const DEG = Math.PI / 180;
 export const GRAVITY = -25; // studs/s^2 — "toy scale" gravity, snappy but readable
@@ -186,6 +186,13 @@ export class World {
       chassisObj.add(fig.body);
       e.figureLegs = fig.legs;
       e.walk = 0;
+    }
+    // a rider (a race car's driver) is only for looks: no collider, but clicking it picks the model
+    if (def.rider) {
+      const rider = buildSeatedMinifig(def.rider.figure, { reach: def.rider.reach });
+      rider.position.set(...def.rider.at);
+      tag(rider);
+      chassisObj.add(rider);
     }
     this.scene.add(chassisObj);
     e.chassis = chassis;

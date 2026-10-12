@@ -1,6 +1,7 @@
 // The prompt that turns a kid's structured description into behavior code.
 // Used server-side (vite dev middleware) — the API key never reaches the page.
-import { primitivesReference, COLORS, SOUNDS } from './primitives.js';
+import { primitivesReference, COLORS } from './primitives.js';
+import { SOUND_GROUPS, soundsFor } from './sounds.js';
 
 export const SYSTEM_PROMPT = `You turn a child's description of how something in a toy brick world should behave into a short JavaScript behavior program.
 
@@ -15,7 +16,9 @@ The program runs in a sandbox with ONLY the functions listed below in scope (no 
 Units: studs (one 1x1 brick wide). Typical speeds: slow 3, normal 7, fast 13. Angles in degrees; positive turns LEFT.
 ${primitivesReference()}
 Colors: ${Object.keys(COLORS).join(', ')}.
-Sounds: ${SOUNDS.join(', ')}.
+
+Sounds for play(), by kind:
+${SOUND_GROUPS.map(([group, list]) => `- ${group}: ${list.map((x) => `${x.id} (${x.about})`).join(', ')}`).join('\n')}
 
 The child's text may contain chips they made by pointing in the 3D world:
 - {part:NAME} — a part of their model. Use part("NAME").
@@ -32,13 +35,16 @@ Guidelines:
 - Keep loops safe: every forever/while loop must await something each time around.
 - Prefer the simple high-level primitives over math. Keep programs short and readable — a child may read the code. Add brief comments only where they help a child follow along.
 - If something they asked for is impossible with these primitives, do the closest fun thing and say so in "notes".
+- Sounds: when the child names a sound loosely ("make it bark", "a car noise"), pick the closest one from the list. You may also add a fitting sound they didn't ask for when it makes a moment more fun: a horn on a honk key, a boing on a jump, a coin when something is collected, a cheer on winning. Prefer the sounds suggested for this thing. Only add sounds to one-off moments (a key press, a touch, a message); never put a sound in forever, every, a loop or onStart unless the child asked for it to repeat, because sounds that play on their own over and over get annoying.
+- Changing an existing behavior: the message may list behaviors the child mentioned by name, with their code. If the child is explicitly asking to change one of them ("make Move with Arrows faster", "change Robot Wave so it waves both arms", "in Honk and Jump, honk twice"), set "modifies" to its exact title and return the complete updated program: keep everything they didn't ask to change, and keep its title unless the change makes the title wrong. If they only mention it (a new behavior "like Honk and Jump", or the name is just part of a new request), leave "modifies" empty and write a new behavior.
 
 Respond with:
 - title: a short, catchy name for this behavior, 1-4 words in Title Case, that a child would enjoy seeing on a card, like "Honk and Jump", "Rainbow Rain" or "Robot Wave". Name what the whole behavior does, not its first step: arrow keys that drive and turn are "Move with Arrows"; turning the head left, waiting, then right is "Turn Head Back and Forth". No ending punctuation.
 - summary: one plain-English line per rule the program creates, written for a 7-10 year old, like "When you press space: honk and jump".
 - code: the program.
 - keys: one entry for every key the program listens to (onKey, onKeyUp, whileKey), with a label of one or two lowercase words for an on-screen button that presses that key, like "move", "turn", "jump", "sword", "honk". Keys that work together share a label: "move" for arrows that drive and turn, "up and down" for keys that fly up and down. Empty if it uses no keys.
-- notes: anything you couldn't do or had to guess (empty string if none).`;
+- notes: anything you couldn't do or had to guess (empty string if none).
+- modifies: the exact title of the listed behavior this request changes, or an empty string for a new behavior.`;
 
 export const RESPONSE_SCHEMA = {
   type: 'object',
@@ -51,13 +57,16 @@ export const RESPONSE_SCHEMA = {
       items: { type: 'object', properties: { key: { type: 'string' }, label: { type: 'string' } }, required: ['key', 'label'], additionalProperties: false },
     },
     notes: { type: 'string' },
+    modifies: { type: 'string' },
   },
-  required: ['title', 'summary', 'code', 'keys', 'notes'],
+  required: ['title', 'summary', 'code', 'keys', 'notes', 'modifies'],
   additionalProperties: false,
 };
 
-// Build the user message: the model, nearby things, existing behaviors, and the request.
-export function buildUserMessage({ text, model, things = [], otherBehaviors = [] }) {
+// Build the user message: the model, nearby things, existing behaviors, the
+// behaviors the child named (with their code, in case they want one changed),
+// and the request.
+export function buildUserMessage({ text, model, things = [], otherBehaviors = [], named = [] }) {
   const parts = (model.parts ?? []).map((p) => {
     if (p.kind === 'wheel') return `- "${p.name}" (wheel, ${p.side} side)`;
     return `- "${p.name}" (hinge; turnTo range ${p.limits?.[0] ?? -180}..${p.limits?.[1] ?? 180} degrees, 0 = resting pose, positive = up/forward/left)`;
@@ -66,6 +75,10 @@ export function buildUserMessage({ text, model, things = [], otherBehaviors = []
   const others = otherBehaviors.length
     ? `\nThis model already runs these other behaviors (don't repeat them; avoid fighting over the same keys):\n${otherBehaviors.map((b) => `- ${b}`).join('\n')}\n`
     : '';
+  const namedList = named.length
+    ? `\nThe child mentioned ${named.length === 1 ? 'this existing behavior' : 'these existing behaviors'} by name:\n${named.map((b) => `\n### ${b.title}\n${(b.summary ?? []).map((l) => `- ${l}\n`).join('')}\`\`\`js\n${b.code}\n\`\`\``).join('\n')}\n`
+    : '';
+  const suits = soundsFor(model);
   const kind = model.kind ?? 'model';
   const moves = {
     wheels: 'driving its wheels (differential steering)', glide: 'gliding (stays upright); rise() makes it fly',
@@ -76,7 +89,7 @@ export function buildUserMessage({ text, model, things = [], otherBehaviors = []
 Moves by: ${moves}
 Parts:
 ${parts || '- (none)'}
-${others}
+${suits.length ? `Sounds that suit it: ${suits.join(', ')}\n` : ''}${others}${namedList}
 Things in the world:
 ${thingList || '- (none)'}
 

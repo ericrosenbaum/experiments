@@ -15,7 +15,12 @@ const KEY_WORDS = [
   [/right(\s*arrow)?/, 'ArrowRight'], [/space(\s*bar)?/, ' '], [/enter|return/, 'Enter'],
 ];
 const KEY_LABEL = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ' ': 'space', Enter: 'enter' };
-const SOUND_VERBS = { honk: 'honk', beep: 'beep', roar: 'roar', pop: 'pop', ding: 'ding', boing: 'boing', zap: 'laser', cheer: 'yay', drum: 'drum' };
+const SOUND_VERBS = {
+  honk: 'honk', beep: 'beep', roar: 'roar', pop: 'pop', ding: 'ding', boing: 'boing', zap: 'laser', cheer: 'yay', drum: 'drum',
+  moo: 'moo', baa: 'baa', meow: 'meow', bark: 'woof', woof: 'woof', growl: 'growl', neigh: 'neigh', snort: 'snort', chirp: 'chirp',
+  tweet: 'chirp', squawk: 'squawk', quack: 'quack', hoot: 'owl', croak: 'croak', howl: 'howl', squeak: 'squeak', laugh: 'laugh',
+  clap: 'clap', scream: 'scream', sneeze: 'sneeze', gasp: 'gasp', snore: 'snore', chomp: 'chomp',
+};
 // Model types (matched by name) and prop kinds kids are likely to say.
 const MODEL_WORDS = ['catapult', 'digger', 'dino', 'tractor', 'truck', 'knight', 'hero', 'slime', 'alien', 'spaceship', 'ufo', 'rocket', 'dragon', 'horse', 'cow'];
 const KINDS = ['tree', 'house', 'brick', 'tower', 'ramp', 'ball', 'castle', 'hill', 'coin', 'asteroid', 'platform', 'crystal', 'hay', 'fence', 'barn', 'silo',

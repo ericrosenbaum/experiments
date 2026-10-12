@@ -92,21 +92,21 @@ check(await selected() === 'world', `clicking the ground selects the World (${aw
 await page.screenshot({ path: `${out}/world-rules.png` });
 
 // ---- drag to move ----------------------------------------------------------------
-await selectKey('robot');
-s = await screenOf('robot');
-const r0 = await pos('robot');
+await selectKey('catapult');
+s = await screenOf('catapult');
+const r0 = await pos('catapult');
 await page.mouse.move(s.x, s.y);
 await page.mouse.down();
 for (let i = 1; i <= 10; i++) await page.mouse.move(s.x + i * 15, s.y + i * 5);
 await page.mouse.wheel(0, 100);
 await page.mouse.up();
 await page.waitForTimeout(800);
-const r1 = await pos('robot');
-check(Math.hypot(r1.x - r0.x, r1.z - r0.z) > 3, `dragging moves the robot (${Math.hypot(r1.x - r0.x, r1.z - r0.z).toFixed(1)} studs)`);
-check(await selected() === 'robot', 'and it stays selected');
+const r1 = await pos('catapult');
+check(Math.hypot(r1.x - r0.x, r1.z - r0.z) > 3, `dragging moves the catapult (${Math.hypot(r1.x - r0.x, r1.z - r0.z).toFixed(1)} studs)`);
+check(await selected() === 'catapult', 'and it stays selected');
 await page.click('#btn-reset');
 await page.waitForTimeout(800);
-const r2 = await pos('robot');
+const r2 = await pos('catapult');
 check(Math.hypot(r2.x - r1.x, r2.z - r1.z) < 1, 'Reset keeps it where it was dragged');
 
 // ---- teach through the composer --------------------------------------------------

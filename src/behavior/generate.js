@@ -17,27 +17,43 @@ export async function probeClaude() {
   return claudeAvailable;
 }
 
+// The offline compiler can't merge a change into an existing program, so it
+// always makes a new behavior and says so.
+const offlineNote = (named, text) => named.length && /\b(change|modify|edit|update|fix|tweak|adjust|instead)\b/i.test(text)
+  ? ` The offline helper can't change “${named[0].title}”, so this is a new behavior.` : '';
+
 export function syntaxError(code) {
   try { new AsyncFunction(...API_NAMES, code); return null; } catch (err) { return err.message; }
 }
 
-export async function generateBehavior({ text, model, things, otherBehaviors, preferOffline = false }) {
+// Behaviors the kid mentions by name ("make Move with Arrows faster"). The
+// match is on the whole title, ignoring case and punctuation; whether the kid
+// actually wants that behavior changed is up to Claude (see "modifies").
+const words = (s) => ` ${s.replace(/\{[^}]*\}/g, ' ').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+export function findNamedBehaviors(text, behaviors) {
+  const said = words(text);
+  return behaviors.filter((b) => b.title && words(b.title).trim() && said.includes(words(b.title)));
+}
+
+export async function generateBehavior({ text, model, things, otherBehaviors, named = [], preferOffline = false }) {
   if (!preferOffline && (await probeClaude())) {
     try {
       const r = await fetch('./api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, model, things, otherBehaviors }),
+        body: JSON.stringify({ text, model, things, otherBehaviors, named }),
       });
       const out = await r.json();
       if (!r.ok) throw new Error(out.error ?? `HTTP ${r.status}`);
       const err = syntaxError(out.code);
       if (err) throw new Error(`generated code didn't parse: ${err}`);
-      return { code: out.code, keys: out.keys, title: out.title, summary: out.summary, notes: out.notes, unknown: [], source: 'claude' };
+      const modifies = named.some((b) => b.title === out.modifies) ? out.modifies : '';
+      return { code: out.code, keys: out.keys, title: out.title, summary: out.summary, notes: out.notes, modifies, unknown: [], source: 'claude' };
     } catch (err) {
       const local = compileLocal(text, model);
-      return { ...local, notes: `Claude wasn't reachable (${err.message}), so the offline helper wrote this.` };
+      return { ...local, modifies: '', notes: `Claude wasn't reachable (${err.message}), so the offline helper wrote this.${offlineNote(named, text)}` };
     }
   }
-  return compileLocal(text, model);
+  const local = compileLocal(text, model);
+  return { ...local, modifies: '', notes: [local.notes, offlineNote(named, text).trim()].filter(Boolean).join(' ') };
 }
