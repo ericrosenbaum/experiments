@@ -1,0 +1,78 @@
+Recordings from the Scratch sound library (https://scratch.mit.edu), fetched by
+tools/sounds/fetch.mjs. File, then the sound's name in the library:
+
+moo.mp3	Moo
+baa.mp3	Baa
+meow.mp3	Meow
+woof.mp3	Dog1
+growl.mp3	Growl
+roar.mp3	Growl
+neigh.mp3	Whinny
+gallop.mp3	Gallop
+snort.mp3	Snort
+chirp.mp3	Chirp
+squawk.mp3	Squawk
+quack.mp3	Duck
+rooster.mp3	Rooster
+owl.mp3	Owl
+croak.mp3	Croak
+monkey.mp3	Chee Chee
+howl.mp3	Wolf Howl
+squeak.mp3	Squeaks
+cricket.mp3	Cricket
+seagull.mp3	Seagulls
+honk.mp3	Car Horn
+vroom.mp3	Car Vroom
+skid.mp3	Skid
+whistle.mp3	Train Whistle
+siren.mp3	Police Siren
+bell.mp3	Ship Bell
+flyby.mp3	Space Flyby
+coin.mp3	Coin
+collect.mp3	Collect
+jump.mp3	Jump
+pew.mp3	Pew
+win.mp3	Win
+lose.mp3	Lose
+oops.mp3	Oops
+alert.mp3	Alert
+teleport.mp3	Teleport2
+beep.mp3	Computer Beep
+boom.mp3	Boom Cloud
+boing.mp3	Boing
+bonk.mp3	Bonk
+whiz.mp3	Whiz
+slide.mp3	Slide Whistle
+wobble.mp3	Wobble
+squish.mp3	Squish Pop
+squeaky.mp3	Squeaky Toy
+scramble.mp3	Scrambling Feet
+zoop.mp3	Zoop
+drumroll.mp3	Drum Roll
+tada.mp3	Tada
+dundun.mp3	Dun Dun Dunnn
+magic.mp3	Magic Spell
+wand.mp3	Wand
+sparkle.mp3	Fairydust
+yay.mp3	Goal Cheer
+clap.mp3	Clapping
+laugh.mp3	Laugh1
+hey.mp3	Hey
+scream.mp3	Scream1
+sneeze.mp3	Sneeze1
+chomp.mp3	Chomp
+gasp.mp3	Crowd Gasp
+snore.mp3	Snoring
+drum.mp3	Low Tom
+clang.mp3	Clang
+smash.mp3	Glass Breaking
+strike.mp3	Bowling Strike
+bounce.mp3	Basketball Bounce
+hit.mp3	Tennis Hit
+referee.mp3	Referee Whistle
+splash.mp3	Splash
+drip.mp3	Water Drop 1
+whoosh.mp3	High Whoosh
+doorbell.mp3	Doorbell
+creak.mp3	Door Creak
+gong.mp3	Bell Toll
