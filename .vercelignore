@@ -1,0 +1,7 @@
+# Only the Brick Behaviors app and its API functions go to Vercel.
+lift-to-launch
+smart-brick-proximity
+dist
+docs
+test
+tools
