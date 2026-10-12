@@ -114,6 +114,18 @@ To redesign a symbol, describe its build in `tools/bricktalk/builds.js` and run 
 - **Simulating a friend**: switch the **Me / Friend** button to Friend and type, or press 🎲 for a canned friend message. It shows up in the log and as a yellow-outlined bubble over another model near the middle of the view.
 
 
+## World Finder (`finder.html`)
+
+A separate page (open `/finder.html` on the dev server) that demonstrates a world-finding agent for kids. It has two screens. On the first, you say what you like in your own words ("dragons and castles, but nothing too scary, something easy"). The wishes it heard appear as chips under the sentence; tap one to flip it to *no thanks* or remove it. All the tags (kind of play, what it's about, things to do, level, where it was made) are behind *Browse all tags*. On the second, a small decision model reads 24 worlds "made by kids around the world", one at a time, while you watch:
+
+- the next three worlds wait beside the lens, and a progress bar marks each world picked or passed;
+- the world in the lens plays as a **wigglegram** (three frames from a small camera swing, played L-M-R-M). Under it, only the *clues* (facts that count toward one of your wishes) are listed, and each wish's bar fills as they arrive. *Show everything it reads* switches to the full stream: maker, tags, things, models, each behavior's read-back, and a complexity line. The ring around the lens is the overall match, with the bar it needs to clear marked on it;
+- matches stamp **MATCH!** and fly to *Picked for you* as cards: title, a two-line summary, and a badge with the match % and the wish it matched best (hover for the maker and every reason). Hovering a card plays its wigglegram.
+
+**The model** (`src/finder/model.js`) runs in the page; nothing is sent anywhere. `read(world)` turns a world's metadata into facts, each with weighted evidence for criteria. The evidence comes from the maker's tags, the things in the world (a dragon model is strong evidence for *dinos & dragons*, hay bales are weak evidence for *farms*), the compiled behavior code (`whileKey` + `drive` means *drive it with keys*, `onTouch` + `remove()` means *collect things*), the gravity, and a complexity score that sets *easy to start* vs. *lots going on*. Evidence for a wish combines as a noisy-OR. The match is the average over your likes, minus 0.8× the strongest dislike. A world is picked at 50% or more, unless something you said no to is at least 60% present. `parse(text)` reads sentences with a word list and negation scopes ("not", "no", "hate", "too hard" and so on), which run to the end of the clause.
+
+**The worlds** are dioramas in `src/finder/kidworlds.js`, built from the same props and library models as the main app. Each one lists its maker, tags, behaviors and a thumbnail camera shot. With the dev server up, `node tools/finder/render.mjs [ids]` (set `BRICK_URL` if it isn't on :5173) loads each world into the real renderer and physics, lets it settle, and shoots the three wiggle frames into `public/finder/<id>.webp`. It also writes `public/finder/worlds.json`, which holds what's actually in each world (things, models, behaviors and their compiled code) for the page to read.
+
 ## Layout
 
 ```
@@ -137,8 +149,13 @@ src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
                prompt.js      Claude prompt + enum schema
                chat.js        the chat window and in-world bubbles
 tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
+finder.html    World Finder page
+src/finder/    kidworlds.js   the kid-made worlds (dioramas + maker, tags, thumbnail shot)
+               model.js       on-device decision model + sentence parser
+               finder.js/.css the page
+tools/finder/  render.mjs     render wigglegram thumbnails + worlds.json (render.html, render.js)
 server/        /api/generate, /api/bricktalk (Vite middleware)
-test/          compiler / prompt / physics / geometry / stage checks
+test/          compiler / prompt / physics / geometry / stage / finder checks
 tools/         smoke.mjs (headless browser run), model-probe, castle-probe, physics probes
 tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouettes and color views);
                overlay.py overlays the silhouettes on the patent drawing to compare

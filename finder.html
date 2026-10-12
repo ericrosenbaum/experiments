@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World Finder</title>
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/finder/finder.css" />
+</head>
+<body data-screen="ask">
+  <header class="top">
+    <div class="brand"><span class="brand-lens" aria-hidden="true"><i></i></span>World Finder</div>
+    <a class="back" href="./index.html">Brick Behaviors →</a>
+  </header>
+
+  <!-- ================= screen 1: what do you want? ================= -->
+  <main id="ask" class="screen ask" aria-labelledby="ask-title">
+    <h1 id="ask-title">What kind of world<br />do you feel like?</h1>
+
+    <div class="say-box">
+      <div id="say-mirror" class="say-mirror" aria-hidden="true"></div>
+      <textarea id="say-input" rows="1" spellcheck="false" aria-label="Say what you like" placeholder="Dragons and castles, but nothing too scary…"></textarea>
+    </div>
+
+    <div class="heard">
+      <div id="wishes" class="wishes" aria-live="polite"></div>
+      <div id="examples" class="examples"></div>
+    </div>
+
+    <div class="browse">
+      <button id="browse-toggle" class="link" type="button" aria-expanded="false" aria-controls="browse-panel">Browse all tags <span aria-hidden="true">▾</span></button>
+      <div id="browse-panel" class="browse-panel" hidden>
+        <div id="facet-tabs" class="tabs" role="tablist"></div>
+        <div id="facet-chips" class="chips" role="tabpanel"></div>
+        <p class="hint">Tap once for <b class="yes">yes please</b>, twice for <b class="no">no thanks</b>.</p>
+      </div>
+    </div>
+
+    <button id="go" class="btn-go" type="button" disabled>Find worlds <span aria-hidden="true">→</span></button>
+    <p class="private"><span class="dot"></span>Runs on this device. Nothing you type is sent anywhere.</p>
+  </main>
+
+  <!-- ================= screen 2: looking ================= -->
+  <main id="look" class="screen look" aria-label="Looking through worlds" hidden>
+    <div class="look-bar">
+      <button id="edit" class="btn-quiet" type="button">← Change wishes</button>
+      <div id="bar-wishes" class="bar-wishes"></div>
+      <div class="bar-right">
+        <div class="speed" role="radiogroup" aria-label="Speed">
+          <button type="button" data-speed="1" role="radio" aria-checked="true">1×</button>
+          <button type="button" data-speed="2" role="radio" aria-checked="false">2×</button>
+          <button type="button" data-speed="5" role="radio" aria-checked="false">5×</button>
+        </div>
+        <button id="stop" class="btn-quiet" type="button">Stop</button>
+      </div>
+    </div>
+
+    <div class="look-body">
+      <section class="stage">
+        <div class="progress" aria-hidden="true"><div id="ticks" class="ticks"></div></div>
+        <p id="progress-text" class="progress-text"></p>
+
+        <div class="bench">
+          <div id="queue" class="queue" aria-hidden="true"></div>
+          <div class="lens-col">
+          <div class="lens-wrap">
+            <svg class="meter" viewBox="0 0 200 200" aria-hidden="true">
+              <circle class="meter-track" cx="100" cy="100" r="94" />
+              <circle id="meter-fill" class="meter-fill" cx="100" cy="100" r="94" pathLength="100" />
+              <g id="meter-tick" class="meter-tick"></g>
+            </svg>
+            <div id="lens" class="lens"></div>
+            <div id="verdict" class="verdict"></div>
+          </div>
+          <div class="caption">
+            <div id="lens-title" class="lens-title"></div>
+            <div id="lens-by" class="lens-by"></div>
+          </div>
+          </div>
+          <div id="crits" class="crits"></div>
+        </div>
+
+        <div class="clues">
+          <div class="clues-head">
+            <span id="clues-label">Clues</span>
+            <button id="clues-toggle" class="link small" type="button" aria-pressed="false">Show everything it reads</button>
+          </div>
+          <div id="feed" class="feed"></div>
+        </div>
+      </section>
+
+      <aside class="picked" aria-labelledby="picked-title">
+        <h2 id="picked-title">Picked for you <span id="n-found" class="count">0</span></h2>
+        <div id="cards" class="cards" aria-live="polite"></div>
+      </aside>
+    </div>
+  </main>
+
+  <script type="module" src="./src/finder/finder.js"></script>
+</body>
+</html>

@@ -1,0 +1,3452 @@
+[
+ {
+  "id": "dragon-mountain",
+  "title": "Dragon Mountain Siege",
+  "summary": "Fling bricks at the castle before the dragon wakes up.",
+  "by": {
+   "name": "Aiko",
+   "age": 10,
+   "city": "Osaka",
+   "country": "Japan",
+   "flag": "🇯🇵"
+  },
+  "tags": {
+   "genre": [
+    "adventure",
+    "battle"
+   ],
+   "topic": [
+    "castles",
+    "dragons"
+   ]
+  },
+  "thumb": "finder/dragon-mountain.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "hill",
+    "name": "Hill",
+    "kind": "hill",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "castle",
+    "name": "Castle",
+    "kind": "castle",
+    "color": "gray",
+    "bricks": 88
+   },
+   {
+    "id": "tree-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "tree-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "hay",
+    "name": "Hay Bales",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "catapult",
+    "name": "Catapult",
+    "kind": "model",
+    "color": "brown",
+    "type": "catapult",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "dragon",
+    "name": "Dragon",
+    "kind": "model",
+    "color": "red",
+    "type": "dragon",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "knight",
+    "name": "Knight",
+    "kind": "model",
+    "color": "gray",
+    "type": "knight",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Catapult",
+    "key": "catapult",
+    "text": "When I press space, put a brick in the throwing arm, wait 1 second, then fling.",
+    "summary": [
+     "When space is pressed: put a brick, then wait 1 second, then swing the throwing arm"
+    ],
+    "code": "onKey(\" \", async () => {\n  spawn({from: \"throwing arm\"});\n  await wait(1);\n  await part(\"throwing arm\").turnTo(130);\n  play(\"whoosh\");\n  await wait(0.4);\n  await part(\"throwing arm\").turnTo(0);\n});"
+   },
+   {
+    "owner": "Catapult",
+    "key": "catapult",
+    "text": "While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Dragon",
+    "key": "dragon",
+    "text": "Every 3 seconds, flap the left wing and the right wing and roar.",
+    "summary": [
+     "Every 3 seconds: wiggle the left wing, then wiggle the right wing, then play the roar sound"
+    ],
+    "code": "every(3, async () => {\n  await part(\"left wing\").wiggle(3);\n  await part(\"right wing\").wiggle(3);\n  play(\"roar\");\n});"
+   },
+   {
+    "owner": "Dragon",
+    "key": "dragon",
+    "text": "When it bumps into a brick, say \"Who woke me up?\" and chase the knight.",
+    "summary": [
+     "When it bumps a brick: say \"Who woke me up?\", then chase the nearest knight"
+    ],
+    "code": "onTouch(\"brick\", async (thing) => {\n  say(\"Who woke me up?\");\n  await goTo(\"knight\", 12);\n});"
+   },
+   {
+    "owner": "Knight",
+    "key": "knight",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "moo-racetrack",
+  "title": "Moo Moo Racetrack",
+  "summary": "Race around the farm. Do not hit the cows!",
+  "by": {
+   "name": "Mateo",
+   "age": 8,
+   "city": "Buenos Aires",
+   "country": "Argentina",
+   "flag": "🇦🇷"
+  },
+  "tags": {
+   "genre": [
+    "racing",
+    "game"
+   ],
+   "topic": [
+    "farms",
+    "animals",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/moo-racetrack.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "track",
+    "name": "Road",
+    "kind": "road",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "fence",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "hay",
+    "name": "Hay Bales",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-2",
+    "name": "More Hay",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "finish",
+    "name": "Finish Flag",
+    "kind": "goal",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "barn",
+    "name": "Barn",
+    "kind": "barn",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "racecar",
+    "name": "Race Car",
+    "kind": "model",
+    "color": "red",
+    "type": "racecar",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "cow",
+    "name": "Lola",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "cow-2",
+    "name": "Pancho",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Race Car",
+    "key": "racecar",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Race Car",
+    "key": "racecar",
+    "text": "When it bumps into a cow, play crash and say \"Sorry cow!\"",
+    "summary": [
+     "When it bumps a cow: play the crash sound, then say \"Sorry cow!\""
+    ],
+    "code": "onTouch(\"cow\", async (thing) => {\n  play(\"crash\");\n  say(\"Sorry cow!\");\n});"
+   },
+   {
+    "owner": "Lola",
+    "key": "cow",
+    "text": "Forever, move 6 studs, then turn around.",
+    "summary": [
+     "Forever: go forward 6 studs, then turn left 180°"
+    ],
+    "code": "forever(async () => {\n  await move(6, 7);\n  await turn(180);\n});"
+   },
+   {
+    "owner": "Pancho",
+    "key": "cow-2",
+    "text": "Every 4 seconds, play moo.",
+    "summary": [
+     "Every 4 seconds: play the moo sound"
+    ],
+    "code": "every(4, async () => {\n  play(\"moo\");\n});"
+   },
+   {
+    "owner": "Finish Flag",
+    "key": "finish",
+    "text": "When the racecar touches it, play yay and say \"Lap!\"",
+    "summary": [
+     "When it bumps the race car: play the yay sound, then say \"Lap!\""
+    ],
+    "code": "onTouch(\"racecar\", async (thing) => {\n  play(\"yay\");\n  say(\"Lap!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "planet-zib",
+  "title": "The Lost Rocket of Planet Zib",
+  "summary": "Help Zib find the crystals so the rocket can fly home.",
+  "by": {
+   "name": "Amara",
+   "age": 11,
+   "city": "Lagos",
+   "country": "Nigeria",
+   "flag": "🇳🇬"
+  },
+  "tags": {
+   "genre": [
+    "adventure",
+    "story"
+   ],
+   "topic": [
+    "space",
+    "aliens"
+   ]
+  },
+  "thumb": "finder/planet-zib.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "crystal-1",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "pink",
+    "bricks": 1
+   },
+   {
+    "id": "crystal-2",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "cyan",
+    "bricks": 1
+   },
+   {
+    "id": "crystal-3",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "pad",
+    "name": "Landing Pad",
+    "kind": "pad",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-1",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-2",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "rocket",
+    "name": "Rocket",
+    "kind": "model",
+    "color": "white",
+    "type": "rocket",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "alien",
+    "name": "Zib",
+    "kind": "model",
+    "color": "green",
+    "type": "alien",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "ufo",
+    "name": "UFO",
+    "kind": "model",
+    "color": "gray",
+    "type": "ufo",
+    "category": "space",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "At the start, set gravity to 0.4.",
+    "summary": [
+     "At the start: set gravity to 0.4"
+    ],
+    "code": "onStart(async () => {\n  gravity(0.4);\n});"
+   },
+   {
+    "owner": "Zib",
+    "key": "alien",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Zib",
+    "key": "alien",
+    "text": "When it touches a crystal, play ding and say \"One more!\"",
+    "summary": [
+     "When it bumps a crystal: play the ding sound, then say \"One more!\""
+    ],
+    "code": "onTouch(\"crystal\", async (thing) => {\n  play(\"ding\");\n  say(\"One more!\");\n});"
+   },
+   {
+    "owner": "Rocket",
+    "key": "rocket",
+    "text": "When it hears launch, say \"3, 2, 1!\", play whoosh and rise for 4 seconds.",
+    "summary": [
+     "When it hears \"launch\": say \"3, 2, 1!\", then play the whoosh sound, then fly up for 4 seconds"
+    ],
+    "code": "onMessage(\"launch\", async () => {\n  say(\"3, 2, 1!\");\n  play(\"whoosh\");\n  rise(6);\n  await wait(4);\n  rise(0);\n});"
+   },
+   {
+    "owner": "UFO",
+    "key": "ufo",
+    "text": "Wander slowly.",
+    "summary": [
+     "Forever: wander around"
+    ],
+    "code": "forever(async () => {\n  await move(random(4, 10));\n  await turn(random(-120, 120));\n});"
+   },
+   {
+    "owner": "UFO",
+    "key": "ufo",
+    "text": "Forever, spin the dome.",
+    "summary": [
+     "Forever: spin the dome"
+    ],
+    "code": "forever(async () => {\n  part(\"dome\").spin(350);\n});"
+   }
+  ],
+  "gravity": 0.4
+ },
+ {
+  "id": "coin-tower",
+  "title": "Coin Tower Climb",
+  "summary": "Jump up the steps, grab every coin, dodge the slimes.",
+  "by": {
+   "name": "Lukas",
+   "age": 9,
+   "city": "Berlin",
+   "country": "Germany",
+   "flag": "🇩🇪"
+  },
+  "tags": {
+   "genre": [
+    "game",
+    "platformer"
+   ],
+   "topic": [
+    "heroes"
+   ]
+  },
+  "thumb": "finder/coin-tower.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "step-1",
+    "name": "Step",
+    "kind": "platform",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "step-2",
+    "name": "Step 2",
+    "kind": "platform",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "step-3",
+    "name": "Step 3",
+    "kind": "platform",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "top",
+    "name": "Top",
+    "kind": "platform",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-1",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-2",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-3",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-4",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "goal",
+    "name": "Goal Flag",
+    "kind": "goal",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "pipe",
+    "name": "Pipe",
+    "kind": "pipe",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "block",
+    "name": "Surprise Block",
+    "kind": "block",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "cloud",
+    "name": "Cloud",
+    "kind": "cloud",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "hero",
+    "name": "Hero",
+    "kind": "model",
+    "color": "red",
+    "type": "hero",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "slime",
+    "name": "Slime",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Hero",
+    "key": "hero",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Hero",
+    "key": "hero",
+    "text": "When I press space, jump high.",
+    "summary": [
+     "When space is pressed: jump high"
+    ],
+    "code": "onKey(\" \", async () => {\n  jump(9);\n});"
+   },
+   {
+    "owner": "Slime",
+    "key": "slime",
+    "text": "Forever, move 6 studs, then turn around.",
+    "summary": [
+     "Forever: go forward 6 studs, then turn left 180°"
+    ],
+    "code": "forever(async () => {\n  await move(6, 7);\n  await turn(180);\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-1",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-2",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-3",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-4",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Goal Flag",
+    "key": "goal",
+    "text": "When the hero touches it, play yay and say \"You win!\"",
+    "summary": [
+     "When it bumps a hero: play the yay sound, then say \"You win!\""
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"yay\");\n  say(\"You win!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "desert-dino",
+  "title": "Desert Dino Dig",
+  "summary": "Dig up the old bones before the dino finds you.",
+  "by": {
+   "name": "Priya",
+   "age": 10,
+   "city": "Jaipur",
+   "country": "India",
+   "flag": "🇮🇳"
+  },
+  "tags": {
+   "genre": [
+    "adventure",
+    "explore"
+   ],
+   "topic": [
+    "dinosaurs",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/desert-dino.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "rocks",
+    "name": "Rock Pile",
+    "kind": "pile",
+    "color": "tan",
+    "bricks": 6
+   },
+   {
+    "id": "tent",
+    "name": "Dig Tent",
+    "kind": "tent",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "dune",
+    "name": "Hill",
+    "kind": "hill",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "bones",
+    "name": "Old Bones",
+    "kind": "bones",
+    "color": "white",
+    "bricks": 3
+   },
+   {
+    "id": "digger",
+    "name": "Digger",
+    "kind": "model",
+    "color": "yellow",
+    "type": "digger",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "dino",
+    "name": "Dino",
+    "kind": "model",
+    "color": "green",
+    "type": "dino",
+    "category": "animals",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Digger",
+    "key": "digger",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Digger",
+    "key": "digger",
+    "text": "When I press space, lower the scoop, wait 1 second, raise the scoop.",
+    "summary": [
+     "When space is pressed: lower the scoop, then wait 1 second, then raise the scoop"
+    ],
+    "code": "onKey(\" \", async () => {\n  await part(\"scoop\").turnTo(0);\n  await wait(1);\n  await part(\"scoop\").turnTo(90);\n});"
+   },
+   {
+    "owner": "Dino",
+    "key": "dino",
+    "text": "Forever, chase the digger.",
+    "summary": [
+     "Forever: chase the nearest digger"
+    ],
+    "code": "forever(async () => {\n  await goTo(\"digger\", 12);\n});"
+   },
+   {
+    "owner": "Dino",
+    "key": "dino",
+    "text": "Every 5 seconds, open the mouth and roar.",
+    "summary": [
+     "Every 5 seconds: raise the head, then play the roar sound"
+    ],
+    "code": "every(5, async () => {\n  await part(\"head\").turnTo(90);\n  play(\"roar\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "snow-fort",
+  "title": "Snow Fort Showdown",
+  "summary": "Two snow forts, one catapult each. Knock theirs down first!",
+  "by": {
+   "name": "Freya",
+   "age": 9,
+   "city": "Oslo",
+   "country": "Norway",
+   "flag": "🇳🇴"
+  },
+  "tags": {
+   "genre": [
+    "battle",
+    "game"
+   ],
+   "topic": [
+    "snow",
+    "castles"
+   ]
+  },
+  "thumb": "finder/snow-fort.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "fort-red",
+    "name": "Red Fort",
+    "kind": "house",
+    "color": "white",
+    "bricks": 34
+   },
+   {
+    "id": "fort-blue",
+    "name": "Blue Fort",
+    "kind": "house",
+    "color": "white",
+    "bricks": 34
+   },
+   {
+    "id": "tree-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "tree-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "tree-3",
+    "name": "Tree 3",
+    "kind": "tree",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "catapult",
+    "name": "Catapult",
+    "kind": "model",
+    "color": "brown",
+    "type": "catapult",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "catapult-2",
+    "name": "Blue Catapult",
+    "kind": "model",
+    "color": "brown",
+    "type": "catapult",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "villager",
+    "name": "Referee Rolf",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Catapult",
+    "key": "catapult",
+    "text": "When I press space, put a white brick in the throwing arm, wait 1 second, then fling.",
+    "summary": [
+     "When space is pressed: put a white brick, then wait 1 second, then swing the throwing arm"
+    ],
+    "code": "onKey(\" \", async () => {\n  spawn({color: \"white\", from: \"throwing arm\"});\n  await wait(1);\n  await part(\"throwing arm\").turnTo(130);\n  play(\"whoosh\");\n  await wait(0.4);\n  await part(\"throwing arm\").turnTo(0);\n});"
+   },
+   {
+    "owner": "Blue Catapult",
+    "key": "catapult-2",
+    "text": "When I press space, put a white brick in the throwing arm, wait 1 second, then fling.",
+    "summary": [
+     "When space is pressed: put a white brick, then wait 1 second, then swing the throwing arm"
+    ],
+    "code": "onKey(\" \", async () => {\n  spawn({color: \"white\", from: \"throwing arm\"});\n  await wait(1);\n  await part(\"throwing arm\").turnTo(130);\n  play(\"whoosh\");\n  await wait(0.4);\n  await part(\"throwing arm\").turnTo(0);\n});"
+   },
+   {
+    "owner": "Referee Rolf",
+    "key": "villager",
+    "text": "When I click it, raise both arms and say \"Fight!\"",
+    "summary": [
+     "When you click it: raise the left arm and right arm, then say \"Fight!\""
+    ],
+    "code": "onClick(async () => {\n  await Promise.all([part(\"left arm\").turnTo(90), part(\"right arm\").turnTo(90)]);\n  say(\"Fight!\");\n});"
+   },
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "Every 2 seconds, drop a white brick from the sky.",
+    "summary": [
+     "Every 2 seconds: drop a white brick"
+    ],
+    "code": "every(2, async () => {\n  spawn({color: \"white\", at: \"top\"});\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "market-town",
+  "title": "Tiny Market Town",
+  "summary": "Say hi to everyone at the market and buy a mango.",
+  "by": {
+   "name": "Kofi",
+   "age": 7,
+   "city": "Accra",
+   "country": "Ghana",
+   "flag": "🇬🇭"
+  },
+  "tags": {
+   "genre": [
+    "story",
+    "cozy"
+   ],
+   "topic": [
+    "towns",
+    "people"
+   ]
+  },
+  "thumb": "finder/market-town.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "road",
+    "name": "Road",
+    "kind": "road",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "stall-1",
+    "name": "Mango Stall",
+    "kind": "stall",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "stall-2",
+    "name": "Tomato Stall",
+    "kind": "stall",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "stall-3",
+    "name": "Kente Cloth Stall",
+    "kind": "stall",
+    "color": "purple",
+    "bricks": 1
+   },
+   {
+    "id": "house-1",
+    "name": "Red-Roof House",
+    "kind": "house",
+    "color": "yellow",
+    "bricks": 34
+   },
+   {
+    "id": "house-2",
+    "name": "Green-Roof House",
+    "kind": "house",
+    "color": "tan",
+    "bricks": 34
+   },
+   {
+    "id": "tree-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "villager",
+    "name": "Ama",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "villager-2",
+    "name": "Kwame",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "farmer",
+    "name": "Auntie Esi",
+    "kind": "model",
+    "color": "green",
+    "type": "farmer",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Ama",
+    "key": "villager",
+    "text": "When I click it, wave the right arm and say \"Akwaaba!\"",
+    "summary": [
+     "When you click it: wave the right arm, then say \"Akwaaba!\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"right arm\").wiggle(3);\n  say(\"Akwaaba!\");\n});"
+   },
+   {
+    "owner": "Kwame",
+    "key": "villager-2",
+    "text": "When I click it, nod the head and say \"Mangoes, fresh mangoes!\"",
+    "summary": [
+     "When you click it: nod the head, then say \"Mangoes, fresh mangoes!\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"head\").wiggle(3);\n  say(\"Mangoes, fresh mangoes!\");\n});"
+   },
+   {
+    "owner": "Auntie Esi",
+    "key": "farmer",
+    "text": "Wander slowly.",
+    "summary": [
+     "Forever: wander around"
+    ],
+    "code": "forever(async () => {\n  await move(random(4, 10));\n  await turn(random(-120, 120));\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "robot-disco",
+  "title": "Robot Dance Party",
+  "summary": "Press a key and every robot busts a move.",
+  "by": {
+   "name": "Hana",
+   "age": 8,
+   "city": "Seoul",
+   "country": "South Korea",
+   "flag": "🇰🇷"
+  },
+  "tags": {
+   "genre": [
+    "music",
+    "party"
+   ],
+   "topic": [
+    "robots"
+   ]
+  },
+  "thumb": "finder/robot-disco.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "dance-floor",
+    "name": "Dance Floor",
+    "kind": "floor",
+    "color": "red",
+    "bricks": 16
+   },
+   {
+    "id": "lamp-1",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "lamp-2",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "speaker",
+    "name": "Speaker Tower",
+    "kind": "tower",
+    "color": "black",
+    "bricks": 12
+   },
+   {
+    "id": "robot",
+    "name": "Robot",
+    "kind": "model",
+    "color": "blue",
+    "type": "robot",
+    "category": "characters",
+    "bricks": 1
+   },
+   {
+    "id": "robot-2",
+    "name": "Robo Bo",
+    "kind": "model",
+    "color": "blue",
+    "type": "robot",
+    "category": "characters",
+    "bricks": 1
+   },
+   {
+    "id": "robot-3",
+    "name": "DJ Byte",
+    "kind": "model",
+    "color": "blue",
+    "type": "robot",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Robot",
+    "key": "robot",
+    "text": "When it hears party, dance and play music.",
+    "summary": [
+     "When it hears \"party\": dance"
+    ],
+    "code": "onMessage(\"party\", async () => {\n  play(\"yay\");\n  await turn(30);\n  await turn(-60);\n  await turn(30);\n  jump(3);\n  await wait(0.5);\n});"
+   },
+   {
+    "owner": "Robo Bo",
+    "key": "robot-2",
+    "text": "When it hears party, spin around and wave both arms.",
+    "summary": [
+     "When it hears \"party\": turn left 360°, then wave the left arm and right arm"
+    ],
+    "code": "onMessage(\"party\", async () => {\n  await turn(360);\n  await Promise.all([part(\"left arm\").wiggle(3), part(\"right arm\").wiggle(3)]);\n});"
+   },
+   {
+    "owner": "DJ Byte",
+    "key": "robot-3",
+    "text": "When I press space, broadcast party, play music and say \"Drop the beat!\"",
+    "summary": [
+     "When space is pressed: tell everyone \"party\", then say \"Drop the beat!\""
+    ],
+    "code": "onKey(\" \", async () => {\n  broadcast(\"party\");\n  say(\"Drop the beat!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "wizard-tower",
+  "title": "The Wizard's Tower",
+  "summary": "Climb the tower, find the spell crystals, tame the dragon.",
+  "by": {
+   "name": "Oliver",
+   "age": 12,
+   "city": "Manchester",
+   "country": "United Kingdom",
+   "flag": "🇬🇧"
+  },
+  "tags": {
+   "genre": [
+    "story",
+    "adventure"
+   ],
+   "topic": [
+    "magic",
+    "dragons"
+   ]
+  },
+  "thumb": "finder/wizard-tower.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "tower",
+    "name": "Wizard's Tower",
+    "kind": "tower",
+    "color": "purple",
+    "bricks": 32
+   },
+   {
+    "id": "crystal-1",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "cyan",
+    "bricks": 1
+   },
+   {
+    "id": "crystal-2",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "pink",
+    "bricks": 1
+   },
+   {
+    "id": "tree-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "tree-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "lamp",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "wizard",
+    "name": "Wizard",
+    "kind": "model",
+    "color": "purple",
+    "type": "wizard",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "dragon",
+    "name": "Ember",
+    "kind": "model",
+    "color": "red",
+    "type": "dragon",
+    "category": "animals",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Wizard",
+    "key": "wizard",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Wizard",
+    "key": "wizard",
+    "text": "When I press space, wave the right arm, play ding and say \"Lumos!\" and broadcast spell.",
+    "summary": [
+     "When space is pressed: wave the right arm, then play the ding sound, then say \"Lumos!\", then tell everyone \"spell\""
+    ],
+    "code": "onKey(\" \", async () => {\n  await part(\"right arm\").wiggle(3);\n  play(\"ding\");\n  say(\"Lumos!\");\n  broadcast(\"spell\");\n});"
+   },
+   {
+    "owner": "Ember",
+    "key": "dragon",
+    "text": "When it hears spell, color it purple, flap the left wing and say \"I am tamed!\"",
+    "summary": [
+     "When it hears \"spell\": wiggle the left wing, then say \"I am tamed!\""
+    ],
+    "code": "onMessage(\"spell\", async () => {\n  await part(\"left wing\").wiggle(3);\n  say(\"I am tamed!\");\n});"
+   },
+   {
+    "owner": "Crystal",
+    "key": "crystal-1",
+    "text": "When the wizard touches it, play ding and disappear.",
+    "summary": [
+     "When it bumps anything: play the ding sound, then disappear"
+    ],
+    "code": "onTouch(null, async (thing) => {\n  play(\"ding\");\n  remove();\n});"
+   },
+   {
+    "owner": "Crystal",
+    "key": "crystal-2",
+    "text": "When the wizard touches it, play ding and disappear.",
+    "summary": [
+     "When it bumps anything: play the ding sound, then disappear"
+    ],
+    "code": "onTouch(null, async (thing) => {\n  play(\"ding\");\n  remove();\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "island-rescue",
+  "title": "Island Rescue",
+  "summary": "Fly the starfighter out to sea and rescue the stranded farmer.",
+  "by": {
+   "name": "Leilani",
+   "age": 10,
+   "city": "Honolulu",
+   "country": "United States",
+   "flag": "🇺🇸"
+  },
+  "tags": {
+   "genre": [
+    "adventure",
+    "rescue"
+   ],
+   "topic": [
+    "islands",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/island-rescue.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "island",
+    "name": "Hill",
+    "kind": "hill",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "palm-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "palm-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "sos",
+    "name": "SOS Flag",
+    "kind": "flag",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "rock",
+    "name": "Hill",
+    "kind": "hill",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "spaceship",
+    "name": "Rescue Jet",
+    "kind": "model",
+    "color": "white",
+    "type": "spaceship",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "farmer",
+    "name": "Stranded Sam",
+    "kind": "model",
+    "color": "green",
+    "type": "farmer",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Rescue Jet",
+    "key": "spaceship",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Rescue Jet",
+    "key": "spaceship",
+    "text": "While I hold w, fly up. While I hold s, fly down.",
+    "summary": [
+     "While w is held: fly up",
+     "While s is held: fly down"
+    ],
+    "code": "onKey(\"w\", async () => {\n  rise(6);\n});\nonKeyUp(\"w\", () => {\n  rise(0);\n});\nonKey(\"s\", async () => {\n  rise(-6);\n});\nonKeyUp(\"s\", () => {\n  rise(0);\n});"
+   },
+   {
+    "owner": "Stranded Sam",
+    "key": "farmer",
+    "text": "Every 3 seconds, wave the left arm and say \"Help!\"",
+    "summary": [
+     "Every 3 seconds: wave the left arm, then say \"Help!\""
+    ],
+    "code": "every(3, async () => {\n  await part(\"left arm\").wiggle(3);\n  say(\"Help!\");\n});"
+   },
+   {
+    "owner": "Stranded Sam",
+    "key": "farmer",
+    "text": "When the spaceship touches it, play yay and say \"My hero!\"",
+    "summary": [
+     "When it bumps a spaceship: play the yay sound, then say \"My hero!\""
+    ],
+    "code": "onTouch(\"spaceship\", async (thing) => {\n  play(\"yay\");\n  say(\"My hero!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "domino-run",
+  "title": "Rainbow Domino Run",
+  "summary": "One push knocks over all four towers. Set it up again and again!",
+  "by": {
+   "name": "Sofia",
+   "age": 9,
+   "city": "São Paulo",
+   "country": "Brazil",
+   "flag": "🇧🇷"
+  },
+  "tags": {
+   "genre": [
+    "sandbox",
+    "puzzle"
+   ],
+   "topic": [
+    "physics"
+   ]
+  },
+  "thumb": "finder/domino-run.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "tower-1",
+    "name": "Red Tower",
+    "kind": "tower",
+    "color": "red",
+    "bricks": 16
+   },
+   {
+    "id": "tower-2",
+    "name": "Green Tower",
+    "kind": "tower",
+    "color": "yellow",
+    "bricks": 20
+   },
+   {
+    "id": "tower-3",
+    "name": "Blue Tower",
+    "kind": "tower",
+    "color": "blue",
+    "bricks": 24
+   },
+   {
+    "id": "tower-4",
+    "name": "Purple Tower",
+    "kind": "tower",
+    "color": "purple",
+    "bricks": 28
+   },
+   {
+    "id": "ramp",
+    "name": "Ramp",
+    "kind": "ramp",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "ball",
+    "name": "Big Ball",
+    "kind": "ball",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "robot",
+    "name": "Robot",
+    "kind": "model",
+    "color": "blue",
+    "type": "robot",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Robot",
+    "key": "robot",
+    "text": "When I press space, push the ball forward.",
+    "summary": [],
+    "code": ""
+   },
+   {
+    "owner": "Big Ball",
+    "key": "ball",
+    "text": "When it bumps into a tower, play crash.",
+    "summary": [
+     "When it bumps a tower: play the crash sound"
+    ],
+    "code": "onTouch(\"tower\", async (thing) => {\n  play(\"crash\");\n});"
+   },
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "When I click the ground, clone the ball there.",
+    "summary": [
+     "At the start: make a copy of the ball"
+    ],
+    "code": "onStart(async () => {\n  await clone(\"ball\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "alien-zoo",
+  "title": "Alien Petting Zoo",
+  "summary": "Cows in space! Feed them hay and watch them float.",
+  "by": {
+   "name": "Wei",
+   "age": 8,
+   "city": "Chengdu",
+   "country": "China",
+   "flag": "🇨🇳"
+  },
+  "tags": {
+   "genre": [
+    "silly",
+    "sandbox"
+   ],
+   "topic": [
+    "space",
+    "animals",
+    "aliens"
+   ]
+  },
+  "thumb": "finder/alien-zoo.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "pen-n",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "cyan",
+    "bricks": 1
+   },
+   {
+    "id": "pen-w",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "cyan",
+    "bricks": 1
+   },
+   {
+    "id": "pen-e",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "cyan",
+    "bricks": 1
+   },
+   {
+    "id": "hay",
+    "name": "Hay Bales",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "base",
+    "name": "Moon Base",
+    "kind": "station",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "crystal",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "cow",
+    "name": "Space Cow",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "cow-2",
+    "name": "Moo-nie",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "alien",
+    "name": "Zookeeper Xi",
+    "kind": "model",
+    "color": "green",
+    "type": "alien",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "ufo",
+    "name": "UFO",
+    "kind": "model",
+    "color": "gray",
+    "type": "ufo",
+    "category": "space",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "At the start, turn off gravity.",
+    "summary": [
+     "At the start: turn off gravity"
+    ],
+    "code": "onStart(async () => {\n  gravity(0);\n});"
+   },
+   {
+    "owner": "Space Cow",
+    "key": "cow",
+    "text": "Forever, spin slowly and play moo.",
+    "summary": [
+     "Forever: play the moo sound"
+    ],
+    "code": "forever(async () => {\n  play(\"moo\");\n});"
+   },
+   {
+    "owner": "Moo-nie",
+    "key": "cow-2",
+    "text": "When I click it, play moo and jump.",
+    "summary": [
+     "When you click it: play the moo sound, then jump"
+    ],
+    "code": "onClick(async () => {\n  play(\"moo\");\n  jump(5);\n});"
+   },
+   {
+    "owner": "Zookeeper Xi",
+    "key": "alien",
+    "text": "When I click it, wave the left arm and say \"Do not feed them after midnight!\"",
+    "summary": [
+     "When you click it: wave the left arm, then say \"Do not feed them after midnight!\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"left arm\").wiggle(3);\n  say(\"Do not feed them after midnight!\");\n});"
+   }
+  ],
+  "gravity": 0
+ },
+ {
+  "id": "construction-crew",
+  "title": "Construction Crew",
+  "summary": "Scoop the bricks, dump them, build a new house.",
+  "by": {
+   "name": "Noah",
+   "age": 7,
+   "city": "Toronto",
+   "country": "Canada",
+   "flag": "🇨🇦"
+  },
+  "tags": {
+   "genre": [
+    "sandbox",
+    "building"
+   ],
+   "topic": [
+    "vehicles",
+    "construction"
+   ]
+  },
+  "thumb": "finder/construction-crew.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "road",
+    "name": "Road",
+    "kind": "road",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "pile",
+    "name": "Brick Pile",
+    "kind": "pile",
+    "color": "yellow",
+    "bricks": 6
+   },
+   {
+    "id": "house",
+    "name": "New House",
+    "kind": "house",
+    "color": "white",
+    "bricks": 34
+   },
+   {
+    "id": "cone-1",
+    "name": "Cone",
+    "kind": "cone",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "cone-2",
+    "name": "Cone",
+    "kind": "cone",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "cone-3",
+    "name": "Cone",
+    "kind": "cone",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "digger",
+    "name": "Digger",
+    "kind": "model",
+    "color": "yellow",
+    "type": "digger",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "truck",
+    "name": "Dump Truck",
+    "kind": "model",
+    "color": "blue",
+    "type": "truck",
+    "category": "vehicles",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Digger",
+    "key": "digger",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Digger",
+    "key": "digger",
+    "text": "When I press space, lower the scoop, wait 1 second, raise the scoop.",
+    "summary": [
+     "When space is pressed: lower the scoop, then wait 1 second, then raise the scoop"
+    ],
+    "code": "onKey(\" \", async () => {\n  await part(\"scoop\").turnTo(0);\n  await wait(1);\n  await part(\"scoop\").turnTo(90);\n});"
+   },
+   {
+    "owner": "Dump Truck",
+    "key": "truck",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Dump Truck",
+    "key": "truck",
+    "text": "When I press space, raise the dump bed.",
+    "summary": [
+     "When space is pressed: raise the dump bed"
+    ],
+    "code": "onKey(\" \", async () => {\n  await part(\"dump bed\").turnTo(90);\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "hay-maze",
+  "title": "Haunted Hay Maze",
+  "summary": "Find your way out. The slimes come out at night...",
+  "by": {
+   "name": "Zainab",
+   "age": 11,
+   "city": "Cairo",
+   "country": "Egypt",
+   "flag": "🇪🇬"
+  },
+  "tags": {
+   "genre": [
+    "spooky",
+    "puzzle"
+   ],
+   "topic": [
+    "mazes",
+    "monsters"
+   ]
+  },
+  "thumb": "finder/hay-maze.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "hay-1",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-2",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-3",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-4",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-5",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-6",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-7",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-8",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-9",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "hay-10",
+    "name": "Hay Wall",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "lamp",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "exit",
+    "name": "Exit",
+    "kind": "goal",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "tree",
+    "name": "Tree ",
+    "kind": "tree",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "hero",
+    "name": "Explorer",
+    "kind": "model",
+    "color": "red",
+    "type": "hero",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "slime",
+    "name": "Ghost Slime",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   },
+   {
+    "id": "slime-2",
+    "name": "Night Slime",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Explorer",
+    "key": "hero",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Ghost Slime",
+    "key": "slime",
+    "text": "Forever, chase the explorer.",
+    "summary": [],
+    "code": ""
+   },
+   {
+    "owner": "Ghost Slime",
+    "key": "slime",
+    "text": "When it touches the explorer, play boo and say \"Boo!\"",
+    "summary": [
+     "When it bumps anything: say \"Boo!\""
+    ],
+    "code": "onTouch(null, async (thing) => {\n  say(\"Boo!\");\n});"
+   },
+   {
+    "owner": "Night Slime",
+    "key": "slime-2",
+    "text": "Every 3 seconds, color it purple, wait 1 second, color it green.",
+    "summary": [
+     "Every 3 seconds: wait 1 second"
+    ],
+    "code": "every(3, async () => {\n  await wait(1);\n});"
+   },
+   {
+    "owner": "Exit",
+    "key": "exit",
+    "text": "When the explorer touches it, play yay and say \"You escaped!\"",
+    "summary": [
+     "When it bumps anything: play the yay sound, then say \"You escaped!\""
+    ],
+    "code": "onTouch(null, async (thing) => {\n  play(\"yay\");\n  say(\"You escaped!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "moon-base",
+  "title": "Moon Base Alpha",
+  "summary": "Land the ship, refuel at the base, launch the next mission.",
+  "by": {
+   "name": "Ethan",
+   "age": 12,
+   "city": "Sydney",
+   "country": "Australia",
+   "flag": "🇦🇺"
+  },
+  "tags": {
+   "genre": [
+    "simulation",
+    "adventure"
+   ],
+   "topic": [
+    "space",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/moon-base.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "base",
+    "name": "Moon Base",
+    "kind": "station",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "pad",
+    "name": "Landing Pad",
+    "kind": "pad",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "pad-2",
+    "name": "Landing Pad",
+    "kind": "pad",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "fuel",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "beacon",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "spaceship",
+    "name": "Spaceship",
+    "kind": "model",
+    "color": "white",
+    "type": "spaceship",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "rocket",
+    "name": "Rocket",
+    "kind": "model",
+    "color": "white",
+    "type": "rocket",
+    "category": "space",
+    "bricks": 1
+   },
+   {
+    "id": "astronaut",
+    "name": "Astronaut",
+    "kind": "model",
+    "color": "white",
+    "type": "astronaut",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "At the start, set gravity to 0.2.",
+    "summary": [
+     "At the start: set gravity to 0.2"
+    ],
+    "code": "onStart(async () => {\n  gravity(0.2);\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "While I hold w, fly up. While I hold s, fly down.",
+    "summary": [
+     "While w is held: fly up",
+     "While s is held: fly down"
+    ],
+    "code": "onKey(\"w\", async () => {\n  rise(6);\n});\nonKeyUp(\"w\", () => {\n  rise(0);\n});\nonKey(\"s\", async () => {\n  rise(-6);\n});\nonKeyUp(\"s\", () => {\n  rise(0);\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "When it touches the pad, stop and broadcast landed.",
+    "summary": [
+     "When it bumps anything: stop, then tell everyone \"landed\""
+    ],
+    "code": "onTouch(null, async (thing) => {\n  stop();\n  broadcast(\"landed\");\n});"
+   },
+   {
+    "owner": "Astronaut",
+    "key": "astronaut",
+    "text": "When it hears landed, go to the spaceship and say \"Refueling!\"",
+    "summary": [
+     "When it hears \"landed\": go to the nearest spaceship, then say \"Refueling!\""
+    ],
+    "code": "onMessage(\"landed\", async () => {\n  await goTo(\"spaceship\", 7);\n  say(\"Refueling!\");\n});"
+   },
+   {
+    "owner": "Rocket",
+    "key": "rocket",
+    "text": "When I click it, say \"Mission go!\", play whoosh and rise for 5 seconds.",
+    "summary": [
+     "When you click it: say \"Mission go!\", then play the whoosh sound, then fly up for 5 seconds"
+    ],
+    "code": "onClick(async () => {\n  say(\"Mission go!\");\n  play(\"whoosh\");\n  rise(6);\n  await wait(5);\n  rise(0);\n});"
+   }
+  ],
+  "gravity": 0.2
+ },
+ {
+  "id": "rodeo-ranch",
+  "title": "Horse Ranch Rodeo",
+  "summary": "Ride around the barrels as fast as you can.",
+  "by": {
+   "name": "Camila",
+   "age": 10,
+   "city": "Mexico City",
+   "country": "Mexico",
+   "flag": "🇲🇽"
+  },
+  "tags": {
+   "genre": [
+    "racing",
+    "game"
+   ],
+   "topic": [
+    "animals",
+    "horses",
+    "farms"
+   ]
+  },
+  "thumb": "finder/rodeo-ranch.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "fence-n",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "fence-s",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "fence-w",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "fence-e",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "barrel-1",
+    "name": "Barrel",
+    "kind": "barrel",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "barrel-2",
+    "name": "Barrel",
+    "kind": "barrel",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "barrel-3",
+    "name": "Barrel",
+    "kind": "barrel",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "hay",
+    "name": "Hay Bales",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "barn",
+    "name": "Barn",
+    "kind": "barn",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "horse",
+    "name": "Relámpago",
+    "kind": "model",
+    "color": "brown",
+    "type": "horse",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "horse-2",
+    "name": "Canela",
+    "kind": "model",
+    "color": "brown",
+    "type": "horse",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "farmer",
+    "name": "Judge Rosa",
+    "kind": "model",
+    "color": "green",
+    "type": "farmer",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Relámpago",
+    "key": "horse",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Relámpago",
+    "key": "horse",
+    "text": "When I press space, jump high and play neigh.",
+    "summary": [
+     "When space is pressed: jump high"
+    ],
+    "code": "onKey(\" \", async () => {\n  jump(9);\n});"
+   },
+   {
+    "owner": "Canela",
+    "key": "horse-2",
+    "text": "Forever, go to the blue barrel, then go to the red barrel.",
+    "summary": [
+     "Forever: go to the nearest blue thing, then go to the nearest red thing"
+    ],
+    "code": "forever(async () => {\n  await goTo(\"blue\", 7);\n  await goTo(\"red\", 7);\n});"
+   },
+   {
+    "owner": "Judge Rosa",
+    "key": "farmer",
+    "text": "When the horse touches a barrel, say \"Penalty!\"",
+    "summary": [
+     "When it bumps anything: say \"Penalty!\""
+    ],
+    "code": "onTouch(null, async (thing) => {\n  say(\"Penalty!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "slime-soccer",
+  "title": "Slime Soccer",
+  "summary": "Robot vs. slimes. First to 3 goals wins.",
+  "by": {
+   "name": "Arjun",
+   "age": 9,
+   "city": "Singapore",
+   "country": "Singapore",
+   "flag": "🇸🇬"
+  },
+  "tags": {
+   "genre": [
+    "sports",
+    "game"
+   ],
+   "topic": [
+    "robots",
+    "monsters"
+   ]
+  },
+  "thumb": "finder/slime-soccer.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "pitch",
+    "name": "Pitch",
+    "kind": "field",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "line",
+    "name": "Halfway Line",
+    "kind": "field",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "goal-red",
+    "name": "Red Goal",
+    "kind": "goal",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "goal-blue",
+    "name": "Blue Goal",
+    "kind": "goal",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "ball",
+    "name": "Soccer Ball",
+    "kind": "ball",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "robot",
+    "name": "Robot",
+    "kind": "model",
+    "color": "blue",
+    "type": "robot",
+    "category": "characters",
+    "bricks": 1
+   },
+   {
+    "id": "slime",
+    "name": "Goalie Gloop",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   },
+   {
+    "id": "slime-2",
+    "name": "Striker Splat",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Robot",
+    "key": "robot",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Robot",
+    "key": "robot",
+    "text": "When I press space, push forward hard.",
+    "summary": [
+     "When space is pressed: push forward"
+    ],
+    "code": "onKey(\" \", async () => {\n  push(\"forward\", 6);\n});"
+   },
+   {
+    "owner": "Goalie Gloop",
+    "key": "slime",
+    "text": "Forever, move 4 studs, then turn around.",
+    "summary": [
+     "Forever: go forward 4 studs, then turn left 180°"
+    ],
+    "code": "forever(async () => {\n  await move(4, 7);\n  await turn(180);\n});"
+   },
+   {
+    "owner": "Striker Splat",
+    "key": "slime-2",
+    "text": "Forever, chase the ball.",
+    "summary": [
+     "Forever: chase the nearest ball"
+    ],
+    "code": "forever(async () => {\n  await goTo(\"ball\", 12);\n});"
+   },
+   {
+    "owner": "Blue Goal",
+    "key": "goal-blue",
+    "text": "When the ball touches it, play yay, say \"GOAL!\" and broadcast kickoff.",
+    "summary": [
+     "When it bumps a ball: play the yay sound, then say \"GOAL!\", then tell everyone \"kickoff\""
+    ],
+    "code": "onTouch(\"ball\", async (thing) => {\n  play(\"yay\");\n  say(\"GOAL!\");\n  broadcast(\"kickoff\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "bell-tower-mystery",
+  "title": "The Bell Tower Mystery",
+  "summary": "Who keeps ringing the bell at midnight? Ask around the village.",
+  "by": {
+   "name": "Élodie",
+   "age": 10,
+   "city": "Lyon",
+   "country": "France",
+   "flag": "🇫🇷"
+  },
+  "tags": {
+   "genre": [
+    "story",
+    "mystery"
+   ],
+   "topic": [
+    "towns",
+    "people"
+   ]
+  },
+  "thumb": "finder/bell-tower-mystery.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "bell-tower",
+    "name": "Bell Tower",
+    "kind": "tower",
+    "color": "white",
+    "bricks": 28
+   },
+   {
+    "id": "house-1",
+    "name": "Bakery",
+    "kind": "house",
+    "color": "tan",
+    "bricks": 34
+   },
+   {
+    "id": "house-2",
+    "name": "Library",
+    "kind": "house",
+    "color": "white",
+    "bricks": 34
+   },
+   {
+    "id": "fountain",
+    "name": "Fountain",
+    "kind": "fountain",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "lamp-1",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "lamp-2",
+    "name": "Lamp Post",
+    "kind": "lamp",
+    "color": "black",
+    "bricks": 1
+   },
+   {
+    "id": "villager",
+    "name": "Madame Odile",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "wizard",
+    "name": "The Stranger",
+    "kind": "model",
+    "color": "purple",
+    "type": "wizard",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "villager-2",
+    "name": "Petit Jean",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Madame Odile",
+    "key": "villager",
+    "text": "When I click it, say \"I heard the bell at midnight!\"",
+    "summary": [
+     "When you click it: say \"I heard the bell at midnight!\""
+    ],
+    "code": "onClick(async () => {\n  say(\"I heard the bell at midnight!\");\n});"
+   },
+   {
+    "owner": "Petit Jean",
+    "key": "villager-2",
+    "text": "When I click it, turn the head left and say \"Shh... ask the stranger.\"",
+    "summary": [
+     "When you click it: turn the head left, then say \"Shh... ask the stranger.\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"head\").turnTo(60);\n  say(\"Shh... ask the stranger.\");\n});"
+   },
+   {
+    "owner": "The Stranger",
+    "key": "wizard",
+    "text": "When I click it, play ding and say \"Perhaps it was... me.\"",
+    "summary": [
+     "When you click it: play the ding sound, then say \"Perhaps it was... me.\""
+    ],
+    "code": "onClick(async () => {\n  play(\"ding\");\n  say(\"Perhaps it was... me.\");\n});"
+   },
+   {
+    "owner": "Bell Tower",
+    "key": "bell-tower",
+    "text": "Every 10 seconds, play ding.",
+    "summary": [
+     "Every 10 seconds: play the ding sound"
+    ],
+    "code": "every(10, async () => {\n  play(\"ding\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "volcano-island",
+  "title": "Volcano Island",
+  "summary": "The volcano is erupting lava bricks! Get the dino to safety.",
+  "by": {
+   "name": "Tane",
+   "age": 11,
+   "city": "Auckland",
+   "country": "New Zealand",
+   "flag": "🇳🇿"
+  },
+  "tags": {
+   "genre": [
+    "adventure",
+    "survival"
+   ],
+   "topic": [
+    "volcanoes",
+    "dinosaurs",
+    "nature"
+   ]
+  },
+  "thumb": "finder/volcano-island.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "volcano",
+    "name": "Hill",
+    "kind": "hill",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "crater",
+    "name": "Lava",
+    "kind": "lava",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "lava-1",
+    "name": "Lava Flow",
+    "kind": "lava",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "lava-2",
+    "name": "Lava Flow",
+    "kind": "lava",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "lava-3",
+    "name": "Lava Flow",
+    "kind": "lava",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "fern-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "fern-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "dino",
+    "name": "Dino",
+    "kind": "model",
+    "color": "green",
+    "type": "dino",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "hero",
+    "name": "Ranger",
+    "kind": "model",
+    "color": "red",
+    "type": "hero",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Hill",
+    "key": "volcano",
+    "text": "Every 2 seconds, throw an orange brick up.",
+    "summary": [
+     "Every 2 seconds: throw a orange brick"
+    ],
+    "code": "every(2, async () => {\n  spawn({color: \"orange\", at: \"top\", launch: 18});\n});"
+   },
+   {
+    "owner": "Dino",
+    "key": "dino",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Dino",
+    "key": "dino",
+    "text": "When it touches lava, play ouch and jump.",
+    "summary": [
+     "When it bumps anything: jump"
+    ],
+    "code": "onTouch(null, async (thing) => {\n  jump(5);\n});"
+   },
+   {
+    "owner": "Ranger",
+    "key": "hero",
+    "text": "Forever, follow the dino.",
+    "summary": [
+     "Forever: follow the nearest dino"
+    ],
+    "code": "forever(async () => {\n  await goTo(\"dino\", 7);\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "pipe-speedrun",
+  "title": "Pipe Maze Speedrun",
+  "summary": "Moving platforms, warp pipes and a timer. Beat 30 seconds!",
+  "by": {
+   "name": "Yuki",
+   "age": 12,
+   "city": "Sapporo",
+   "country": "Japan",
+   "flag": "🇯🇵"
+  },
+  "tags": {
+   "genre": [
+    "game",
+    "platformer",
+    "speedrun"
+   ],
+   "topic": [
+    "heroes"
+   ]
+  },
+  "thumb": "finder/pipe-speedrun.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "pipe-1",
+    "name": "Pipe",
+    "kind": "pipe",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "pipe-2",
+    "name": "Pipe",
+    "kind": "pipe",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "pipe-3",
+    "name": "Pipe",
+    "kind": "pipe",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "lift",
+    "name": "Moving Platform",
+    "kind": "platform",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "high",
+    "name": "High Ledge",
+    "kind": "platform",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "coin-1",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-2",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "coin-3",
+    "name": "Coin",
+    "kind": "coin",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "block",
+    "name": "Surprise Block",
+    "kind": "block",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "goal",
+    "name": "Goal Flag",
+    "kind": "goal",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "cloud",
+    "name": "Cloud",
+    "kind": "cloud",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "hero",
+    "name": "Hero",
+    "kind": "model",
+    "color": "red",
+    "type": "hero",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "slime",
+    "name": "Slime",
+    "kind": "model",
+    "color": "purple",
+    "type": "slime",
+    "category": "characters",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "At the start, say \"Go! 30 seconds!\"",
+    "summary": [
+     "At the start: say \"Go! 30 seconds!\""
+    ],
+    "code": "onStart(async () => {\n  say(\"Go! 30 seconds!\");\n});"
+   },
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "Every 1 second, broadcast tick.",
+    "summary": [
+     "Every 1 second: tell everyone \"tick\""
+    ],
+    "code": "every(1, async () => {\n  broadcast(\"tick\");\n});"
+   },
+   {
+    "owner": "Hero",
+    "key": "hero",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Hero",
+    "key": "hero",
+    "text": "When I press space, jump high.",
+    "summary": [
+     "When space is pressed: jump high"
+    ],
+    "code": "onKey(\" \", async () => {\n  jump(9);\n});"
+   },
+   {
+    "owner": "Hero",
+    "key": "hero",
+    "text": "When it touches a pipe, play whoosh and jump high.",
+    "summary": [
+     "When it bumps a pipe: play the whoosh sound, then jump high"
+    ],
+    "code": "onTouch(\"pipe\", async (thing) => {\n  play(\"whoosh\");\n  jump(9);\n});"
+   },
+   {
+    "owner": "Moving Platform",
+    "key": "lift",
+    "text": "Forever, move 5 studs, wait 1 second, move back 5 studs, wait 1 second.",
+    "summary": [
+     "Forever: go forward 5 studs, then wait 1 second, then go backward 5 studs, then wait 1 second"
+    ],
+    "code": "forever(async () => {\n  await move(5, 7);\n  await wait(1);\n  await move(-5, 7);\n  await wait(1);\n});"
+   },
+   {
+    "owner": "Slime",
+    "key": "slime",
+    "text": "Forever, chase the hero.",
+    "summary": [
+     "Forever: chase the nearest hero"
+    ],
+    "code": "forever(async () => {\n  await goTo(\"hero\", 12);\n});"
+   },
+   {
+    "owner": "Goal Flag",
+    "key": "goal",
+    "text": "When the hero touches it, play yay and say \"New record!\"",
+    "summary": [
+     "When it bumps a hero: play the yay sound, then say \"New record!\""
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"yay\");\n  say(\"New record!\");\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-1",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-2",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   },
+   {
+    "owner": "Coin",
+    "key": "coin-3",
+    "text": "When the hero touches it, play coin and disappear.",
+    "summary": [
+     "When it bumps a hero: play the coin sound, then disappear"
+    ],
+    "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "harvest-helper",
+  "title": "Harvest Helper",
+  "summary": "Drive the tractor and help bring in the carrots and corn.",
+  "by": {
+   "name": "Grace",
+   "age": 6,
+   "city": "Nairobi",
+   "country": "Kenya",
+   "flag": "🇰🇪"
+  },
+  "tags": {
+   "genre": [
+    "cozy",
+    "simulation"
+   ],
+   "topic": [
+    "farms",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/harvest-helper.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "carrots",
+    "name": "Carrots",
+    "kind": "crops",
+    "color": "orange",
+    "bricks": 1
+   },
+   {
+    "id": "corn",
+    "name": "Corn",
+    "kind": "crops",
+    "color": "yellow",
+    "bricks": 1
+   },
+   {
+    "id": "silo",
+    "name": "Silo",
+    "kind": "silo",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "barn",
+    "name": "Barn",
+    "kind": "barn",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "hay",
+    "name": "Hay Bales",
+    "kind": "hay",
+    "color": "yellow",
+    "bricks": 5
+   },
+   {
+    "id": "tractor",
+    "name": "Tractor",
+    "kind": "model",
+    "color": "green",
+    "type": "tractor",
+    "category": "vehicles",
+    "bricks": 1
+   },
+   {
+    "id": "farmer",
+    "name": "Mama Wanjiru",
+    "kind": "model",
+    "color": "green",
+    "type": "farmer",
+    "category": "people",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Tractor",
+    "key": "tractor",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Mama Wanjiru",
+    "key": "farmer",
+    "text": "When I click it, wave the left arm and say \"Jambo!\"",
+    "summary": [
+     "When you click it: wave the left arm, then say \"Jambo!\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"left arm\").wiggle(3);\n  say(\"Jambo!\");\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "knight-school",
+  "title": "Knight School",
+  "summary": "Practice on the training dummies, then joust with the horse.",
+  "by": {
+   "name": "Iwona",
+   "age": 9,
+   "city": "Kraków",
+   "country": "Poland",
+   "flag": "🇵🇱"
+  },
+  "tags": {
+   "genre": [
+    "battle",
+    "training"
+   ],
+   "topic": [
+    "castles",
+    "knights",
+    "horses"
+   ]
+  },
+  "thumb": "finder/knight-school.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "dummy-1",
+    "name": "Training Dummy",
+    "kind": "dummy",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "dummy-2",
+    "name": "Training Dummy",
+    "kind": "dummy",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "dummy-3",
+    "name": "Training Dummy",
+    "kind": "dummy",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "tent",
+    "name": "Armory Tent",
+    "kind": "tent",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "tent-2",
+    "name": "Stable Tent",
+    "kind": "tent",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "banner",
+    "name": "School Banner",
+    "kind": "flag",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "fence",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "tan",
+    "bricks": 1
+   },
+   {
+    "id": "knight",
+    "name": "Knight",
+    "kind": "model",
+    "color": "gray",
+    "type": "knight",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "knight-2",
+    "name": "Sir Bartek",
+    "kind": "model",
+    "color": "gray",
+    "type": "knight",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "horse",
+    "name": "Horse",
+    "kind": "model",
+    "color": "brown",
+    "type": "horse",
+    "category": "animals",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Knight",
+    "key": "knight",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Knight",
+    "key": "knight",
+    "text": "When I press s, swing the sword arm.",
+    "summary": [
+     "When s is pressed: swing the sword arm"
+    ],
+    "code": "onKey(\"s\", async () => {\n  await part(\"sword arm\").turnTo(130);\n  play(\"whoosh\");\n  await wait(0.4);\n  await part(\"sword arm\").turnTo(0);\n});"
+   },
+   {
+    "owner": "Sir Bartek",
+    "key": "knight-2",
+    "text": "Every 2 seconds, swing the sword arm.",
+    "summary": [
+     "Every 2 seconds: swing the sword arm"
+    ],
+    "code": "every(2, async () => {\n  await part(\"sword arm\").turnTo(130);\n  play(\"whoosh\");\n  await wait(0.4);\n  await part(\"sword arm\").turnTo(0);\n});"
+   },
+   {
+    "owner": "Training Dummy",
+    "key": "dummy-1",
+    "text": "When the knight touches it, play bonk and wiggle.",
+    "summary": [],
+    "code": ""
+   },
+   {
+    "owner": "Horse",
+    "key": "horse",
+    "text": "When I click it, play neigh and jump.",
+    "summary": [
+     "When you click it: jump"
+    ],
+    "code": "onClick(async () => {\n  jump(5);\n});"
+   }
+  ],
+  "gravity": 1
+ },
+ {
+  "id": "asteroid-dodge",
+  "title": "Starfighter Asteroid Dodge",
+  "summary": "Fly through the asteroid field. Blast the ones in your way.",
+  "by": {
+   "name": "Malik",
+   "age": 11,
+   "city": "Dubai",
+   "country": "United Arab Emirates",
+   "flag": "🇦🇪"
+  },
+  "tags": {
+   "genre": [
+    "game",
+    "shooter"
+   ],
+   "topic": [
+    "space",
+    "vehicles"
+   ]
+  },
+  "thumb": "finder/asteroid-dodge.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "asteroid-1",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-2",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-3",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-4",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-5",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-6",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "gray",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-7",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "brown",
+    "bricks": 1
+   },
+   {
+    "id": "asteroid-8",
+    "name": "Asteroid",
+    "kind": "asteroid",
+    "color": "darkgray",
+    "bricks": 1
+   },
+   {
+    "id": "crystal",
+    "name": "Crystal",
+    "kind": "crystal",
+    "color": "pink",
+    "bricks": 1
+   },
+   {
+    "id": "spaceship",
+    "name": "Spaceship",
+    "kind": "model",
+    "color": "white",
+    "type": "spaceship",
+    "category": "space",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "At the start, turn off gravity.",
+    "summary": [
+     "At the start: turn off gravity"
+    ],
+    "code": "onStart(async () => {\n  gravity(0);\n});"
+   },
+   {
+    "owner": "World",
+    "key": "world",
+    "text": "Every 3 seconds, drop a gray brick from the sky.",
+    "summary": [
+     "Every 3 seconds: drop a gray brick"
+    ],
+    "code": "every(3, async () => {\n  spawn({color: \"gray\", at: \"top\"});\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.",
+    "summary": [
+     "While ↑ is held: drive forward",
+     "While ↓ is held: drive backward",
+     "While ← is held: turn left",
+     "While → is held: turn right"
+    ],
+    "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "While I hold w, fly up. While I hold s, fly down.",
+    "summary": [
+     "While w is held: fly up",
+     "While s is held: fly down"
+    ],
+    "code": "onKey(\"w\", async () => {\n  rise(6);\n});\nonKeyUp(\"w\", () => {\n  rise(0);\n});\nonKey(\"s\", async () => {\n  rise(-6);\n});\nonKeyUp(\"s\", () => {\n  rise(0);\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "When I press space, play laser and shoot a red brick.",
+    "summary": [
+     "When space is pressed: play the laser sound, then shoot a red brick"
+    ],
+    "code": "onKey(\" \", async () => {\n  play(\"laser\");\n  spawn({color: \"red\", launch: 18});\n});"
+   },
+   {
+    "owner": "Spaceship",
+    "key": "spaceship",
+    "text": "When it bumps into an asteroid, play crash and say \"Shields down!\"",
+    "summary": [
+     "When it bumps a asteroid: play the crash sound, then say \"Shields down!\""
+    ],
+    "code": "onTouch(\"asteroid\", async (thing) => {\n  play(\"crash\");\n  say(\"Shields down!\");\n});"
+   }
+  ],
+  "gravity": 0
+ },
+ {
+  "id": "pond-picnic",
+  "title": "Cozy Pond Picnic",
+  "summary": "A quiet afternoon by the pond. The cows say hello.",
+  "by": {
+   "name": "Lucía",
+   "age": 7,
+   "city": "Madrid",
+   "country": "Spain",
+   "flag": "🇪🇸"
+  },
+  "tags": {
+   "genre": [
+    "cozy",
+    "calm"
+   ],
+   "topic": [
+    "nature",
+    "animals"
+   ]
+  },
+  "thumb": "finder/pond-picnic.webp",
+  "frames": 3,
+  "things": [
+   {
+    "id": "pond",
+    "name": "Pond",
+    "kind": "pond",
+    "color": "blue",
+    "bricks": 1
+   },
+   {
+    "id": "blanket",
+    "name": "Picnic Blanket",
+    "kind": "blanket",
+    "color": "red",
+    "bricks": 1
+   },
+   {
+    "id": "blanket-stripe",
+    "name": "Picnic Blanket",
+    "kind": "blanket",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "tree-1",
+    "name": "Tree 1",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "tree-2",
+    "name": "Tree 2",
+    "kind": "tree",
+    "color": "lime",
+    "bricks": 1
+   },
+   {
+    "id": "tree-3",
+    "name": "Tree 3",
+    "kind": "tree",
+    "color": "green",
+    "bricks": 1
+   },
+   {
+    "id": "fence",
+    "name": "Fence",
+    "kind": "fence",
+    "color": "white",
+    "bricks": 1
+   },
+   {
+    "id": "villager",
+    "name": "Lucía",
+    "kind": "model",
+    "color": "blue",
+    "type": "villager",
+    "category": "people",
+    "bricks": 1
+   },
+   {
+    "id": "cow",
+    "name": "Rosita",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   },
+   {
+    "id": "cow-2",
+    "name": "Nube",
+    "kind": "model",
+    "color": "white",
+    "type": "cow",
+    "category": "animals",
+    "bricks": 1
+   }
+  ],
+  "behaviors": [
+   {
+    "owner": "Lucía",
+    "key": "villager",
+    "text": "When I click it, wave the right arm and say \"¡Hola!\"",
+    "summary": [
+     "When you click it: wave the right arm, then say \"¡Hola!\""
+    ],
+    "code": "onClick(async () => {\n  await part(\"right arm\").wiggle(3);\n  say(\"¡Hola!\");\n});"
+   },
+   {
+    "owner": "Rosita",
+    "key": "cow",
+    "text": "Every 6 seconds, play moo and nod the head.",
+    "summary": [
+     "Every 6 seconds: play the moo sound, then nod the head"
+    ],
+    "code": "every(6, async () => {\n  play(\"moo\");\n  await part(\"head\").wiggle(3);\n});"
+   },
+   {
+    "owner": "Nube",
+    "key": "cow-2",
+    "text": "Wander slowly.",
+    "summary": [
+     "Forever: wander around"
+    ],
+    "code": "forever(async () => {\n  await move(random(4, 10));\n  await turn(random(-120, 120));\n});"
+   }
+  ],
+  "gravity": 1
+ }
+]

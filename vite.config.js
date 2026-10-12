@@ -19,6 +19,6 @@ export default defineConfig(({ mode }) => {
 const config = {
   base: './',
   plugins: [claudeApi],
-  build: { target: 'esnext' },
+  build: { target: 'esnext', rollupOptions: { input: { main: 'index.html', finder: 'finder.html' } } },
   worker: { format: 'es' },
 };
