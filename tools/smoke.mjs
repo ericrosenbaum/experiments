@@ -83,8 +83,9 @@ await page.mouse.dblclick(s.x, s.y);
 await page.waitForTimeout(300);
 const piece = await selected();
 check(/^tower\.\d+$/.test(piece ?? ''), `double-clicking picks one brick (${piece})`);
+await page.click('#btn-more');
 await page.click('#btn-whole');
-check(await selected() === 'tower', 'the ⬆ button goes back to the whole tower');
+check(await selected() === 'tower', '“Back to the whole tower” in the ⋯ menu goes back to the whole tower');
 await page.mouse.click(700, 700); // ground near the bottom of the view
 await page.waitForTimeout(300);
 check(await selected() === 'world', `clicking the ground selects the World (${await selected()})`);
@@ -139,12 +140,13 @@ check(await page.evaluate(() => window.__bb.world.gravityScale) === 0, 'a World 
 b = await teach('ball', 'When I press j, jump high and turn red.');
 console.log('  ball behavior:', b.source, b.summary, b.notes || '');
 
-// the 🗑 / ⧉ buttons
+// the ⋯ menu
 await selectKey('racecar');
+await page.click('#btn-more');
 await page.click('#btn-copy');
 await page.waitForTimeout(500);
 const sel = await selected();
-check(sel?.startsWith('racecar~'), `⧉ copies the race car and selects the copy (${sel})`);
+check(sel?.startsWith('racecar~'), `Duplicate copies the race car and selects the copy (${sel})`);
 check(await page.evaluate((k) => window.__bb.stage.behaviorsOf(k).length, sel) === 1, 'the copy knows how to drive too');
 
 await page.waitForTimeout(500);

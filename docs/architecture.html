@@ -226,7 +226,7 @@ ol.steps li { margin-bottom: 6px; }
   <thead><tr><th>Module</th><th>Job</th></tr></thead>
   <tbody>
     <tr><td><code>src/main.js</code></td><td>Boots Rapier and Three.js, creates World, Runtime, App, Stage and Chat, and runs the frame loop (<code>world.step</code> → <code>app.update</code> → render).</td></tr>
-    <tr><td><code>src/ui/app.js</code></td><td>World picker, selection and dragging, the composer with chips, behavior cards (title, read-back, then the program as blocks or code; running blocks glow), speech bubbles. Calls <code>generateBehavior()</code>.</td></tr>
+    <tr><td><code>src/ui/app.js</code></td><td>World picker, selection and dragging, and the inspector: a ⋯ menu for duplicate, rotate, reset and delete; the composer with chips, whose bottom row holds Parts, Point, Talk and Generate; behavior cards (a title that folds the card and an on/off switch, then the program as blocks or as editable, syntax-highlighted code (<code>ui/highlight.js</code>) whose edits run from a Run button, with View code and Delete underneath; running blocks glow). Also speech bubbles. Calls <code>generateBehavior()</code>.</td></tr>
     <tr><td><code>src/ui/pad.js</code></td><td>The key pad: a button for every key the selected thing's behaviors listen to, with arrows in an inverted T, letters where they sit on a keyboard, and space as a wide bar. Each group gets a short label ("move", "up and down", "sword"), taken from Claude's <code>keys</code> or a premade behavior's own labels, otherwise read from the code. Holding a button is the same as holding the key. There is no <code>onClick</code>: clicking always selects.</td></tr>
     <tr><td><code>src/ui/blocks.js</code></td><td>Draws a program as Scratch-style blocks: parses the JavaScript with acorn and keeps its statements, order and nesting, but uses plain words (<code>onKey(" ", …)</code> becomes a “when space key pressed” hat). Shapes are plain HTML/CSS, not Blockly.</td></tr>
     <tr><td><code>src/stage.js</code></td><td>What is in the current world and what each thing knows. Behaviors are keyed by actor key so they survive Reset and world switches. Owns clone/remove and the 40-copy cap.</td></tr>
@@ -239,7 +239,7 @@ ol.steps li { margin-bottom: 6px; }
 
 <span class="eyebrow">02</span>
 <h2 id="pipeline">Teaching a behavior</h2>
-<p>When a kid presses <b>Make it so</b>, the UI collects everything Claude needs to know about the selected thing and its surroundings, sends it to the server, and checks the answer before it goes anywhere near a worker. If any step fails, the offline compiler writes the program instead, and the card says so.</p>
+<p>When a kid presses <b>Generate</b> (the send arrow), the UI collects everything Claude needs to know about the selected thing and its surroundings, sends it to the server, and checks the answer before it goes anywhere near a worker. If any step fails, the offline compiler writes the program instead, and the card says so.</p>
 
 <figure>
 <div class="diagram">
@@ -471,7 +471,7 @@ when I press space, wave {part:left arm} and say hi, then go to {thing:tree-3|Tr
 
 <h3>Design choices in the prompt</h3>
 <ul>
-  <li><b>The read-back is the contract with the kid.</b> <code>title</code> (1–4 words) heads the behavior's card, and <code>summary</code> is written for a 7–10 year old and shown above the blocks, so a kid can check that it understood before reading any JavaScript.</li>
+  <li><b>The read-back is the contract with the kid.</b> <code>title</code> (1–4 words) heads the behavior's card above its blocks. <code>summary</code> is written for a 7–10 year old; it is no longer shown on the card but tells Claude what a thing already knows when it writes the next behavior, and <code>notes</code> go to the program log.</li>
   <li><b>Notes instead of refusals.</b> Impossible requests get "the closest fun thing" plus an explanation in <code>notes</code>.</li>
   <li><b>Chips remove ambiguity.</b> Pointing produces exact part names, thing ids and coordinates; the prompt maps each chip form to a primitive call.</li>
   <li><b>Safety rules are stated, but enforced elsewhere.</b> "Every loop must await" and "never let copies keep cloning" are in the prompt, and the watchdog and copy caps catch the cases where Claude misses them.</li>

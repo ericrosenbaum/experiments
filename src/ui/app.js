@@ -7,6 +7,7 @@ import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, probeClaude, syntaxError } from '../behavior/generate.js';
 import { renderBlocks } from './blocks.js';
+import { highlight } from './highlight.js';
 import { keyLabels, padGroups, padHtml } from './pad.js';
 import { makeBehavior, describeTarget } from '../stage.js';
 
@@ -14,31 +15,13 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const css = (hex) => '#' + colorHex(hex).toString(16).padStart(6, '0');
 const DEG = Math.PI / 180;
-
-const STARTERS = [
-  'When I press the up arrow, ', 'When I press space, ', 'Forever, ', 'When it bumps into ',
-  'When I press h, ', 'Every 2 seconds, ', 'When it sees ', 'When it hears ',
-];
-const WORLD_STARTERS = ['At the start, ', 'When I press space, ', 'Every 2 seconds, ', 'When I press g, ', 'When it hears '];
-
-const THING_EXAMPLES = {
-  tree: ['When I press o, turn orange and say "Autumn!"', 'When I press the up arrow, move forward.', 'When I press c, make a copy of itself.'],
-  house: ['When I press the arrows, drive and steer.', 'When I press j, jump high.', 'When I press space, turn around.'],
-  castle: ['When I press space, play drum and say "Who goes there?"', 'When I press c, make a copy of itself to the right.', 'When I press j, jump.'],
-  coin: ['When it bumps into the hero, play coin and disappear.', 'Forever, turn left.', 'Every 2 seconds, fly up for 1 second then fly down for 1 second.'],
-  asteroid: ['Forever, turn left slowly.', 'When it bumps into the spaceship, play crash and disappear.', 'Every 4 seconds, make a copy of itself.'],
-  platform: ['Forever, move 6 studs, then move back 6 studs.', 'When it bumps into the hero, fly up for 2 seconds then fly down for 2 seconds.'],
+const svg = (d, w = 15) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  chevron: svg('<path d="M6 9l6 6 6-6"/>', 18),
+  code: svg('<path d="M8 4H7a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M16 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>'),
+  play: svg('<path d="M7 5v14l11-7z"/>', 13),
+  trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
 };
-const PIECE_EXAMPLES = ['When I press j, jump high and turn red.', 'When I press space, push it up.', 'When I press c, make a copy of itself above.'];
-const BRICK_EXAMPLES = ['When I press j, jump high and play boing.', 'When I press the arrows, drive and steer.', 'When I press c, make a copy of itself in front.', 'Every 3 seconds, turn a random color.'];
-const WORLD_EXAMPLES = [
-  'At the start, turn off gravity.',
-  'When I press g, turn gravity back on.',
-  'When I press m, make the gravity weak like on the moon.',
-  'Every 3 seconds, drop a red brick.',
-  'When I press c, make a copy of the race car.',
-  'When I press h, say "Hello, world!"',
-];
 
 export class App {
   constructor({ world, scene, camera, controls, renderer, audio }) {
@@ -176,6 +159,13 @@ export class App {
     };
     $('btn-make').onclick = () => this.make();
     $('btn-point').onclick = () => this.setPointing(!this.pointing);
+    $('btn-more').onclick = (ev) => { ev.stopPropagation(); this.setPop('menu', $('sel-menu').classList.contains('hidden')); };
+    $('btn-parts').onmousedown = (ev) => ev.preventDefault(); // keep the cursor in the composer
+    $('btn-parts').onclick = (ev) => { ev.stopPropagation(); this.setPop('parts', $('parts-pop').classList.contains('hidden')); };
+    $('sel-menu').onclick = () => this.setPop('menu', false); // every item closes it
+    $('parts-pop').onclick = (ev) => ev.stopPropagation(); // stay open to add several parts
+    document.addEventListener('click', () => { this.setPop('menu', false); this.setPop('parts', false); });
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { this.setPop('menu', false); this.setPop('parts', false); } });
     this._wireSpeech();
     $('btn-console').onclick = () => {
       $('console').classList.toggle('collapsed');
@@ -184,24 +174,20 @@ export class App {
     };
   }
 
-  _renderStarters(isWorld) {
-    const starters = $('starters');
-    starters.innerHTML = '';
-    for (const s of isWorld ? WORLD_STARTERS : STARTERS) {
-      const b = document.createElement('button');
-      b.className = 'starter';
-      b.textContent = s.replace(/, $/, '…').replace(/ $/, '…');
-      b.onmousedown = (ev) => ev.preventDefault();
-      b.onclick = () => this._insertText(s);
-      starters.appendChild(b);
-    }
+  // The ⋯ menu and the Parts popover in the inspector
+  setPop(which, open) {
+    if (open) this.setPop(which === 'menu' ? 'parts' : 'menu', false); // one at a time
+    const [pop, btn] = which === 'menu' ? [$('sel-menu'), $('btn-more')] : [$('parts-pop'), $('btn-parts')];
+    pop.classList.toggle('hidden', !open);
+    btn.classList.toggle('on', open);
+    btn.setAttribute('aria-expanded', String(open));
   }
 
   // ---- selection ----------------------------------------------------------------
 
   select(actor) {
     if (actor && !actor.alive) actor = null;
-    if (actor !== this.selected) { this.stopListening?.(); this.setPointing(false); }
+    if (actor !== this.selected) { this.stopListening?.(); this.setPointing(false); this.setPop('menu', false); this.setPop('parts', false); }
     this.selected = actor;
     this.runtime.setKeyTarget(actor);
     $('no-selection').classList.toggle('hidden', !!actor);
@@ -214,25 +200,16 @@ export class App {
     const model = actor.model;
     $('sel-name').textContent = actor.name;
     $('sel-swatch').style.background = actor.isWorld ? 'conic-gradient(#3f9e44, #0a64d6, #3f9e44)' : css(model?.def.color ?? actor.color ?? 'gray');
-    const members = actor.members;
-    const whole = kind === 'piece' ? this.world.actorOf(members[0]) : null;
-    $('sel-kind').textContent = {
-      world: 'World rules', model: `Model · ${model?.def.name}`, piece: `One brick of ${whole?.name}`,
-      thing: members.length > 1 ? `${members.length} loose bricks` : members[0]?.chassis.isKinematic() ? 'Prop' : `Loose ${members[0]?.kind}`,
-    }[kind] ?? '';
-    $('sel-blurb').textContent = actor.isWorld
-      ? 'Rules for the whole world: gravity, dropping bricks, copying things, and what happens when you press a key. Only things in the world can move, so the World never drives.'
-      : describeTarget(actor).blurb;
-    $('sel-hint').innerHTML = actor.isWorld ? 'Click the ground any time to come back here.'
-      : `Drag it to move it · scroll while dragging to turn it${kind === 'thing' && members.length > 1 ? ' · <b>double-click</b> one brick to teach just that brick' : ''}`;
+    const whole = kind === 'piece' ? this.world.actorOf(actor.members[0]) : null;
     $('btn-respawn').classList.toggle('hidden', !model);
     $('btn-whole').classList.toggle('hidden', kind !== 'piece');
-    $('btn-whole').title = whole ? `Back to the whole ${whole.name}` : '';
+    $('btn-whole').querySelector('span').textContent = whole ? `Back to the whole ${whole.name}` : '';
     for (const id of ['btn-copy', 'btn-turn', 'btn-remove']) $(id).classList.toggle('hidden', actor.isWorld);
+    $('btn-more').classList.toggle('hidden', actor.isWorld); // the World has nothing to copy, turn or delete
 
     const parts = $('sel-parts');
     parts.innerHTML = '';
-    $('parts-section').classList.toggle('hidden', !model?.def.parts.length);
+    $('btn-parts').classList.toggle('hidden', !model?.def.parts.length);
     for (const p of model?.def.parts ?? []) {
       const b = document.createElement('button');
       b.className = 'chip part';
@@ -244,18 +221,6 @@ export class App {
       parts.appendChild(b);
     }
     $('composer').dataset.placeholder = actor.isWorld ? 'At the start, turn off gravity…' : 'When I press the up arrow, drive forward…';
-    this._renderStarters(actor.isWorld);
-    const ex = $('examples');
-    ex.innerHTML = '<div class="hint">Try one:</div>';
-    const kindOf = members[0]?.kind;
-    const examples = actor.isWorld ? WORLD_EXAMPLES : model ? model.def.examples ?? [] : kind === 'piece' ? PIECE_EXAMPLES : THING_EXAMPLES[kindOf] ?? BRICK_EXAMPLES;
-    for (const t of examples) {
-      const b = document.createElement('button');
-      b.className = 'ex';
-      b.textContent = `“${t}”`;
-      b.onclick = () => { $('composer').textContent = t; this.savedRange = null; };
-      ex.appendChild(b);
-    }
     this.renderBehaviors();
   }
 
@@ -471,13 +436,13 @@ export class App {
     rec.onstart = () => {
       this.listening = true;
       btn.classList.add('on');
-      btn.textContent = '🎤 Listening…';
+      btn.title = 'Listening… click to stop';
       $('point-hint').textContent = 'Say what it should do';
     };
     rec.onend = () => {
       this.listening = false;
       btn.classList.remove('on');
-      btn.textContent = '🎤 Talk';
+      btn.title = 'Talk: say what it should do. You can point while you talk. Say “generate” to finish.';
       $('point-hint').textContent = this.pointing ? 'Click a part, a thing, or the ground' : '';
     };
     rec.onerror = (ev) => {
@@ -490,8 +455,8 @@ export class App {
         const r = ev.results[i];
         if (!r.isFinal) { interim += r[0].transcript; continue; }
         let words = r[0].transcript.trim();
-        const done = /\bmake it so\W*$/i.test(words);
-        if (done) words = words.replace(/\W*make it so\W*$/i, '');
+        const done = /\b(make it so|generate)\W*$/i.test(words);
+        if (done) words = words.replace(/\W*(make it so|generate)\W*$/i, '');
         if (words) this._insertSpoken(words);
         if (done) { rec.stop(); this.make(); return; }
       }
@@ -594,7 +559,8 @@ export class App {
     this.stopListening?.();
     const btn = $('btn-make');
     btn.disabled = true;
-    btn.textContent = '✨ Thinking…';
+    btn.title = 'Generating…';
+    $('point-hint').textContent = 'Generating…';
     try {
       const here = a.position;
       const things = [...this.world.things().entries()]
@@ -616,7 +582,8 @@ export class App {
       this.setPointing(false);
     } finally {
       btn.disabled = false;
-      btn.textContent = '✨ Make it so';
+      btn.title = 'Generate';
+      if ($('point-hint').textContent === 'Generating…') $('point-hint').textContent = '';
     }
   }
 
@@ -626,6 +593,7 @@ export class App {
       notes: [b.notes, b.unknown?.length ? `I didn't understand: “${b.unknown.join('”, “')}”` : ''].filter(Boolean).join(' '),
     });
     this.stage.behaviorsOf(a.key).push(behavior);
+    if (behavior.notes) this.log(`${behavior.title}: ${behavior.notes}`);
     this.runtime.start(a, behavior);
     this.renderBehaviors();
   }
@@ -644,48 +612,67 @@ export class App {
     if (!a) return;
     list.innerHTML = '';
     const behaviors = this.stage.behaviorsOf(a.key);
-    $('behavior-count').textContent = behaviors.length ? `(${behaviors.length})` : '(nothing yet)';
-    $('behaviors-title').textContent = a.isWorld ? 'World rules' : 'What it knows';
+    $('behavior-count').textContent = behaviors.length ? `(${behaviors.length})` : '(none yet)';
     for (const b of behaviors) {
       const card = document.createElement('div');
       card.className = `behavior ${b.enabled ? '' : 'off'} ${b.running ? 'running' : ''}`;
       card.dataset.bid = b.id;
-      const by = { claude: 'Claude', premade: 'the world (it came with it)', edited: 'you' }[b.source] ?? 'the offline helper';
-      const view = this.codeView;
       card.innerHTML = `
         <div class="b-head">
+          <button class="fold" title="${b.collapsed ? 'Show the blocks' : 'Fold it up'}" aria-expanded="${!b.collapsed}">${ICON.chevron}</button>
           <div class="b-title">${esc(b.title)}</div>
-          <button class="toggle ${b.enabled ? 'on' : ''}" title="Turn this behavior on or off">${b.enabled ? 'ON' : 'OFF'}</button>
-          <button class="mini edit" title="Put these words back in the box to change them">✎</button>
-          <button class="mini del" title="Forget this behavior">✕</button>
+          <button class="switch ${b.enabled ? 'on' : ''}" role="switch" aria-checked="${b.enabled}" title="Turn this behavior on or off">
+            <span class="sw-label">${b.enabled ? 'On' : 'Off'}</span><span class="sw-track"><span class="sw-knob"></span></span>
+          </button>
         </div>
-        <div class="b-said">${b.html ? sanitizeHtml(b.html) : esc(b.text)}</div>
-        <ul>${b.summary.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
-        ${b.notes ? `<div class="notes">${esc(b.notes)}</div>` : ''}
-        <div class="b-view">
-          <button data-view="blocks" class="${view === 'blocks' ? 'on' : ''}">🧩 Blocks</button>
-          <button data-view="code" class="${view === 'code' ? 'on' : ''}">{ } Code</button>
-          <span class="src">· written by ${by}</span>
-        </div>
-        ${view === 'blocks' ? this._blocksFor(b) : ''}
-        ${view === 'code' ? `<textarea spellcheck="false">${esc(b.code)}</textarea>
-          <button class="mini run">Run edited code</button>` : ''}`;
-      for (const btn of card.querySelectorAll('.b-view button')) {
-        btn.onclick = () => { this.codeView = this.codeView === btn.dataset.view ? 'none' : btn.dataset.view; this.renderBehaviors(); };
-      }
-      card.querySelector('.toggle').onclick = () => { b.enabled = !b.enabled; this._restart(a, b); this.renderBehaviors(); };
+        ${b.collapsed ? '' : `<div class="b-body">
+          ${b.showCode ? `<div class="code-edit"><pre aria-hidden="true">${highlight(b.draft ?? b.code)}</pre><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code for ${esc(b.title)}">${esc(b.draft ?? b.code)}</textarea></div>` : this._blocksFor(b)}
+          <div class="b-foot">
+            <button class="code" title="${b.showCode ? 'Back to the blocks' : 'See the JavaScript'}">${ICON.code}${b.showCode ? 'View blocks' : 'View code'}</button>
+            <span class="grow"></span>
+            ${b.showCode ? `<button class="run" title="Run your changes to the code (${/Mac/.test(navigator.platform) ? '⌘' : 'Ctrl'}+Enter)" ${b.draft == null ? 'disabled' : ''}>${ICON.play}Run</button>` : ''}
+            <button class="del" title="Forget this behavior">${ICON.trash}Delete</button>
+          </div>
+        </div>`}`;
+      card.classList.toggle('collapsed', !!b.collapsed);
+      const fold = () => { b.collapsed = !b.collapsed; this.renderBehaviors(); };
+      card.querySelector('.fold').onclick = fold;
+      card.querySelector('.b-title').onclick = fold;
+      card.querySelector('.switch').onclick = () => { b.enabled = !b.enabled; this._restart(a, b); this.renderBehaviors(); };
+      if (b.collapsed) { list.appendChild(card); continue; }
+      card.querySelector('.code').onclick = () => { b.showCode = !b.showCode; this.renderBehaviors(); };
       card.querySelector('.del').onclick = () => {
         b.enabled = false;
         this._restart(a, b);
         behaviors.splice(behaviors.indexOf(b), 1);
         this.renderBehaviors();
       };
-      card.querySelector('.edit').onclick = () => { $('composer').innerHTML = b.html ?? esc(b.text); this.savedRange = null; $('composer').focus(); };
+      const ta = card.querySelector('.code-edit textarea');
+      if (ta) {
+        const layer = card.querySelector('.code-edit pre');
+        const run = card.querySelector('.run');
+        const lines = ta.value.split('\n').length;
+        ta.parentElement.style.height = `${Math.round(Math.min(Math.max(lines * 20 + 24, 240), innerHeight * 0.6))}px`; // fit the code
+        ta.oninput = () => {
+          layer.innerHTML = highlight(ta.value);
+          b.draft = ta.value === b.code ? null : ta.value; // kept across re-renders until it runs
+          run.disabled = b.draft == null;
+        };
+        ta.onscroll = () => { layer.scrollTop = ta.scrollTop; layer.scrollLeft = ta.scrollLeft; };
+        ta.onkeydown = (ev) => {
+          if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); if (!run.disabled) run.click(); return; }
+          if (ev.key !== 'Tab' || ev.shiftKey) return; // Tab indents instead of leaving the box
+          ev.preventDefault();
+          document.execCommand('insertText', false, '  ');
+        };
+      }
       if (card.querySelector('.run')) card.querySelector('.run').onclick = () => {
         const code = card.querySelector('textarea').value;
+        if (code === b.code) return;
         const err = syntaxError(code);
         if (err) { this.log(`That code has a typo: ${err}`, 'error'); return; }
         b.code = code;
+        b.draft = null;
         b.keys = null; // the labels may not fit the new code
         b.source = 'edited';
         b.enabled = true;
@@ -737,20 +724,6 @@ export class App {
     for (const btn of $('pad').querySelectorAll('.pad-key')) if (btn.dataset.key === key) btn.classList.toggle('down', down);
   }
 
-  // How behavior cards show their program: 'blocks', 'code' or 'none' (remembered).
-  get codeView() {
-    if (!this._codeView) {
-      try { this._codeView = localStorage.getItem('bb-code-view'); } catch { /* private mode */ }
-      this._codeView ||= 'blocks';
-    }
-    return this._codeView;
-  }
-
-  set codeView(v) {
-    this._codeView = v;
-    try { localStorage.setItem('bb-code-view', v); } catch { /* private mode: just this page */ }
-  }
-
   _blocksFor(b) {
     if (b._blocks?.code !== b.code) {
       const things = this.world.things();
@@ -764,7 +737,7 @@ export class App {
   // (or ran in the last moment, so quick blocks still flash).
   _lightBlocks() {
     const a = this.selected;
-    if (!a || this.codeView !== 'blocks') return;
+    if (!a) return;
     const now = performance.now();
     const programs = [...this.runtime.programs].filter((p) => p.actor === a);
     for (const card of $('behaviors').children) {
@@ -882,20 +855,4 @@ export class App {
       if (s) { b.el.style.left = `${s.x}px`; b.el.style.top = `${s.y}px`; }
     }
   }
-}
-
-// Behavior cards echo the kid's words with their chips; keep only text and chip spans.
-function sanitizeHtml(html) {
-  const tpl = document.createElement('template');
-  tpl.innerHTML = html;
-  const walk = (node) => {
-    let out = '';
-    for (const n of node.childNodes) {
-      if (n.nodeType === Node.TEXT_NODE) out += esc(n.textContent);
-      else if (n.classList?.contains('chip')) out += `<span class="chip ${['part', 'thing', 'place'].find((c) => n.classList.contains(c)) ?? ''}">${esc(n.textContent)}</span>`;
-      else out += (n.nodeName === 'DIV' || n.nodeName === 'BR' ? ' ' : '') + walk(n);
-    }
-    return out;
-  };
-  return walk(tpl.content);
 }
