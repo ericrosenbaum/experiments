@@ -1,11 +1,13 @@
 // The World Finder page, in two screens.
-//   ask:  a kid says what they like in a sentence (or browses the tags); the
-//         wishes it heard show up as chips they can flip or remove.
+//   ask:  a kid types or says what they feel like playing (or browses the
+//         tags). Claude (server/finder.js) turns the sentence into tags and
+//         keyword wishes ("lava" → the worlds' lava, volcano, magma); the
+//         wishes show up as chips they can flip or remove.
 //   look: the decision model (model.js) reads the worlds in
 //         public/finder/worlds.json one at a time, one fact at a time; each
 //         clue fills a wish, and worlds that clear the bar fly over to
 //         "Picked for you" with the wish they matched best.
-import { FACETS, CRITERIA, CRITERIA_BY_ID, THRESHOLD, facetOf, read, decide, parse } from './model.js';
+import { FACETS, CRITERIA, THRESHOLD, crit, facetOf, isKeyword, read, decide, hitsFor, parse } from './model.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -14,12 +16,15 @@ const colorOf = (id) => `var(--${facetOf(id).color})`;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const WORLDS = await (await fetch('./finder/worlds.json')).json();
+const KEYWORDS = [...new Set(WORLDS.flatMap((w) => w.keywords ?? []))];
 const thumbUrl = (w) => `url('./${w.thumb}')`; // single quotes: it goes inside style="…" attributes
 
 const state = {
   said: {},   // wishes heard in the sentence
+  groups: {}, // keyword wishes: {"kw:geology": {matches: [...], related: [...]}}
   tapped: {}, // taps on chips override them: 1, -1, or 0 for "removed"
   speed: 1, run: 0, running: false, order: [], seen: 0, found: 0, tab: FACETS[0].id,
+  ai: undefined, asked: '', askSeq: 0, asking: null, askTimer: 0, listening: false,
 };
 const ms = (base) => base / state.speed;
 const sleep = (t, run) => new Promise((ok, no) => setTimeout(() => (run === state.run ? ok() : no(new Error('stopped'))), t));
@@ -41,11 +46,19 @@ const EXAMPLES = [
   ['Hard games', 'Hard games where you collect coins'],
 ];
 
+// What a keyword wish looks for, for tooltips.
+function covers(id) {
+  const g = state.groups[id];
+  if (!g) return '';
+  const m = Array.isArray(g) ? g : g.matches;
+  return `Looks for: ${m.join(', ')}${g.related?.length ? ` (and a little: ${g.related.join(', ')})` : ''}. `;
+}
+
 function chip(id, v, extra = '') {
-  const c = CRITERIA_BY_ID[id];
+  const c = crit(id);
   const cls = v === 1 ? 'like' : v === -1 ? 'dislike' : '';
-  return `<button type="button" class="chip ${cls}" data-id="${id}" style="--c:${colorOf(id)}" aria-pressed="${v === 1 ? 'true' : v === -1 ? 'mixed' : 'false'}"
-    title="${v === 1 ? 'Yes please (tap for no thanks)' : v === -1 ? 'No thanks (tap to remove)' : 'Tap if you like this'}">
+  return `<button type="button" class="chip ${cls}${isKeyword(id) ? ' kw' : ''}" data-id="${esc(id)}" style="--c:${colorOf(id)}" aria-pressed="${v === 1 ? 'true' : v === -1 ? 'mixed' : 'false'}"
+    title="${esc(covers(id))}${v === 1 ? 'Yes please (tap for no thanks)' : v === -1 ? 'No thanks (tap to remove)' : 'Tap if you like this'}">
     <span class="ic">${c.icon}</span><span class="tx">${esc(c.label)}</span>${extra}</button>`;
 }
 
@@ -56,7 +69,7 @@ function renderAsk(changed = []) {
   $('#examples').hidden = ids.length > 0;
   // tabs and the open facet's chips
   $('#facet-tabs').innerHTML = FACETS.map((f) => {
-    const n = ids.filter((id) => CRITERIA_BY_ID[id].facet === f.id).length;
+    const n = ids.filter((id) => crit(id).facet === f.id).length;
     return `<button type="button" role="tab" data-tab="${f.id}" style="--c:var(--${f.color})" aria-selected="${f.id === state.tab}">${esc(f.label)}${n ? `<span class="n">${n}</span>` : ''}</button>`;
   }).join('');
   $('#facet-chips').innerHTML = CRITERIA.filter((c) => c.facet === state.tab).map((c) => chip(c.id, p[c.id])).join('');
@@ -83,25 +96,147 @@ function mirror(text, parsed) {
   $('#say-mirror').innerHTML = html + esc(text.slice(at)) + '\n';
 }
 
-// Read the sentence as it's typed. New words win over earlier taps on the same wish.
+// Wishes from the sentence. Taps on a wish the sentence just changed give way
+// to the new words.
+function setSaid(said, groups = {}) {
+  const changed = Object.keys(said).filter((id) => state.said[id] !== said[id]);
+  for (const id of changed) delete state.tapped[id];
+  state.said = said;
+  // Keep what tapped keyword wishes look for; replace the rest.
+  const kept = Object.fromEntries(Object.entries(state.groups).filter(([id]) => id in state.tapped));
+  state.groups = { ...kept, ...groups };
+  renderAsk(changed);
+}
+
+function status(html, cls = '') {
+  const el = $('#heard-status');
+  el.innerHTML = html;
+  el.className = `heard-status ${cls}`;
+}
+
+// As the kid types, the on-device word list gives an instant first guess.
+// Once they pause (or stop talking, or press Find), Claude reads the sentence
+// and its tags replace the guess. Without Claude the guess stands.
 function hear() {
   const ta = $('#say-input');
   ta.style.height = 'auto';
   ta.style.height = `${ta.scrollHeight}px`;
-  const parsed = parse(ta.value);
+  const parsed = parse(ta.value, KEYWORDS);
   mirror(ta.value, parsed);
-  const said = {};
-  for (const { id, polarity } of parsed) said[id] = polarity;
-  const fresh = Object.keys(said).filter((id) => state.said[id] !== said[id]);
-  for (const id of fresh) delete state.tapped[id];
-  state.said = said;
-  renderAsk(fresh);
+  const said = {}, groups = {};
+  for (const { id, polarity, keywords } of parsed) { said[id] = polarity; if (keywords) groups[id] = { matches: keywords }; }
+  setSaid(said, groups);
+  clearTimeout(state.askTimer);
+  if (!ta.value.trim()) { state.asked = ''; status(''); return; }
+  if (state.ai && !state.listening) state.askTimer = setTimeout(ask, 900);
+  else if (!state.ai) status(state.ai === false ? 'Matched with the word list on this device (Claude isn’t set up on the server).' : '');
+}
+
+// Where each of Claude's wishes came from in the sentence, for highlighting.
+function spans(text, wishes) {
+  const lower = text.toLowerCase();
+  const out = [];
+  for (const w of wishes) {
+    const i = w.words ? lower.indexOf(w.words.toLowerCase()) : -1;
+    if (i >= 0) out.push({ id: w.id, polarity: w.polarity, start: i, end: i + w.words.length });
+  }
+  return out;
+}
+
+async function ask() {
+  clearTimeout(state.askTimer);
+  const text = $('#say-input').value.trim();
+  if (!state.ai || !text) return;
+  if (text === state.asked) return state.asking;
+  state.asked = text;
+  const seq = ++state.askSeq;
+  status('<span class="dots"><i></i><i></i><i></i></span> Claude is reading that…', 'busy');
+  document.body.classList.add('asking');
+  state.asking = (async () => {
+    try {
+      const res = await fetch('./api/finder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error ?? res.status);
+      if (seq !== state.askSeq) return;
+      const said = {}, groups = {};
+      for (const w of out.wishes) said[w.id] = w.polarity;
+      for (const k of out.keywords ?? []) { said[k.id] = k.polarity; groups[k.id] = { matches: k.matches, related: k.related ?? [] }; }
+      setSaid(said, groups);
+      mirror($('#say-input').value, spans($('#say-input').value, [...out.wishes, ...(out.keywords ?? [])]));
+      const any = out.wishes.length + (out.keywords?.length ?? 0);
+      const none = out.unmatched?.length ? ` Nothing here has ${out.unmatched.map((u) => `“${esc(u)}”`).join(', ')}.` : '';
+      status(out.refused ? 'Claude couldn’t help with that one. Try saying it another way?'
+        : any ? `<b>Claude understood.</b>${none}` : `Claude didn’t find anything to look for in that.${none}`, any ? 'ok' : '');
+    } catch (err) {
+      if (seq !== state.askSeq) return;
+      state.asked = '';
+      status('Couldn’t reach Claude, so the word list on this device guessed instead.', 'warn');
+      console.warn('finder: Claude call failed', err);
+    } finally {
+      if (seq === state.askSeq) document.body.classList.remove('asking');
+    }
+  })();
+  return state.asking;
+}
+
+// ---- talking ---------------------------------------------------------------------
+
+// Browser speech recognition, as in the behavior composer: final words go in at
+// the cursor like typing; when the kid stops talking, Claude reads it.
+function setupMic() {
+  const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+  const btn = $('#mic');
+  if (!SR) return;
+  btn.hidden = false;
+  const ta = $('#say-input');
+  const rec = new SR();
+  rec.lang = navigator.language || 'en-US';
+  rec.continuous = true;
+  rec.interimResults = true;
+  btn.addEventListener('mousedown', (e) => e.preventDefault()); // keep the cursor in the box
+  btn.addEventListener('click', () => (state.listening ? rec.stop() : rec.start()));
+  rec.onstart = () => {
+    state.listening = true;
+    btn.classList.add('on');
+    btn.setAttribute('aria-pressed', 'true');
+    btn.title = 'Stop listening';
+    status('🎤 Listening… say what kind of world you feel like.', 'busy');
+  };
+  rec.onend = () => {
+    state.listening = false;
+    btn.classList.remove('on');
+    btn.setAttribute('aria-pressed', 'false');
+    btn.title = 'Say it out loud';
+    if (state.ai && ta.value.trim()) ask(); else hear();
+  };
+  rec.onerror = (e) => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') status('I need permission to use the microphone to hear you.', 'warn');
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') status(`Listening stopped: ${esc(e.error)}`, 'warn');
+  };
+  rec.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (!r.isFinal) { interim += r[0].transcript; continue; }
+      const words = r[0].transcript.trim();
+      if (!words) continue;
+      const at = ta.selectionStart ?? ta.value.length;
+      const before = ta.value.slice(0, at), after = ta.value.slice(ta.selectionEnd ?? at);
+      const cap = !before.trim() || /[.!?]\s*$/.test(before);
+      const ins = (before && !/\s$/.test(before) ? ' ' : '') + (cap ? words[0].toUpperCase() + words.slice(1) : words) + ' ';
+      ta.value = before + ins + after;
+      ta.selectionStart = ta.selectionEnd = before.length + ins.length;
+      hear();
+    }
+    if (interim) status(`🎤 …${esc(interim.trim())}`, 'busy');
+  };
+  state.stopListening = () => state.listening && rec.stop();
 }
 
 function setupAsk() {
   const ta = $('#say-input');
   ta.addEventListener('input', hear);
-  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!$('#go').disabled) look(); } });
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } });
   $('#examples').innerHTML = `<span>Try</span>${EXAMPLES.map(([label, x], i) => `<button type="button" data-i="${i}" title="${esc(x)}">${esc(label)}</button>`).join('')}`;
   $('#examples').addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -109,6 +244,7 @@ function setupAsk() {
     ta.value = EXAMPLES[+b.dataset.i][1];
     state.tapped = {};
     hear();
+    ask();
     ta.focus();
   });
   $('#wishes').addEventListener('click', onChip);
@@ -123,7 +259,7 @@ function setupAsk() {
     $('#browse-toggle').setAttribute('aria-expanded', String(open));
     $('#browse-toggle').innerHTML = `${open ? 'Hide tags' : 'Browse all tags'} <span aria-hidden="true">${open ? '▴' : '▾'}</span>`;
   });
-  $('#go').addEventListener('click', look);
+  $('#go').addEventListener('click', go);
 }
 
 function show(screen) {
@@ -138,11 +274,11 @@ function show(screen) {
 function renderCrits() {
   const p = state.prefs;
   const ids = Object.keys(p).sort((a, b) => p[b] - p[a]);
-  $('#bar-wishes').innerHTML = ids.map((id) => `<span class="w ${p[id] < 0 ? 'dislike' : ''}" style="--c:${colorOf(id)}">${CRITERIA_BY_ID[id].icon} ${esc(CRITERIA_BY_ID[id].label)}</span>`).join('');
+  $('#bar-wishes').innerHTML = ids.map((id) => `<span class="w ${p[id] < 0 ? 'dislike' : ''}" style="--c:${colorOf(id)}" title="${esc(covers(id))}">${crit(id).icon} ${esc(crit(id).label)}</span>`).join('');
   $('#crits').innerHTML = ids.map((id) => `
     <div class="crit ${p[id] > 0 ? 'like' : 'dislike'}" data-id="${id}" style="--c:${colorOf(id)}">
-      <span class="ci">${CRITERIA_BY_ID[id].icon}</span>
-      <span class="cl"><span>${esc(CRITERIA_BY_ID[id].label)}</span><b></b></span>
+      <span class="ci">${crit(id).icon}</span>
+      <span class="cl"><span>${esc(crit(id).label)}</span><b></b></span>
       <span class="bar"><i></i></span>
     </div>`).join('');
 }
@@ -166,7 +302,7 @@ function feed(kind, text, { hits = [], cls = '' } = {}) {
   const el = document.createElement('div');
   el.className = `line ${cls}${hits.length ? ' has-hit' : ''}`;
   el.innerHTML = `<span class="k">${esc(kind)}</span><span class="t">${esc(text)}</span><span class="h">${hits.map((h) =>
-    `<span class="${state.prefs[h.crit] < 0 ? 'neg' : ''}" style="--c:${colorOf(h.crit)}" title="${esc(CRITERIA_BY_ID[h.crit].label)}">${CRITERIA_BY_ID[h.crit].icon} +${pct(h.w)}</span>`).join('')}</span>`;
+    `<span class="${state.prefs[h.crit] < 0 ? 'neg' : ''}" style="--c:${colorOf(h.crit)}" title="${esc(crit(h.crit).label)}">${crit(h.crit).icon} +${pct(h.w)}</span>`).join('')}</span>`;
   const box = $('#feed');
   box.append(el);
 }
@@ -211,7 +347,7 @@ function stampVerdict(pick, text) {
 function addCard(w, d) {
   $('.cards-empty')?.remove();
   const [best, ...rest] = d.reasons;
-  const all = d.reasons.map((r) => `${CRITERIA_BY_ID[r.id].label} ${pct(r.p)}`).join(', ');
+  const all = d.reasons.map((r) => `${crit(r.id).label} ${pct(r.p)}`).join(', ');
   const card = document.createElement('article');
   card.className = 'card';
   card.tabIndex = 0;
@@ -222,7 +358,7 @@ function addCard(w, d) {
       <h3>${esc(w.title)}</h3>
       <p class="sum">${esc(w.summary)}</p>
       <div class="why">
-        <span class="badge"><span class="pct">${pct(d.match)}</span><span class="bt">${CRITERIA_BY_ID[best.id].icon} ${esc(CRITERIA_BY_ID[best.id].label)}${rest.length ? ` +${rest.length}` : ''}</span></span>
+        <span class="badge"><span class="pct">${pct(d.match)}</span><span class="bt">${crit(best.id).icon} ${esc(crit(best.id).label)}${rest.length ? ` +${rest.length}` : ''}</span></span>
         <span class="flag" aria-label="${esc(w.by.country)}">${w.by.flag}</span>
       </div>
     </div>`;
@@ -255,6 +391,16 @@ async function flyToCard(w, card) {
   anim.oncancel = anim.onfinish;
 }
 
+// A world's keywords, the ones a wish looks for first.
+function keywordLine(keywords, hits) {
+  const wanted = new Set();
+  for (const h of hits) {
+    const g = state.lookGroups[h.crit];
+    if (g) for (const k of [...(g.matches ?? g), ...(g.related ?? [])]) wanted.add(k);
+  }
+  return [...keywords.filter((k) => wanted.has(k)), ...keywords.filter((k) => !wanted.has(k))].join(', ');
+}
+
 async function scan(w, i, run) {
   tick(i, 'now');
   $('#queue .q')?.classList.add('leaving');
@@ -267,12 +413,12 @@ async function scan(w, i, run) {
   const { facts } = read(w);
   for (let k = 0; k < facts.length; k++) {
     const f = facts[k];
-    const hits = f.hits.filter((h) => h.crit in state.prefs && h.w >= 0.05).sort((a, b) => b.w - a.w);
-    feed(f.kind, f.text, { hits });
-    showEvidence(decide(facts, state.prefs, k + 1), hits.map((h) => h.crit));
+    const hits = hitsFor(f, state.prefs, state.lookGroups).filter((h) => h.w >= 0.05);
+    feed(f.kind, f.keywords ? keywordLine(f.keywords, hits) : f.text, { hits });
+    showEvidence(decide(facts, state.prefs, k + 1, state.lookGroups), hits.map((h) => h.crit));
     await sleep(ms(hits.length ? 240 : 90), run);
   }
-  const d = decide(facts, state.prefs);
+  const d = decide(facts, state.prefs, undefined, state.lookGroups);
   state.seen++;
 
   if (d.pick) {
@@ -287,7 +433,7 @@ async function scan(w, i, run) {
   } else {
     tick(i, 'pass');
     progress();
-    const vetoed = d.vetoed[0] && CRITERIA_BY_ID[d.vetoed[0]];
+    const vetoed = d.vetoed[0] && crit(d.vetoed[0]);
     stampVerdict(false, vetoed ? `no ${vetoed.icon}` : 'not this one');
     feed('passed', vetoed ? `has ${vetoed.label.toLowerCase()}` : `${pct(d.match)} match, needs ${pct(THRESHOLD)}`, { cls: 'result' });
     await sleep(ms(420), run);
@@ -341,8 +487,23 @@ function stop() {
   $('#lens .thumb')?.classList.remove('in');
 }
 
+// Find: let Claude finish reading the sentence first, then go look.
+async function go() {
+  state.stopListening?.();
+  const btn = $('#go');
+  if (state.ai && $('#say-input').value.trim()) {
+    btn.disabled = true;
+    btn.classList.add('waiting');
+    await ask();
+    btn.classList.remove('waiting');
+    renderAsk();
+  }
+  if (!$('#go').disabled) look();
+}
+
 function look() {
   state.prefs = prefs();
+  state.lookGroups = { ...state.groups };
   show('look');
   start();
 }
@@ -369,7 +530,9 @@ function setupLook() {
 // ---- boot ----------------------------------------------------------------------------
 
 setupAsk();
+setupMic();
 setupLook();
 renderAsk();
+fetch('./api/finder').then((r) => r.json()).then((r) => { state.ai = !!r.available; }).catch(() => { state.ai = false; });
 // for tests
-Object.assign(window, { __finder: { state, start, stop, look, prefs, WORLDS } });
+Object.assign(window, { __finder: { state, start, stop, look, ask, prefs, WORLDS } });

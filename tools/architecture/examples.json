@@ -101,5 +101,234 @@
         ]
       }
     }
+  ],
+  "finder": [
+    {
+      "text": "Dragons and castles, but nothing too scary. Something easy!",
+      "result": {
+        "wishes": [
+          {
+            "id": "dragons",
+            "polarity": 1,
+            "words": "Dragons"
+          },
+          {
+            "id": "castles",
+            "polarity": 1,
+            "words": "castles"
+          },
+          {
+            "id": "spooky",
+            "polarity": -1,
+            "words": "nothing too scary"
+          },
+          {
+            "id": "beginner",
+            "polarity": 1,
+            "words": "easy"
+          }
+        ],
+        "keywords": [],
+        "unmatched": [],
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "text": "geology",
+      "result": {
+        "wishes": [
+          {
+            "id": "nature",
+            "polarity": 1,
+            "words": "geology"
+          }
+        ],
+        "keywords": [
+          {
+            "id": "kw:geology",
+            "polarity": 1,
+            "words": "geology",
+            "matches": [
+              "geology",
+              "volcano",
+              "lava",
+              "magma",
+              "rock",
+              "fossil"
+            ],
+            "related": [
+              "crystal",
+              "mountain"
+            ]
+          }
+        ],
+        "unmatched": [],
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "text": "something about dinosaur bones",
+      "result": {
+        "wishes": [
+          {
+            "id": "dragons",
+            "polarity": 1,
+            "words": "dinosaur"
+          }
+        ],
+        "keywords": [
+          {
+            "id": "kw:dinosaur bones",
+            "polarity": 1,
+            "words": "dinosaur bones",
+            "matches": [
+              "fossil",
+              "bone",
+              "paleontology"
+            ],
+            "related": [
+              "dinosaur",
+              "dino",
+              "dig site",
+              "excavation",
+              "digging",
+              "archaeology",
+              "prehistoric"
+            ]
+          }
+        ],
+        "unmatched": [],
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "text": "quiero algo con vacas y tractores, nada de carreras",
+      "result": {
+        "wishes": [
+          {
+            "id": "animals",
+            "polarity": 1,
+            "words": "vacas"
+          },
+          {
+            "id": "farms",
+            "polarity": 1,
+            "words": "vacas y tractores"
+          },
+          {
+            "id": "vehicles",
+            "polarity": 1,
+            "words": "tractores"
+          },
+          {
+            "id": "racing",
+            "polarity": -1,
+            "words": "nada de carreras"
+          }
+        ],
+        "keywords": [
+          {
+            "id": "kw:vacas",
+            "polarity": 1,
+            "words": "vacas",
+            "matches": [
+              "cow",
+              "moo"
+            ],
+            "related": [
+              "farm animal",
+              "pasture",
+              "barn"
+            ]
+          },
+          {
+            "id": "kw:tractores",
+            "polarity": 1,
+            "words": "tractores",
+            "matches": [
+              "tractor"
+            ],
+            "related": [
+              "farming",
+              "vehicle",
+              "agriculture"
+            ]
+          }
+        ],
+        "unmatched": [],
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "text": "pirates and treasure, made by kids in Japan",
+      "result": {
+        "wishes": [
+          {
+            "id": "adventure",
+            "polarity": 1,
+            "words": "treasure"
+          },
+          {
+            "id": "asia",
+            "polarity": 1,
+            "words": "made by kids in Japan"
+          }
+        ],
+        "keywords": [
+          {
+            "id": "kw:treasure",
+            "polarity": 1,
+            "words": "treasure",
+            "matches": [
+              "treasure hunt"
+            ],
+            "related": [
+              "coin",
+              "collecting",
+              "quest",
+              "island"
+            ]
+          },
+          {
+            "id": "kw:japan",
+            "polarity": 1,
+            "words": "Japan",
+            "matches": [
+              "japan"
+            ],
+            "related": []
+          }
+        ],
+        "unmatched": [
+          "pirates"
+        ],
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "text": "I want to smash stuff in space where things float",
+      "result": {
+        "wishes": [
+          {
+            "id": "crash",
+            "polarity": 1,
+            "words": "smash stuff"
+          },
+          {
+            "id": "space",
+            "polarity": 1,
+            "words": "in space"
+          },
+          {
+            "id": "float",
+            "polarity": 1,
+            "words": "things float"
+          }
+        ],
+        "keywords": [],
+        "unmatched": [],
+        "model": "claude-opus-5-5"
+      }
+    }
   ]
 }

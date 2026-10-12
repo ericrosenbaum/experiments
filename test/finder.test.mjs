@@ -1,7 +1,8 @@
 // World Finder: the sentence parser and the decision model, against the
 // rendered worlds in public/finder/worlds.json.
 import fs from 'node:fs';
-import { parse, prefsFrom, read, decide, CRITERIA_BY_ID } from '../src/finder/model.js';
+import { parse, prefsFrom, read, decide, hitsFor, crit, CRITERIA, CRITERIA_BY_ID } from '../src/finder/model.js';
+import { responseSchema, systemPrompt, buildUserMessage, keywordsOf } from '../src/finder/prompt.js';
 
 const WORLDS = JSON.parse(fs.readFileSync(new URL('../public/finder/worlds.json', import.meta.url)));
 let fails = 0;
@@ -43,5 +44,31 @@ const d = decide(read(WORLDS.find((w) => w.id === 'pond-picnic')).facts, { cozy:
 check(d.pick && d.reasons[0].p >= d.reasons.at(-1).p, 'reasons come best first');
 const partial = decide(read(WORLDS[0]).facts, { dragons: 1 }, 1);
 check(partial.p.dragons === 0, 'scoring part way through only counts the facts so far');
+
+// ---- keywords --------------------------------------------------------------------------
+const KEYWORDS = keywordsOf(WORLDS);
+check(WORLDS.every((w) => w.keywords?.length >= 10), 'every world has keywords');
+check(KEYWORDS.length > 100 && KEYWORDS.every((k) => k === k.toLowerCase().trim()), `${KEYWORDS.length} keywords, lowercase`);
+const geo = { 'kw:geology': { matches: ['volcano', 'lava', 'magma', 'fossil'], related: ['crystal'] } };
+const geoPicks = WORLDS.filter((w) => decide(read(w).facts, { 'kw:geology': 1 }, undefined, geo).pick).map((w) => w.id);
+check(geoPicks.includes('volcano-island') && !geoPicks.includes('wizard-tower'), `a keyword wish picks worlds with its keywords, not ones only loosely related (${geoPicks})`);
+const volcano = read(WORLDS.find((w) => w.id === 'volcano-island')).facts.find((f) => f.kind === 'keywords');
+check(hitsFor(volcano, { 'kw:geology': 1 }, geo)[0]?.w === 1, 'a world keyword fills the wish that matches it');
+const wiz = read(WORLDS.find((w) => w.id === 'wizard-tower')).facts.find((f) => f.kind === 'keywords');
+check(hitsFor(wiz, { 'kw:geology': 1 }, geo)[0]?.w < 0.5, 'a related keyword counts for less than the bar');
+const both = decide(read(WORLDS.find((w) => w.id === 'dragon-mountain')).facts, { dragons: 1, 'kw:bones': 1 }, undefined, { 'kw:bones': ['fossil', 'bone'] });
+check(!both.pick, 'a keyword wish counts double, so meeting only the tag beside it isn\'t enough');
+check(parse('I want lava, not a fossil', KEYWORDS).map((p) => `${p.polarity > 0 ? '+' : '-'}${p.id}`).join(' ') === '+kw:lava -kw:fossil', 'offline: world keywords become keyword wishes');
+check(parse('dragons and lava', KEYWORDS).map((p) => p.id).join(' ') === 'dragons kw:lava', 'offline: a word the tag list knows stays a tag');
+check(crit('kw:lava').label === 'lava' && crit('dragons').label === 'Dinos & dragons', 'labels for tags and keyword wishes');
+
+// ---- the Claude prompt -------------------------------------------------------------------
+const schema = responseSchema(KEYWORDS), SYSTEM_PROMPT = systemPrompt(KEYWORDS);
+const ids = schema.properties.wishes.items.properties.id.enum;
+check(ids.length === CRITERIA.length && CRITERIA.every((c) => ids.includes(c.id)), 'the schema can name every tag, and only tags');
+check(schema.properties.keywords.items.properties.matches.items.enum === KEYWORDS, 'the schema can name every keyword, and only keywords');
+check(CRITERIA.every((c) => SYSTEM_PROMPT.includes(`  ${c.id}: ${c.label}`)), 'the prompt lists every tag');
+check(SYSTEM_PROMPT.includes(KEYWORDS.join(', ')), 'the prompt lists every keyword');
+check(buildUserMessage('dragons <3').includes('<said>\ndragons <3\n</said>'), 'the user message wraps what the kid said');
 
 if (fails) { console.log(`${fails} failed`); process.exit(1); }

@@ -9,14 +9,25 @@
 //    p = 1 - (1 - w1)(1 - w2)..., so two weak hints beat one, and nothing
 //    goes past 1.
 // 3. decide() weighs the kid's likes against their dislikes: the match is the
-//    average p over likes, minus a penalty for the strongest dislike. A world
+//    average p over likes (keyword wishes count double, since they're the kid
+//    being specific), minus a penalty for the strongest dislike. A world
 //    is suggested when the match clears THRESHOLD and no dislike is clearly
 //    present. The rationale is the likes it matched best.
 //
-// parse(text) turns a sentence ("dragons and castles, but nothing scary")
-// into likes and dislikes with a small word list and negation scopes.
+// Besides the 33 tags, every world has specific keywords ("lava", "geology").
+// A keyword wish has an id like "kw:geology" (the kid's words) and a group:
+// {matches: ["lava", "volcano", "magma"], related: ["crystal"]}. A world with
+// any of the matches fills it; a related keyword counts for less (0.4). Claude makes
+// these groups (server/finder.js); pass them to decide() as `groups`. A plain
+// array is taken as matches.
+//
+// parse(text, keywords) turns a sentence ("dragons and castles, but nothing
+// scary") into likes and dislikes with a small word list and negation scopes.
+// It's the offline fallback; the page normally asks Claude.
 
 export const THRESHOLD = 0.5;
+const KEYWORD_WEIGHT = 2;
+const RELATED = 0.4; // under the bar on its own: a loose link alone never picks a world
 const DISLIKE_PENALTY = 0.8;
 const DISLIKE_VETO = 0.6;
 
@@ -68,7 +79,11 @@ export const CRITERIA = [
   { id: 'oceania', facet: 'region', label: 'Oceania', icon: '🌏' },
 ];
 export const CRITERIA_BY_ID = Object.fromEntries(CRITERIA.map((c) => [c.id, c]));
-export const facetOf = (id) => FACETS.find((f) => f.id === CRITERIA_BY_ID[id].facet);
+export const KEYWORD_FACET = { id: 'keyword', label: 'Keywords', color: 'pink' };
+export const isKeyword = (id) => id.startsWith('kw:');
+// A tag, or a keyword wish (labelled with the kid's own words).
+export const crit = (id) => CRITERIA_BY_ID[id] ?? { id, facet: 'keyword', label: id.slice(3), icon: '🔎' };
+export const facetOf = (id) => (isKeyword(id) ? KEYWORD_FACET : FACETS.find((f) => f.id === CRITERIA_BY_ID[id].facet));
 
 const REGION = {
   Japan: 'asia', India: 'asia', 'South Korea': 'asia', China: 'asia', Singapore: 'asia', 'United Arab Emirates': 'asia',
@@ -140,6 +155,11 @@ export function read(world) {
   const region = REGION[world.by.country];
   add('maker', `${world.by.name}, ${world.by.age} · ${world.by.city}, ${world.by.country}`, region ? { [region]: 1 } : {});
   for (const tag of [...world.tags.genre, ...world.tags.topic]) add('tag', `#${tag}`, TAG[tag] ?? {});
+  // Its keywords, as one fact: evidence "#lava" etc. for keyword wishes.
+  if (world.keywords?.length) {
+    add('keywords', world.keywords.join(', '), Object.fromEntries(world.keywords.map((k) => [`#${k}`, 1])));
+    facts[facts.length - 1].keywords = world.keywords;
+  }
 
   // Things: models one by one, other things grouped by kind ("Tree ×3").
   const groups = new Map();
@@ -185,27 +205,46 @@ export function read(world) {
 
 // ---- deciding -------------------------------------------------------------------
 
-// Fold facts into per-criterion probabilities (noisy-OR), keeping which facts
+// What one fact says about the kid's wishes: [{crit: wishId, w}], strongest
+// first. A world keyword ("#lava") counts for every keyword wish whose group
+// has it.
+export function hitsFor(fact, prefs, groups = {}) {
+  const out = new Map();
+  for (const { crit: id, w } of fact.hits) {
+    if (w <= 0) continue;
+    if (!id.startsWith('#')) { if (id in prefs) out.set(id, Math.max(out.get(id) ?? 0, w)); continue; }
+    const k = id.slice(1);
+    for (const t of Object.keys(prefs)) {
+      const g = groups[t];
+      if (!g) continue;
+      const strength = (Array.isArray(g) ? g : g.matches ?? []).includes(k) ? 1 : g.related?.includes(k) ? RELATED : 0;
+      if (strength) out.set(t, Math.max(out.get(t) ?? 0, w * strength));
+    }
+  }
+  return [...out].map(([crit, w]) => ({ crit, w })).sort((a, b) => b.w - a.w);
+}
+
+// Fold facts into per-wish probabilities (noisy-OR), keeping which facts
 // counted. `upto` lets the page score as the facts stream in.
-export function evidence(facts, prefs, upto = facts.length) {
+export function evidence(facts, prefs, upto = facts.length, groups = {}) {
   const p = {}, from = {};
   for (const id of Object.keys(prefs)) { p[id] = 0; from[id] = []; }
   for (let i = 0; i < upto; i++) {
-    for (const { crit, w } of facts[i].hits) {
-      if (!(crit in p) || w <= 0) continue;
-      p[crit] = 1 - (1 - p[crit]) * (1 - w);
-      from[crit].push(i);
+    for (const { crit: id, w } of hitsFor(facts[i], prefs, groups)) {
+      p[id] = 1 - (1 - p[id]) * (1 - w);
+      from[id].push(i);
     }
   }
   return { p, from };
 }
 
-// prefs: {criterionId: +1 (like) | -1 (dislike)}
-export function decide(facts, prefs, upto) {
-  const { p, from } = evidence(facts, prefs, upto);
+// prefs: {wishId: +1 (like) | -1 (dislike)}; groups: {keywordWishId: [keywords]}
+export function decide(facts, prefs, upto, groups = {}) {
+  const { p, from } = evidence(facts, prefs, upto, groups);
   const likes = Object.keys(prefs).filter((k) => prefs[k] > 0);
   const dislikes = Object.keys(prefs).filter((k) => prefs[k] < 0);
-  const like = likes.length ? likes.reduce((s, k) => s + p[k], 0) / likes.length : 0;
+  const weight = (k) => (isKeyword(k) ? KEYWORD_WEIGHT : 1);
+  const like = likes.length ? likes.reduce((s, k) => s + weight(k) * p[k], 0) / likes.reduce((s, k) => s + weight(k), 0) : 0;
   const worst = dislikes.reduce((m, k) => Math.max(m, p[k]), 0);
   const match = Math.max(0, like - DISLIKE_PENALTY * worst);
   const vetoed = dislikes.filter((k) => p[k] >= DISLIKE_VETO);
@@ -257,13 +296,24 @@ const PHRASES = [[/\bno gravity\b|\bzero g(ravity)?\b|\blow gravity\b/g, 'float'
 const NEGATE = new Set(['not', 'no', "don't", 'dont', 'never', 'without', 'hate', 'hates', 'nothing', 'avoid', 'except', "isn't", 'isnt', 'too', 'dislike', 'skip']);
 const STOP = /^(but|and|though|although|yet|also|plus)$|[.!?;,]$/;
 
-// Returns [{id, polarity: 1 | -1, start, end}] in the order they were said;
-// start/end index into text, for highlighting.
-export function parse(text) {
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Returns [{id, polarity: 1 | -1, start, end, keywords?}] in the order they
+// were said; start/end index into text, for highlighting. `keywords` (the
+// worlds' keywords) adds a keyword wish for any of them said that the word
+// list doesn't already cover ("lava" yes; "dragon" is the dragons tag).
+export function parse(text, keywords = []) {
   const out = [];
   const lower = text.toLowerCase();
   const taken = [];
   for (const [re, id] of PHRASES) for (const m of lower.matchAll(re)) taken.push({ id, start: m.index, end: m.index + m[0].length });
+  for (const k of [...keywords].sort((a, b) => b.length - a.length)) {
+    if (LEXICON.has(k) || LEXICON.has(k.replace(/s$/, ''))) continue;
+    for (const m of lower.matchAll(new RegExp(`\\b${escape(k)}(s|es)?\\b`, 'g'))) {
+      const span = { id: `kw:${k}`, keywords: [k], start: m.index, end: m.index + m[0].length };
+      if (!taken.some((t) => span.start < t.end && t.start < span.end)) taken.push(span);
+    }
+  }
   let neg = false;
   for (const m of lower.matchAll(/[a-z'’-]+[.!?;,]?/g)) {
     const raw = m[0].replace('’', "'");
@@ -271,7 +321,7 @@ export function parse(text) {
     const start = m.index, end = start + word.length;
     const phrase = taken.find((t) => start >= t.start && start < t.end);
     // "too" only negates before a level word ("too hard"); elsewhere it's "also".
-    if (phrase) { if (start === phrase.start) out.push({ id: phrase.id, polarity: neg ? -1 : 1, start: phrase.start, end: phrase.end }); }
+    if (phrase) { if (start === phrase.start) out.push({ ...phrase, polarity: neg ? -1 : 1 }); }
     else if (NEGATE.has(word) && !(word === 'too' && !/^\s*(hard|difficult|easy|scary|complicated|simple)/.test(lower.slice(end)))) neg = true;
     else if (LEXICON.has(word) || LEXICON.has(word.replace(/s$/, ''))) out.push({ id: LEXICON.get(word) ?? LEXICON.get(word.replace(/s$/, '')), polarity: neg ? -1 : 1, start, end });
     if (STOP.test(word) || /[.!?;,]$/.test(raw)) neg = false;

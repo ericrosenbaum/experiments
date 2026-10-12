@@ -125,6 +125,11 @@ pre.code.prompt { white-space: pre-wrap; max-height: 560px; }
 .chat-meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; margin: 0; }
 .chat-meta dt { color: var(--muted); }
 .chat-meta dd { margin: 0; }
+.wishes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.wish { font-size: 13px; padding: 2px 9px; border-radius: 999px; background: var(--green-soft); color: var(--green); border: 1px solid currentColor; }
+.wish.no { background: var(--red-soft); color: var(--red); text-decoration: line-through; }
+.wish.kw { background: var(--yellow-soft); color: var(--yellow); }
+.wish code { font-size: 11.5px; opacity: .8; }
 
 .prims { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin: 18px 0; }
 .prim-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 13px; }
@@ -147,6 +152,7 @@ ol.steps li { margin-bottom: 6px; }
     <li><a href="#sandbox">Sandbox and runtime</a></li>
     <li><a href="#actors">Actors, stage, physics</a></li>
     <li><a href="#bricktalk">Brick Talk chat</a></li>
+    <li><a href="#finder">World Finder</a></li>
     <li><a href="#upkeep">Keeping this page current</a></li>
   </ol>
 </nav>
@@ -156,7 +162,7 @@ ol.steps li { margin-bottom: 6px; }
   <div class="studs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <h1>Brick Behaviors Architecture</h1>
   <p class="lede">Kids describe how something in a brick world should behave, in words plus things they point at. Claude turns that into a short JavaScript program, the program runs in a locked-down Web Worker, and the only things it can do are call high-level primitives that act on a Rapier physics world.</p>
-  <div class="meta"><span>Updated 2026-10-10</span><span>branch claude/brick-behaviors</span><span>examples run <!-- gen:examples-date -->2026-10-10<!-- /gen:examples-date --></span></div>
+  <div class="meta"><span>Updated 2026-10-12</span><span>branch claude/brick-behaviors</span><span>examples run <!-- gen:examples-date -->2026-10-10<!-- /gen:examples-date --></span></div>
 </header>
 
 <span class="eyebrow">01</span>
@@ -877,13 +883,268 @@ Examples:
 <div class="callout"><p><b>Known issue:</b> "tu castillo es muy grande" ("your castle is really big") lost its first phrase to the validator. The likely translation, <code>castle you big</code>, has a person followed by a describer before any action, which the name-calling rule reads as "you big". The prompt teaches ownership-after-thing, so the prompt and the validator disagree on this pattern.</p></div>
 
 <span class="eyebrow">09</span>
+<h2 id="finder">World Finder</h2>
+<p>A separate page, <code>finder.html</code>, demonstrates a world-finding agent for kids. A kid types or says (browser speech recognition, as in the behavior composer) what kind of world they feel like, in any language. Claude turns that sentence into <em>wishes</em> of two kinds. <b>Tags</b> come from a fixed list of 33 (kind of play, topic, things to do, level, where the maker lives). <b>Keyword wishes</b> are for anything more specific ("lava", "geology", "mangoes"): the kid's words plus the world keywords they cover. Each wish is marked yes or no and carries the exact words that led to it, so the page can highlight them. Then a small decision model on the page reads 24 worlds made by kids around the world, one fact at a time, and picks the ones that clear the bar. Only the sentence leaves the device; the worlds and the matching never do.</p>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 1000 220" role="img" aria-label="World Finder flow: the kid's sentence goes to /api/finder, Opus 5.5 returns tags constrained by an enum schema, the page shows them as wish chips the kid can change, and the on-device model scores each world's facts against the wishes, picking worlds that clear the threshold.">
+  <defs><marker id="a9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <rect class="box kid" x="20" y="40" width="160" height="64" rx="8"/><text class="t" x="100" y="68" text-anchor="middle">Sentence</text><text class="s" x="100" y="86" text-anchor="middle">typed or spoken</text>
+  <rect class="box" x="220" y="40" width="160" height="64" rx="8"/><text class="t" x="300" y="68" text-anchor="middle">/api/finder</text><text class="s" x="300" y="86" text-anchor="middle">prompt + tag enum</text>
+  <rect class="box claude" x="420" y="40" width="160" height="64" rx="8"/><text class="t" x="500" y="68" text-anchor="middle">Opus 5.5</text><text class="s" x="500" y="86" text-anchor="middle">low effort · only 33 ids</text>
+  <rect class="box kid" x="620" y="40" width="160" height="64" rx="8"/><text class="t" x="700" y="68" text-anchor="middle">Wish chips</text><text class="s" x="700" y="86" text-anchor="middle">kid can flip or remove</text>
+  <rect class="box sandbox" x="820" y="40" width="160" height="64" rx="8"/><text class="t" x="900" y="68" text-anchor="middle">model.js</text><text class="s" x="900" y="86" text-anchor="middle">on device</text>
+  <line class="edge" x1="180" y1="72" x2="218" y2="72" marker-end="url(#a9)"/>
+  <line class="edge" x1="380" y1="72" x2="418" y2="72" marker-end="url(#a9)"/>
+  <line class="edge" x1="580" y1="72" x2="618" y2="72" marker-end="url(#a9)"/>
+  <line class="edge" x1="780" y1="72" x2="818" y2="72" marker-end="url(#a9)"/>
+  <rect class="box" x="20" y="150" width="360" height="50" rx="8"/><text class="t" x="200" y="172" text-anchor="middle">parse(): on-device word list</text><text class="s" x="200" y="188" text-anchor="middle">instant preview; the fallback with no key or on error</text>
+  <path class="edge" d="M380,175 H700 V106" marker-end="url(#a9)"/>
+  <rect class="box sandbox" x="820" y="150" width="160" height="50" rx="8"/><text class="t" x="900" y="172" text-anchor="middle">worlds.json</text><text class="s" x="900" y="188" text-anchor="middle">24 worlds' facts</text>
+  <line class="edge" x1="900" y1="148" x2="900" y2="106" marker-end="url(#a9)"/>
+</svg>
+</div>
+<figcaption>Claude reads the sentence when the kid pauses typing, stops talking, or presses Find. Until it answers, the word list's guess is shown. The enums mean Claude can only name real tags and real keywords; the server also drops duplicates and keeps at most 8 tags and 6 keyword wishes.</figcaption>
+</figure>
+
+<p><b>World keywords.</b> Each world has 15 to 25 specific keywords (<code>volcano, eruption, lava, magma, geology, island, dinosaur, ranger…</code>), 369 across the 24 worlds. <code>tools/finder/keywords.mjs</code> pulls them out once with Claude from what's actually in each world (its title, summary, maker, tags, things and what they do) and stores them in <code>worlds.json</code>. The whole list goes into the prompt and the schema's enum. Claude returns a keyword wish's keywords in two lists. <code>matches</code> are the thing itself or squarely part of it, and a world with any of them fills the wish. <code>related</code> keywords are loose links ("geology": crystal, mountain) that count 0.4, under the bar on their own. A keyword wish counts double in the average, because it's the kid being specific: "dinosaur bones" shouldn't pick a dragon world on the dragons tag alone.</p>
+
+<p><b>The decision model</b> (<code>src/finder/model.js</code>) turns each world's metadata into facts with weighted evidence for wishes. The facts are the maker's tags, its keywords, its things and models, what its compiled behavior code does, its gravity, and a complexity score. Evidence for a wish combines as a noisy-OR. The match is the weighted average over likes (keyword wishes ×2), minus 0.8× the strongest dislike, and a world is picked at 50% unless a dislike is at least 60% present. The page plays this back fact by fact, so a kid can watch each clue fill a wish.</p>
+
+<div class="prompt-head"><h3>System prompt</h3><span>src/finder/prompt.js · claude-opus-5-5 · effort low · fallbacks "default"</span></div>
+<div class="code-box"><!-- gen:finder-system --><pre class="code prompt"><code>You help kids find 3D brick worlds that other kids built and shared. A kid tells you, in their own words and in any language, what kind of world they feel like playing. You turn that into wishes. A small matching model on the kid's device then uses them to pick worlds.
+
+There are two kinds of wishes.
+
+1. Tags: broad ones from this fixed list (id: meaning), each marked &quot;yes&quot; (they want it) or &quot;no&quot; (they want to avoid it).
+Kind of play:
+  adventure: Adventure
+  games: Games &amp; challenges
+  racing: Racing
+  battle: Battles
+  story: Stories &amp; mysteries
+  building: Build &amp; experiment
+  cozy: Cozy &amp; calm
+  spooky: Spooky
+  music: Music &amp; dance
+  silly: Silly
+What it's about:
+  animals: Animals
+  dragons: Dinos &amp; dragons
+  space: Space
+  castles: Castles &amp; knights
+  vehicles: Vehicles
+  robots: Robots
+  magic: Magic
+  farms: Farms
+  towns: Towns &amp; people
+  nature: Wild places
+Things to do:
+  drive: Drive it with keys
+  click: Click to make things happen
+  collect: Collect things
+  crash: Knock things over
+  float: Low gravity
+  talk: Characters that talk
+Level:
+  beginner: Easy to start
+  advanced: Lots going on
+Made in:
+  africa: Africa
+  americas: The Americas
+  asia: Asia
+  europe: Europe
+  oceania: Oceania
+
+2. Keywords: specific things. Each world has keywords for what's in it and what it's about. When the kid names something more specific than a tag (lava, geology, soccer, mangoes, a fossil, a country), add a keyword wish: their exact words, &quot;yes&quot; or &quot;no&quot;, and the keywords from the list below that fit, in two lists:
+- matches: keywords that are this thing, another word for it, or squarely part of it. A world with any of these is a full match.
+- related: keywords only loosely connected, which count for half. Leave out anything looser still.
+For &quot;soccer&quot;: matches soccer, football, soccer ball, goalie, striker, kicking; related sports, match; leave out competition and penalty (they'd pull in races and rodeos). For &quot;geology&quot;: matches geology, volcano, lava, magma, rock, fossil; related crystal, mountain. Keep matches tight: if a kid would be surprised to get a world for this wish, its keyword belongs in related or nowhere.
+
+World keywords:
+accra, adventure, africa, afternoon, agriculture, aiming, akwaaba, alien, animal, animation, arcade, archaeology, argentina, armory, asking questions, asteroid, asteroid field, astronaut, astronomy, autumn, bakery, ball, banner, barn, barrel, barrel racing, battle, beat, bell, bell tower, blasting, blue, blue team, bone, boo, brazil, brick pile, broadcast, builder, building site, canada, carrot, castaway, castle, catapult, cause and effect, celebration, chain reaction, character dialogue, charreada, chase, chasing, china, chivalry, clicking, climbing, cloud, clue, coding, coin, coin sound, collecting, colors, community, competition, construction, corn, corn maze, countdown, countryside, cow, cowgirl, cozy, crash, crop, crystal, dance, dance floor, dance party, dancing robot, danger, defending, demolition, desert, detective, dig site, digger, digging, dino, dinosaur, disco, dj, dodging, domino, dragon, driving, dubai, dump truck, dumping, enemy, eruption, escape, excavation, excavator, exit, explorer, exploring, fantasy, farm, farm animal, farmer, farming, feeding, fence, finish flag, flinging, floating, flying, flying saucer, football, fort, fossil, fountain, france, french, fruit, geology, ghana, ghost, goal, goal flag, goalie, going home, grass, gravity, green, greeting, halloween, harry potter, harvest, hauling, haunted, hawaii, hay, hay bale, help, hero, hiding, high ledge, hill, horse, horseback, house, india, island, jambo, japan, jet, jousting, judge, jumping, jungle, kente cloth, kenya, keyboard, keyboard controls, kicking, kickoff, knight, knight school, knocking down, knocking over, korea, lamp post, landing, landing pad, lap, laser, launch, lava, lava flow, library, loading, low gravity, lumos, lunar surface, machine, magic, magma, mango, market, market stall, match, maze, meadow, medieval, message, mexico, midnight, mission, momentum, monster, moo, moon, moon base, mountain, moving platform, music, mystery, nature, navigation, neighbors, new zealand, nigeria, night, nightclub, norway, obstacle, obstacle course, ocean, outer space, pacific, paleontology, pampas, pasture, patrolling enemy, peaceful, penalty, petting zoo, physics, picnic, picnic blanket, pilot, piloting, pipe, pitch, planet, platformer, poland, pond, practice, prehistoric, projectile, purple, pushing, puzzle, quest, race, race car, racetrack, racing, racing the clock, rainbow, rajasthan, ramp, ranch, ranger, red, red roof, red team, red vs blue, referee, refueling, rescue, retro, riding, road, roar, robot, rock, rocket, rocket launch, rodeo, rolling, sand, sandbox, scandinavia, sci-fi, scoop, scoring, sea, seoul, shield, shooting, shopping, siege, signal flag, silly, silo, simulation, singapore, sleeping dragon, slime, snow, snow fort, snowball fight, snowfall, soccer, soccer ball, sos flag, space, space battle, space exploration, spaceship, spain, spanish, speaker, speed, speedrun, spell, spellcasting, spinning, spooky, sports, stable, stacking, stairs, starfighter, steering, story, stranded, stranger, striker, surprise block, survival, swahili, sword, sword fighting, talking, taming, target, tent, throwing, timer, tomato, toppling, toronto, tournament, tower, town, town square, tractor, traffic cone, training, training dummy, treasure hunt, tree, tropical, truck, two player, ufo, united kingdom, vegetable, vehicle, village, villager, volcano, wandering, warp pipe, waving, weightlessness, west africa, whodunit, winning, winter, wizard, zero gravity, zib, zookeeper
+
+How to choose:
+- Pick only what the kid actually asked for or clearly implied. &quot;Something with cows&quot; implies the animals tag and maybe farms; it doesn't imply cozy.
+- Use both kinds together: a tag when one fits, plus keyword wishes for the specifics. Don't add a keyword wish that only repeats a tag (&quot;dragons&quot; is the dragons tag; it needs no keyword wish), but do add one when the kid is more specific than the tag (&quot;a sleeping dragon&quot;, &quot;a volcano&quot;).
+- Mark &quot;no&quot; for anything they want to avoid: &quot;not scary&quot;, &quot;no racing&quot;, &quot;I hate space&quot;, &quot;too hard&quot; (no to advanced), &quot;no lava&quot;.
+- Level: &quot;easy&quot;, &quot;simple&quot;, &quot;I'm new&quot;, &quot;not too hard&quot; mean beginner yes. &quot;Hard&quot;, &quot;tricky&quot;, &quot;a challenge&quot;, &quot;not too easy&quot; mean advanced yes. Mark advanced or beginner &quot;no&quot; only when they reject it outright (&quot;nothing hard&quot;, &quot;I hate easy ones&quot;).
+- &quot;Made in&quot; tags are about where the kid who built the world lives. Use them only when the kid asks about places or people (&quot;from Japan&quot;, &quot;made by kids in Africa&quot;); a country or culture can also be a keyword wish.
+- &quot;words&quot; must be copied exactly from the input (same spelling and case), usually one to four words, so they can be highlighted.
+- At most 8 tags and 6 keyword wishes.
+- If they ask for something neither a tag nor a keyword covers (for example &quot;pirates&quot;, &quot;underwater&quot;), put it in unmatched.</code></pre><!-- /gen:finder-system --></div>
+<div class="prompt-head"><h3>User message</h3><span>buildUserMessage()</span></div>
+<div class="code-box"><!-- gen:finder-user --><pre class="code prompt"><code>The kid said:
+&lt;said&gt;
+Dragons and castles, but nothing too scary. Something easy!
+&lt;/said&gt;</code></pre><!-- /gen:finder-user --></div>
+<div class="prompt-head"><h3>Response schema</h3><span>enum shortened here</span></div>
+<div class="code-box"><!-- gen:finder-schema --><pre class="code "><code>{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;wishes&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;The tags the kid asked for or against, in the order they said them. Empty if nothing matches.&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;id&quot;: {
+            &quot;type&quot;: &quot;string&quot;,
+            &quot;enum&quot;: [
+              &quot;…33 tag ids…&quot;
+            ]
+          },
+          &quot;want&quot;: {
+            &quot;type&quot;: &quot;string&quot;,
+            &quot;enum&quot;: [
+              &quot;yes&quot;,
+              &quot;no&quot;
+            ]
+          },
+          &quot;words&quot;: {
+            &quot;type&quot;: &quot;string&quot;,
+            &quot;description&quot;: &quot;The exact words from the input that led to this tag, copied character for character.&quot;
+          }
+        },
+        &quot;required&quot;: [
+          &quot;id&quot;,
+          &quot;want&quot;,
+          &quot;words&quot;
+        ],
+        &quot;additionalProperties&quot;: false
+      }
+    },
+    &quot;keywords&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;Specific things the kid named, each matched to the world keywords that fit it.&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;words&quot;: {
+            &quot;type&quot;: &quot;string&quot;,
+            &quot;description&quot;: &quot;The exact words from the input, copied character for character.&quot;
+          },
+          &quot;want&quot;: {
+            &quot;type&quot;: &quot;string&quot;,
+            &quot;enum&quot;: [
+              &quot;yes&quot;,
+              &quot;no&quot;
+            ]
+          },
+          &quot;matches&quot;: {
+            &quot;type&quot;: &quot;array&quot;,
+            &quot;description&quot;: &quot;Keywords that are this thing.&quot;,
+            &quot;items&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;enum&quot;: [
+                &quot;…369 world keywords…&quot;
+              ]
+            }
+          },
+          &quot;related&quot;: {
+            &quot;type&quot;: &quot;array&quot;,
+            &quot;description&quot;: &quot;Keywords only loosely connected to it.&quot;,
+            &quot;items&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;enum&quot;: [
+                &quot;…369 world keywords…&quot;
+              ]
+            }
+          }
+        },
+        &quot;required&quot;: [
+          &quot;words&quot;,
+          &quot;want&quot;,
+          &quot;matches&quot;,
+          &quot;related&quot;
+        ],
+        &quot;additionalProperties&quot;: false
+      }
+    },
+    &quot;unmatched&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;Things the kid asked for that neither a tag nor a keyword covers, in their words.&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;string&quot;
+      }
+    }
+  },
+  &quot;required&quot;: [
+    &quot;wishes&quot;,
+    &quot;keywords&quot;,
+    &quot;unmatched&quot;
+  ],
+  &quot;additionalProperties&quot;: false
+}</code></pre><!-- /gen:finder-schema --></div>
+
+<h3>Examples</h3>
+<div class="chat-grid"><!-- gen:finder-examples --><article class="chat-ex">
+  <p class="kid">“Dragons and castles, but nothing too scary. Something easy!”</p>
+  <div class="wishes"><span class="wish " title="from “Dragons”">Dinos &amp; dragons <code>dragons</code></span><span class="wish " title="from “castles”">Castles &amp; knights <code>castles</code></span><span class="wish no" title="from “nothing too scary”">Spooky <code>spooky</code></span><span class="wish " title="from “easy”">Easy to start <code>beginner</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>dragons ← “Dragons”<br>castles ← “castles”<br>not spooky ← “nothing too scary”<br>beginner ← “easy”</dd>
+    <dt>Keywords</dt><dd>—</dd>
+    <dt>Not covered</dt><dd>—</dd>
+  </dl>
+</article>
+<article class="chat-ex">
+  <p class="kid">“geology”</p>
+  <div class="wishes"><span class="wish " title="from “geology”">Wild places <code>nature</code></span><span class="wish kw ">“geology” <code>keyword</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>nature ← “geology”</dd>
+    <dt>Keywords</dt><dd>“geology” → geology, volcano, lava, magma, rock, fossil <span class="muted">(related: crystal, mountain)</span></dd>
+    <dt>Not covered</dt><dd>—</dd>
+  </dl>
+</article>
+<article class="chat-ex">
+  <p class="kid">“something about dinosaur bones”</p>
+  <div class="wishes"><span class="wish " title="from “dinosaur”">Dinos &amp; dragons <code>dragons</code></span><span class="wish kw ">“dinosaur bones” <code>keyword</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>dragons ← “dinosaur”</dd>
+    <dt>Keywords</dt><dd>“dinosaur bones” → fossil, bone, paleontology <span class="muted">(related: dinosaur, dino, dig site, excavation, digging, archaeology, prehistoric)</span></dd>
+    <dt>Not covered</dt><dd>—</dd>
+  </dl>
+</article>
+<article class="chat-ex">
+  <p class="kid">“quiero algo con vacas y tractores, nada de carreras”</p>
+  <div class="wishes"><span class="wish " title="from “vacas”">Animals <code>animals</code></span><span class="wish " title="from “vacas y tractores”">Farms <code>farms</code></span><span class="wish " title="from “tractores”">Vehicles <code>vehicles</code></span><span class="wish no" title="from “nada de carreras”">Racing <code>racing</code></span><span class="wish kw ">“vacas” <code>keyword</code></span><span class="wish kw ">“tractores” <code>keyword</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>animals ← “vacas”<br>farms ← “vacas y tractores”<br>vehicles ← “tractores”<br>not racing ← “nada de carreras”</dd>
+    <dt>Keywords</dt><dd>“vacas” → cow, moo <span class="muted">(related: farm animal, pasture, barn)</span><br>“tractores” → tractor <span class="muted">(related: farming, vehicle, agriculture)</span></dd>
+    <dt>Not covered</dt><dd>—</dd>
+  </dl>
+</article>
+<article class="chat-ex">
+  <p class="kid">“pirates and treasure, made by kids in Japan”</p>
+  <div class="wishes"><span class="wish " title="from “treasure”">Adventure <code>adventure</code></span><span class="wish " title="from “made by kids in Japan”">Asia <code>asia</code></span><span class="wish kw ">“treasure” <code>keyword</code></span><span class="wish kw ">“Japan” <code>keyword</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>adventure ← “treasure”<br>asia ← “made by kids in Japan”</dd>
+    <dt>Keywords</dt><dd>“treasure” → treasure hunt <span class="muted">(related: coin, collecting, quest, island)</span><br>“Japan” → japan</dd>
+    <dt>Not covered</dt><dd>pirates</dd>
+  </dl>
+</article>
+<article class="chat-ex">
+  <p class="kid">“I want to smash stuff in space where things float”</p>
+  <div class="wishes"><span class="wish " title="from “smash stuff”">Knock things over <code>crash</code></span><span class="wish " title="from “in space”">Space <code>space</code></span><span class="wish " title="from “things float”">Low gravity <code>float</code></span></div>
+  <dl class="chat-meta">
+    <dt>Words</dt><dd>crash ← “smash stuff”<br>space ← “in space”<br>float ← “things float”</dd>
+    <dt>Keywords</dt><dd>—</dd>
+    <dt>Not covered</dt><dd>—</dd>
+  </dl>
+</article><!-- /gen:finder-examples --></div>
+
+<span class="eyebrow">10</span>
 <h2 id="upkeep">Keeping this page current</h2>
 <p>This page is <code>docs/architecture.html</code>. Prompts, schemas, the primitives list and examples sit between <code>&lt;!-- gen:… --&gt;</code> markers and are rewritten by a script; diagrams and prose are edited by hand.</p>
 <div class="code-box"><pre class="code"><code># after changing a prompt, schema or primitive
 node tools/architecture/build.mjs
 
 # also re-run the worked examples against Claude (needs the key)
-node --env-file=.env.local tools/architecture/build.mjs --examples</code></pre></div>
+node --env-file=.env.local tools/architecture/build.mjs --examples
+
+# just the World Finder examples
+node --env-file=.env.local tools/architecture/build.mjs --finder-examples</code></pre></div>
 <p>Inputs for the examples are in <code>tools/architecture/build.mjs</code>; the last Claude outputs are saved in <code>tools/architecture/examples.json</code>. The offline-compiler column is recomputed on every build.</p>
 </main>
 </div>

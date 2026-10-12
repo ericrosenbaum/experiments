@@ -137,7 +137,32 @@
     "code": "onKey(\"ArrowUp\", async () => {\n  drive(7);\n});\nonKeyUp(\"ArrowUp\", () => {\n  drive(0);\n});\nonKey(\"ArrowDown\", async () => {\n  drive(-7);\n});\nonKeyUp(\"ArrowDown\", () => {\n  drive(0);\n});\nonKey(\"ArrowLeft\", async () => {\n  steer(84);\n});\nonKeyUp(\"ArrowLeft\", () => {\n  steer(0);\n});\nonKey(\"ArrowRight\", async () => {\n  steer(-84);\n});\nonKeyUp(\"ArrowRight\", () => {\n  steer(0);\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "dragon",
+   "castle",
+   "catapult",
+   "knight",
+   "siege",
+   "medieval",
+   "flinging",
+   "hill",
+   "tree",
+   "hay bale",
+   "mountain",
+   "roar",
+   "chase",
+   "battle",
+   "aiming",
+   "projectile",
+   "gravity",
+   "fantasy",
+   "adventure",
+   "throwing",
+   "japan",
+   "sleeping dragon",
+   "driving"
+  ]
  },
  {
   "id": "moo-racetrack",
@@ -284,7 +309,31 @@
     "code": "onTouch(\"racecar\", async (thing) => {\n  play(\"yay\");\n  say(\"Lap!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "race car",
+   "racing",
+   "racetrack",
+   "cow",
+   "farm",
+   "barn",
+   "hay bale",
+   "fence",
+   "finish flag",
+   "road",
+   "driving",
+   "obstacle",
+   "dodging",
+   "lap",
+   "moo",
+   "animal",
+   "crash",
+   "steering",
+   "countryside",
+   "argentina",
+   "pampas",
+   "silly"
+  ]
  },
  {
   "id": "planet-zib",
@@ -439,7 +488,34 @@
     "code": "forever(async () => {\n  part(\"dome\").spin(350);\n});"
    }
   ],
-  "gravity": 0.4
+  "gravity": 0.4,
+  "keywords": [
+   "rocket",
+   "alien",
+   "crystal",
+   "planet",
+   "outer space",
+   "asteroid",
+   "ufo",
+   "landing pad",
+   "low gravity",
+   "gravity",
+   "collecting",
+   "quest",
+   "launch",
+   "countdown",
+   "flying",
+   "astronomy",
+   "spaceship",
+   "adventure",
+   "story",
+   "driving",
+   "zib",
+   "sci-fi",
+   "flying saucer",
+   "going home",
+   "nigeria"
+  ]
  },
  {
   "id": "coin-tower",
@@ -644,7 +720,30 @@
     "code": "onTouch(\"hero\", async (thing) => {\n  play(\"yay\");\n  say(\"You win!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "platformer",
+   "coin",
+   "collecting",
+   "jumping",
+   "climbing",
+   "tower",
+   "slime",
+   "hero",
+   "goal flag",
+   "pipe",
+   "surprise block",
+   "cloud",
+   "stairs",
+   "dodging",
+   "obstacle course",
+   "patrolling enemy",
+   "arcade",
+   "retro",
+   "keyboard controls",
+   "winning",
+   "coin sound"
+  ]
  },
  {
   "id": "desert-dino",
@@ -758,7 +857,33 @@
     "code": "every(5, async () => {\n  await part(\"head\").turnTo(90);\n  play(\"roar\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "dinosaur",
+   "fossil",
+   "bone",
+   "desert",
+   "sand",
+   "digger",
+   "excavator",
+   "scoop",
+   "digging",
+   "paleontology",
+   "archaeology",
+   "tent",
+   "rock",
+   "hill",
+   "chase",
+   "roar",
+   "driving",
+   "escape",
+   "excavation",
+   "rajasthan",
+   "india",
+   "dig site",
+   "adventure",
+   "exploring"
+  ]
  },
  {
   "id": "snow-fort",
@@ -885,7 +1010,33 @@
     "code": "every(2, async () => {\n  spawn({color: \"white\", at: \"top\"});\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "snow fort",
+   "snowball fight",
+   "catapult",
+   "snow",
+   "winter",
+   "fort",
+   "castle",
+   "battle",
+   "red team",
+   "blue team",
+   "referee",
+   "villager",
+   "tree",
+   "flinging",
+   "knocking down",
+   "snowfall",
+   "throwing",
+   "two player",
+   "norway",
+   "scandinavia",
+   "gravity",
+   "competition",
+   "target",
+   "demolition"
+  ]
  },
  {
   "id": "market-town",
@@ -1017,7 +1168,34 @@
     "code": "forever(async () => {\n  await move(random(4, 10));\n  await turn(random(-120, 120));\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "market",
+   "mango",
+   "tomato",
+   "kente cloth",
+   "market stall",
+   "ghana",
+   "accra",
+   "west africa",
+   "akwaaba",
+   "villager",
+   "farmer",
+   "shopping",
+   "greeting",
+   "waving",
+   "house",
+   "red roof",
+   "tree",
+   "road",
+   "town",
+   "village",
+   "fruit",
+   "cozy",
+   "story",
+   "community",
+   "neighbors"
+  ]
  },
  {
   "id": "robot-disco",
@@ -1127,7 +1305,31 @@
     "code": "onKey(\" \", async () => {\n  broadcast(\"party\");\n  say(\"Drop the beat!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "robot",
+   "dance",
+   "dance party",
+   "music",
+   "dj",
+   "dance floor",
+   "speaker",
+   "lamp post",
+   "disco",
+   "spinning",
+   "waving",
+   "keyboard",
+   "coding",
+   "message",
+   "broadcast",
+   "celebration",
+   "beat",
+   "korea",
+   "seoul",
+   "nightclub",
+   "animation",
+   "dancing robot"
+  ]
  },
  {
   "id": "wizard-tower",
@@ -1264,7 +1466,31 @@
     "code": "onTouch(null, async (thing) => {\n  play(\"ding\");\n  remove();\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "wizard",
+   "tower",
+   "dragon",
+   "crystal",
+   "spell",
+   "magic",
+   "taming",
+   "climbing",
+   "collecting",
+   "lamp post",
+   "tree",
+   "fantasy",
+   "adventure",
+   "story",
+   "lumos",
+   "harry potter",
+   "medieval",
+   "castle",
+   "spellcasting",
+   "quest",
+   "united kingdom",
+   "treasure hunt"
+  ]
  },
  {
   "id": "island-rescue",
@@ -1386,7 +1612,32 @@
     "code": "onTouch(\"spaceship\", async (thing) => {\n  play(\"yay\");\n  say(\"My hero!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "rescue",
+   "island",
+   "starfighter",
+   "spaceship",
+   "jet",
+   "flying",
+   "farmer",
+   "stranded",
+   "sos flag",
+   "ocean",
+   "sea",
+   "hill",
+   "tree",
+   "hawaii",
+   "pacific",
+   "adventure",
+   "hero",
+   "vehicle",
+   "piloting",
+   "castaway",
+   "help",
+   "signal flag",
+   "tropical"
+  ]
  },
  {
   "id": "domino-run",
@@ -1490,7 +1741,34 @@
     "code": "onStart(async () => {\n  await clone(\"ball\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "domino",
+   "chain reaction",
+   "rainbow",
+   "tower",
+   "ramp",
+   "ball",
+   "robot",
+   "knocking over",
+   "toppling",
+   "crash",
+   "physics",
+   "gravity",
+   "momentum",
+   "cause and effect",
+   "colors",
+   "red",
+   "green",
+   "blue",
+   "purple",
+   "rolling",
+   "pushing",
+   "stacking",
+   "sandbox",
+   "puzzle",
+   "brazil"
+  ]
  },
  {
   "id": "alien-zoo",
@@ -1634,7 +1912,32 @@
     "code": "onClick(async () => {\n  await part(\"left arm\").wiggle(3);\n  say(\"Do not feed them after midnight!\");\n});"
    }
   ],
-  "gravity": 0
+  "gravity": 0,
+  "keywords": [
+   "cow",
+   "alien",
+   "space",
+   "petting zoo",
+   "zookeeper",
+   "ufo",
+   "moon base",
+   "hay",
+   "crystal",
+   "fence",
+   "zero gravity",
+   "floating",
+   "feeding",
+   "moo",
+   "farm animal",
+   "outer space",
+   "moon",
+   "silly",
+   "sandbox",
+   "clicking",
+   "gravity",
+   "astronaut",
+   "china"
+  ]
  },
  {
   "id": "construction-crew",
@@ -1765,7 +2068,32 @@
     "code": "onKey(\" \", async () => {\n  await part(\"dump bed\").turnTo(90);\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "construction",
+   "digger",
+   "excavator",
+   "dump truck",
+   "scoop",
+   "dumping",
+   "driving",
+   "traffic cone",
+   "road",
+   "brick pile",
+   "house",
+   "building site",
+   "sandbox",
+   "vehicle",
+   "truck",
+   "hauling",
+   "digging",
+   "loading",
+   "builder",
+   "machine",
+   "canada",
+   "toronto",
+   "physics"
+  ]
  },
  {
   "id": "hay-maze",
@@ -1958,7 +2286,31 @@
     "code": "onTouch(null, async (thing) => {\n  play(\"yay\");\n  say(\"You escaped!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "maze",
+   "hay",
+   "haunted",
+   "spooky",
+   "slime",
+   "ghost",
+   "night",
+   "escape",
+   "explorer",
+   "chase",
+   "exit",
+   "lamp post",
+   "tree",
+   "puzzle",
+   "monster",
+   "halloween",
+   "farm",
+   "corn maze",
+   "autumn",
+   "navigation",
+   "boo",
+   "hiding"
+  ]
  },
  {
   "id": "moon-base",
@@ -2107,7 +2459,31 @@
     "code": "onClick(async () => {\n  say(\"Mission go!\");\n  play(\"whoosh\");\n  rise(6);\n  await wait(5);\n  rise(0);\n});"
    }
   ],
-  "gravity": 0.2
+  "gravity": 0.2,
+  "keywords": [
+   "moon",
+   "moon base",
+   "spaceship",
+   "rocket",
+   "astronaut",
+   "landing pad",
+   "crystal",
+   "lamp post",
+   "low gravity",
+   "gravity",
+   "landing",
+   "refueling",
+   "rocket launch",
+   "flying",
+   "piloting",
+   "mission",
+   "astronomy",
+   "space exploration",
+   "outer space",
+   "simulation",
+   "lunar surface",
+   "sci-fi"
+  ]
  },
  {
   "id": "rodeo-ranch",
@@ -2266,7 +2642,32 @@
     "code": "onTouch(null, async (thing) => {\n  say(\"Penalty!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "horse",
+   "rodeo",
+   "ranch",
+   "barrel racing",
+   "racing",
+   "barrel",
+   "fence",
+   "hay bale",
+   "barn",
+   "farmer",
+   "judge",
+   "penalty",
+   "jumping",
+   "riding",
+   "cowgirl",
+   "mexico",
+   "charreada",
+   "obstacle course",
+   "farm",
+   "speed",
+   "race",
+   "animal",
+   "horseback"
+  ]
  },
  {
   "id": "slime-soccer",
@@ -2405,7 +2806,31 @@
     "code": "onTouch(\"ball\", async (thing) => {\n  play(\"yay\");\n  say(\"GOAL!\");\n  broadcast(\"kickoff\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "soccer",
+   "football",
+   "slime",
+   "robot",
+   "monster",
+   "goal",
+   "goalie",
+   "striker",
+   "soccer ball",
+   "pitch",
+   "kicking",
+   "scoring",
+   "chasing",
+   "driving",
+   "sports",
+   "competition",
+   "red vs blue",
+   "match",
+   "kickoff",
+   "singapore",
+   "arcade",
+   "defending"
+  ]
  },
  {
   "id": "bell-tower-mystery",
@@ -2539,7 +2964,33 @@
     "code": "every(10, async () => {\n  play(\"ding\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "mystery",
+   "bell tower",
+   "bell",
+   "midnight",
+   "village",
+   "detective",
+   "villager",
+   "wizard",
+   "stranger",
+   "bakery",
+   "library",
+   "fountain",
+   "lamp post",
+   "night",
+   "clue",
+   "talking",
+   "asking questions",
+   "story",
+   "france",
+   "french",
+   "town square",
+   "spooky",
+   "whodunit",
+   "character dialogue"
+  ]
  },
  {
   "id": "volcano-island",
@@ -2675,7 +3126,33 @@
     "code": "forever(async () => {\n  await goTo(\"dino\", 7);\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "volcano",
+   "eruption",
+   "lava",
+   "lava flow",
+   "island",
+   "dinosaur",
+   "dino",
+   "ranger",
+   "rescue",
+   "survival",
+   "escape",
+   "hill",
+   "tree",
+   "jungle",
+   "geology",
+   "magma",
+   "driving",
+   "jumping",
+   "dodging",
+   "prehistoric",
+   "new zealand",
+   "adventure",
+   "nature",
+   "danger"
+  ]
  },
  {
   "id": "pipe-speedrun",
@@ -2901,7 +3378,31 @@
     "code": "onTouch(\"hero\", async (thing) => {\n  play(\"coin\");\n  remove();\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "platformer",
+   "speedrun",
+   "warp pipe",
+   "moving platform",
+   "timer",
+   "coin",
+   "surprise block",
+   "goal flag",
+   "slime",
+   "hero",
+   "jumping",
+   "collecting",
+   "racing the clock",
+   "maze",
+   "cloud",
+   "high ledge",
+   "obstacle course",
+   "chase",
+   "countdown",
+   "enemy",
+   "japan",
+   "arcade"
+  ]
  },
  {
   "id": "harvest-helper",
@@ -3004,7 +3505,31 @@
     "code": "onClick(async () => {\n  await part(\"left arm\").wiggle(3);\n  say(\"Jambo!\");\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "tractor",
+   "farm",
+   "harvest",
+   "carrot",
+   "corn",
+   "silo",
+   "barn",
+   "hay bale",
+   "farmer",
+   "driving",
+   "farming",
+   "vegetable",
+   "kenya",
+   "africa",
+   "swahili",
+   "jambo",
+   "cozy",
+   "simulation",
+   "crop",
+   "countryside",
+   "agriculture",
+   "waving"
+  ]
  },
  {
   "id": "knight-school",
@@ -3156,7 +3681,31 @@
     "code": "onClick(async () => {\n  jump(5);\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "knight",
+   "jousting",
+   "training dummy",
+   "sword",
+   "horse",
+   "armory",
+   "stable",
+   "tent",
+   "banner",
+   "fence",
+   "medieval",
+   "castle",
+   "sword fighting",
+   "training",
+   "battle",
+   "practice",
+   "poland",
+   "knight school",
+   "riding",
+   "jumping",
+   "chivalry",
+   "tournament"
+  ]
  },
  {
   "id": "asteroid-dodge",
@@ -3315,7 +3864,31 @@
     "code": "onTouch(\"asteroid\", async (thing) => {\n  play(\"crash\");\n  say(\"Shields down!\");\n});"
    }
   ],
-  "gravity": 0
+  "gravity": 0,
+  "keywords": [
+   "asteroid",
+   "asteroid field",
+   "spaceship",
+   "starfighter",
+   "outer space",
+   "zero gravity",
+   "laser",
+   "shooting",
+   "blasting",
+   "dodging",
+   "flying",
+   "crystal",
+   "crash",
+   "shield",
+   "space battle",
+   "arcade",
+   "pilot",
+   "weightlessness",
+   "astronomy",
+   "sci-fi",
+   "dubai",
+   "obstacle course"
+  ]
  },
  {
   "id": "pond-picnic",
@@ -3447,6 +4020,30 @@
     "code": "forever(async () => {\n  await move(random(4, 10));\n  await turn(random(-120, 120));\n});"
    }
   ],
-  "gravity": 1
+  "gravity": 1,
+  "keywords": [
+   "pond",
+   "picnic",
+   "picnic blanket",
+   "cow",
+   "moo",
+   "tree",
+   "fence",
+   "villager",
+   "farm animal",
+   "countryside",
+   "meadow",
+   "waving",
+   "greeting",
+   "spanish",
+   "spain",
+   "peaceful",
+   "cozy",
+   "afternoon",
+   "wandering",
+   "nature",
+   "pasture",
+   "grass"
+  ]
  }
 ]

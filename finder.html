@@ -23,7 +23,11 @@
     <div class="say-box">
       <div id="say-mirror" class="say-mirror" aria-hidden="true"></div>
       <textarea id="say-input" rows="1" spellcheck="false" aria-label="Say what you like" placeholder="Dragons and castles, but nothing too scary…"></textarea>
+      <button id="mic" class="mic" type="button" title="Say it out loud" aria-label="Say it out loud" aria-pressed="false" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" /></svg>
+      </button>
     </div>
+    <p id="heard-status" class="heard-status" aria-live="polite"></p>
 
     <div class="heard">
       <div id="wishes" class="wishes" aria-live="polite"></div>
@@ -40,7 +44,7 @@
     </div>
 
     <button id="go" class="btn-go" type="button" disabled>Find worlds <span aria-hidden="true">→</span></button>
-    <p class="private"><span class="dot"></span>Runs on this device. Nothing you type is sent anywhere.</p>
+    <p class="private"><span class="dot"></span>Claude turns your words into tags. Picking worlds runs on this device.</p>
   </main>
 
   <!-- ================= screen 2: looking ================= -->

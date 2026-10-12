@@ -30,7 +30,8 @@ for (const kw of KID_WORLDS) {
   const { sprite, meta: m } = await page.evaluate(([id, s]) => window.shoot(id, s), [kw.id, SIZE]);
   fs.writeFileSync(path.join(out, `${kw.id}.webp`), Buffer.from(sprite.split(',')[1], 'base64'));
   const { id, title, summary, by, tags } = kw;
-  meta.set(id, { id, title, summary, by, tags, thumb: `finder/${id}.webp`, frames: 3, ...m });
+  // keywords come from tools/finder/keywords.mjs; keep them across re-renders
+  meta.set(id, { id, title, summary, by, tags, thumb: `finder/${id}.webp`, frames: 3, ...m, keywords: meta.get(id)?.keywords });
   console.log('rendered', id, `${m.things.length} things, ${m.behaviors.length} behaviors`);
 }
 const list = KID_WORLDS.map((w) => meta.get(w.id)).filter(Boolean);

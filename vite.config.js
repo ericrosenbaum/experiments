@@ -1,11 +1,12 @@
 import { defineConfig, loadEnv } from 'vite';
 import { generateMiddleware } from './server/generate.js';
 import { bricktalkMiddleware } from './server/bricktalk.js';
+import { finderMiddleware } from './server/finder.js';
 
 const claudeApi = {
   name: 'claude-generate-api',
-  configureServer(server) { server.middlewares.use(generateMiddleware()); server.middlewares.use(bricktalkMiddleware()); },
-  configurePreviewServer(server) { server.middlewares.use(generateMiddleware()); server.middlewares.use(bricktalkMiddleware()); },
+  configureServer(server) { server.middlewares.use(generateMiddleware()); server.middlewares.use(bricktalkMiddleware()); server.middlewares.use(finderMiddleware()); },
+  configurePreviewServer(server) { server.middlewares.use(generateMiddleware()); server.middlewares.use(bricktalkMiddleware()); server.middlewares.use(finderMiddleware()); },
 };
 
 export default defineConfig(({ mode }) => {
