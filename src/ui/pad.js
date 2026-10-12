@@ -8,7 +8,7 @@ const ARROWS = ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
 const CAPS = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ' ': 'space', Enter: 'enter' };
 const ROWS = ['1234567890', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
 const ROW_SHIFT = [0, 0.5, 0.75, 1.25]; // how far each keyboard row is pushed right
-const OPPOSITES = [['up', 'down'], ['left', 'right'], ['forward', 'back'], ['open', 'close'], ['raise', 'lower']];
+const OPPOSITES = [['up', 'down'], ['left', 'right'], ['forward', 'back'], ['open', 'close'], ['raise', 'lower'], ['faster', 'slower']];
 const KEY_EVENTS = new Set(['onKey', 'onKeyUp', 'whileKey']);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -41,15 +41,24 @@ function callLabel(c) {
   const first = num(c.arguments[0]);
   switch (name) {
     case 'drive': case 'move': return first === 0 ? [9] : [1, 'move'];
+    case 'speedUp': return [1, 'faster'];
+    case 'slowDown': return [1, 'slower'];
+    case 'stop': return [1, 'stop'];
     case 'steer': case 'turn': return first === 0 ? [9] : [1, 'turn'];
     case 'rise': return first === 0 ? [9] : [1, first < 0 ? 'down' : 'up'];
     case 'jump': case 'push': return [1, name];
-    case 'spawn': return [2, c.arguments[0]?.properties?.some((p) => p.key?.name === 'launch') ? 'shoot' : 'brick'];
+    case 'spawn': {
+      const props = c.arguments[0]?.properties ?? [];
+      if (props.some((p) => p.key?.name === 'launch')) return [2, 'shoot'];
+      return [2, props.some((p) => p.key?.name === 'shape' && p.value?.value === 'flower') ? 'flower' : 'brick'];
+    }
     case 'clone': return [2, 'copy'];
     case 'goTo': case 'teleport': case 'face': return [2, 'go'];
     case 'color': return [2, 'color'];
     case 'gravity': return [2, 'gravity'];
     case 'remove': return [2, 'vanish'];
+    case 'explode': return [1, 'explode'];
+    case 'see': return [2, 'look'];
     case 'broadcast': return [3, String(c.arguments[0]?.value ?? 'message')];
     case 'play': return [4, String(c.arguments[0]?.value ?? 'sound')];
     case 'say': return [5, 'talk'];

@@ -190,6 +190,22 @@ const ACTIONS = [
   // stop
   (p) => (/^(stop|halt|freeze|stand still)\b/.test(p) ? { code: ['stop();'], label: 'stop' } : null),
 
+  // explode ("explode", "blow up", "burst into bricks", "explode with power 9")
+  (p) => {
+    if (!/^(explode|blow up|burst|go boom|shatter|break apart|fall apart)\b/.test(p)) return null;
+    const n = Number(p.match(/\b(?:power|by|at) (\d+)/)?.[1] ?? (/\b(big|huge|mega|hard)\b/.test(p) ? 9 : 5));
+    return { code: [`explode(${Math.min(10, Math.max(1, n))});`], label: 'explode' };
+  },
+
+  // speed up / slow down ("speed up by 5", "go faster", "brake")
+  (p) => {
+    const m = p.match(/^(speed up|go faster|drive faster|accelerate|slow down|go slower|drive slower|brake|put on the brakes)\b/);
+    if (!m) return null;
+    const up = /up|faster|accelerate/.test(m[1]);
+    const n = Number(p.match(/\bby (\d+(?:\.\d+)?)/)?.[1] ?? 3);
+    return { code: [`${up ? 'speedUp' : 'slowDown'}(${n});`], label: `${up ? 'speed up' : 'slow down'} by ${n}` };
+  },
+
   // waiting
   (p) => {
     const m = p.match(/^(wait|pause)( for)?\s*(\d+(\.\d+)?|a|one|two|three|four|five)?\s*(seconds?|secs?)?/);
@@ -232,10 +248,14 @@ const ACTIONS = [
   } : null),
 
   // wander
-  (p) => (/^(wander|roam|explore|drive around|go around)\b/.test(p) ? {
-    code: ['await move(random(4, 10));', 'await turn(random(-120, 120));'],
-    label: 'wander around', loops: true,
-  } : null),
+  (p) => {
+    if (!/^(wander|roam|explore|drive around|go around)\b/.test(p)) return null;
+    const sp = speedIn(p); // "wander slowly", "roam fast"
+    return {
+      code: [`await move(random(4, 10)${sp ? `, ${sp}` : ''});`, 'await turn(random(-120, 120));'],
+      label: `wander around${sp ? ` at speed ${sp}` : ''}`, loops: true,
+    };
+  },
 
   // go to / follow / chase
   (p) => {
@@ -263,22 +283,25 @@ const ACTIONS = [
 
   // spawn bricks
   (p, ctx) => {
-    const m = p.match(/^(spawn|drop|make|throw|shoot|launch|fire|build|place|put|create|toss|fling)\s+(.*?)\b(bricks?|blocks?|pieces?)\b/);
+    const m = p.match(/^(spawn|drop|make|throw|shoot|launch|fire|build|place|put|create|toss|fling|plant|grow)\s+(.*?)\b(bricks?|blocks?|pieces?|flowers?)\b/);
     if (!m) return null;
+    const flower = /^flower/.test(m[3]);
     const color = colorIn(m[2]);
     const size = (m[2].match(/\b(\d)\s*x\s*(\d)\b/) || []).slice(1).join('x') || null;
     const throwing = /^(throw|shoot|launch|fire|toss|fling)/.test(m[1]);
     const count = num((m[2].match(/^(\d+|two|three|four|five|six|seven|eight|nine|ten)\b/) || [])[1]) ?? timesIn(p);
     const opts = [];
+    if (flower) opts.push('shape: "flower"');
     if (color) opts.push(`color: ${q(color)}`);
-    if (size) opts.push(`size: ${q(size)}`);
+    if (size && !flower) opts.push(`size: ${q(size)}`);
     const parts = findParts(p, ctx.model);
     if (parts.length) opts.push(`from: ${q(parts[0])}`);
     else if (/\b(on top|above|up)\b/.test(p) || m[1] === 'drop') opts.push('at: "top"');
     else if (/\bbehind\b/.test(p)) opts.push('at: "back"');
     if (throwing && !parts.length) opts.push('launch: 18');
     const c = `spawn({${opts.join(', ')}});`;
-    const label = `${m[1]} ${count > 1 ? count + ' ' : 'a '}${color ?? ''} brick${count > 1 ? 's' : ''}`.replace(/\s+/g, ' ');
+    const thing = flower ? 'flower' : 'brick';
+    const label = `${m[1]} ${count > 1 ? count + ' ' : 'a '}${color ?? ''} ${thing}${count > 1 ? 's' : ''}`.replace(/\s+/g, ' ');
     return { code: count > 1 ? [`for (let i = 0; i < ${count}; i++) { ${c} await wait(0.25); }`] : [c], label };
   },
 
@@ -454,11 +477,12 @@ const cap = (t) => t.replace(/[a-z]\w*/g, (w, i) => (i > 0 && SMALL.has(w) ? w :
 const OPPOSITES = [['left', 'right'], ['forward', 'backward'], ['up', 'down'], ['raise', 'lower'], ['lift', 'lower'], ['open', 'close']];
 
 export function titleFor(rules) {
+  const labels = rules.flatMap((r) => r.labels).filter((l) => !/^wait\b/.test(l));
+  if (labels.some((l) => /^speed up\b/.test(l)) && labels.some((l) => /^slow down\b/.test(l))) return 'Gas and Brakes';
   const keys = rules.map((r) => ((r.trig.type === 'key' || r.trig.type === 'keyup') ? r.trig.key : null));
   if (rules.length > 1 && keys.every((k) => k?.startsWith('Arrow'))) {
     return keys.some((k) => k === 'ArrowUp' || k === 'ArrowDown') ? 'Move with Arrows' : 'Steer with Arrows';
   }
-  const labels = rules.flatMap((r) => r.labels).filter((l) => !/^wait\b/.test(l));
   if (labels.some((l) => /^turn (left|right) 180°/.test(l)) && labels.some((l) => /^(go|drive|back up)\b/.test(l))) return 'Pace Back and Forth';
   for (let i = 0; i < labels.length; i++) {
     for (let j = i + 1; j < labels.length; j++) {
@@ -466,7 +490,7 @@ export function titleFor(rules) {
       if (t) return t;
     }
   }
-  return titleFrom(labels);
+  return titleFrom(labels.map((l) => l.replace(/ by \d+(\.\d+)?$/, ''))); // "speed up by 4" → "Speed Up"
 }
 
 // "turn the head left" + "turn the head right" → "Turn Head Back and Forth";

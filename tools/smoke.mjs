@@ -148,7 +148,7 @@ await page.click('#btn-copy');
 await page.waitForTimeout(500);
 const sel = await selected();
 check(sel?.startsWith('racecar~'), `Duplicate copies the race car and selects the copy (${sel})`);
-check(await page.evaluate((k) => window.__bb.stage.behaviorsOf(k).length, sel) === 1, 'the copy knows how to drive too');
+check(await page.evaluate((k) => window.__bb.stage.behaviorsOf(k).length, sel) === 2, 'the copy knows how to steer and drive too');
 
 await page.waitForTimeout(500);
 console.log(errors.length ? `errors:\n  ${[...new Set(errors)].join('\n  ')}` : 'no page errors');

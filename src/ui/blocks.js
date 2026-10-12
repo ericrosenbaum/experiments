@@ -24,7 +24,10 @@ const SPECS = {
   drive: ['motion', 'drive at speed {0}'],
   steer: ['motion', 'keep turning at speed {0}'],
   rise: ['motion', 'rise at speed {0}'],
+  speedUp: ['motion', 'speed up by {0}'],
+  slowDown: ['motion', 'slow down by {0}'],
   stop: ['motion', 'stop moving'],
+  explode: ['looks', 'explode with power {0}'],
   jump: ['motion', 'jump[ with power {0}]'],
   push: ['motion', 'push {0:pick}[ with power {1}]'],
   move: ['motion', 'move {0} studs[ at speed {1}]'],
@@ -42,6 +45,7 @@ const SPECS = {
   gravity: ['world', 'set gravity to {0}'],
   wait: ['control', 'wait {0} seconds'],
   look: ['sensing', 'thing ahead[ within {0}]', 'reporter'],
+  see: ['sensing', 'what I see, from {0}', 'reporter'],
   nearest: ['sensing', 'nearest {0:filter}', 'reporter'],
   touching: ['sensing', 'touching {0:filter}?', 'boolean'],
   position: ['sensing', 'my position', 'reporter'],
@@ -338,6 +342,13 @@ export function renderBlocks(code, { thingName = () => null } = {}) {
       if (c.name === 'forever' && isFn(e.arguments[0])) return cBlock('control', word('forever'), fnBody(e.arguments[0]));
       const ev = eventParts(e);
       if (ev) return cBlock('event', ev.head, fnBody(ev.fn));
+      const opts = e.arguments[0];
+      const shape = c.name === 'spawn' && opts?.type === 'ObjectExpression'
+        ? opts.properties.find((p) => (p.key?.name ?? p.key?.value) === 'shape') : null;
+      if (shape?.value?.value === 'flower') { // spawn({shape: "flower", ...}) reads "make a flower ..."
+        const rest = { ...opts, properties: opts.properties.filter((p) => p !== shape) };
+        return stack('world', `${word('make a flower')}${rest.properties.length ? ` ${objectSlots(rest, true)}` : ''}`);
+      }
       const spec = SPECS[c.name];
       if (spec && !spec[2]) return stack(spec[0], fill(spec[1], e.arguments));
       if (userFns.has(c.name)) return stack('custom', `${word(c.name)} ${e.arguments.map((a) => expr(a)).join(' ')}`);

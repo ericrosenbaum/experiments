@@ -38,6 +38,8 @@ export const PRIMITIVES = [
   ['drive(speed)', 'Start moving forward at speed (negative = backward). Keeps going until stop() or drive(0). Wheeled models spin their wheels; others glide.', 'action'],
   ['steer(rate)', 'Start turning at rate degrees per second. Positive = left, negative = right. Keeps going until steer(0) or stop().', 'action'],
   ['rise(speed)', 'Start moving straight up at speed (negative = down), like flying or a lift. rise(0) or stop() ends it.', 'action'],
+  ['speedUp(amount)', 'Add amount to its forward speed (default 3), up to 50. Going backward, it slows the backing up.', 'action'],
+  ['slowDown(amount)', 'Take amount off its forward speed (default 3). Keep slowing down past a stop and it backs up, faster each time, like reverse.', 'action'],
   ['stop()', 'Stop driving, steering and spinning parts.', 'action'],
   ['jump(power)', 'Hop up. power 1..10, default 5.', 'action'],
   ['push(direction, power)', 'Give the model a shove. direction: "forward" | "backward" | "left" | "right" | "up". power 1..10.', 'action'],
@@ -57,11 +59,12 @@ export const PRIMITIVES = [
   ['color(color)', 'Change this thing\'s color (a model\'s body, every brick of an assembly, or the World\'s ground).', 'action'],
 
   // world effects
-  ['spawn(options)', 'Make a new brick. options: {color, size: "1x1" | "2x2" | "2x4" | "1x4" | "4x4", at: "front" | "back" | "top" | "here" | place(x,z), launch: speed (throws it forward), from: part name (spawn near that part)}. All optional.', 'action'],
+  ['spawn(options)', 'Make a new brick, or a little flower with shape: "flower" (a 1x1 flower about 1.5 bricks tall; color is its petals). options: {color, shape: "brick" | "flower", size: "1x1" | "2x2" | "2x4" | "1x4" | "4x4", at: "front" | "back" | "top" | "here" | place(x,z), launch: speed (throws it forward, arcing up a little; straight and level when there is no gravity), from: part name (spawn near that part)}. All optional.', 'action'],
   ['play(sound)', 'Play a sound by name, like play("vroom"). The sounds are listed below.', 'action'],
   ['say(text, seconds)', 'Show a speech bubble above the model.', 'action'],
   ['broadcast(name)', 'Send a message everything can hear with onMessage(name, ...).', 'action'],
   ['await clone(what, where)', 'Make a copy, with all its behaviors. what: null for this thing, or another thing: thing("...") or a kind like "tree" (the nearest one). where (optional): place(x, z), "front", "back", "left", "right" or "above"; leave it out for a clear spot right beside. Returns the copy as {name, kind, color, id}, or null if there are too many copies already.', 'wait'],
+  ['explode(power)', 'Burst into loose bricks that fly apart, power 1..10 (default 5). A prop or model breaks into its bricks; a house or tower of loose bricks gets flung apart. Like remove(), Reset world brings it back.', 'action'],
   ['remove()', 'Take this thing out of the world (copies are gone for good; Reset world brings the original back).', 'action'],
   ['gravity(amount)', 'World rules only: set gravity for everything. 1 = normal, 0 = everything floats, 0.3 = moon, negative = things fall up.', 'action'],
 
@@ -70,6 +73,7 @@ export const PRIMITIVES = [
   ['await look(distance)', 'What is straight ahead within distance studs (default 20)? Returns {name, kind, color, id, distance} or null.', 'sense'],
   ['await nearest(filter)', 'Nearest thing matching filter (kind, color, or null for anything). Returns {name, kind, color, id, distance, direction} or null. direction is degrees, positive = to the left.', 'sense'],
   ['await touching(filter)', 'true if currently touching something matching filter.', 'sense'],
+  ['await see(labels)', 'Take a picture of what is straight ahead, from its own eyes, and ask Claude which label it shows. labels: a list of short descriptions like ["food", "something scary", "a friendly person"]. Returns the matching label, or "none". Takes a second or two, so use it on a key press or a message, never in forever or every.', 'sense'],
   ['await position()', 'This thing\'s {x, y, z, heading}. y is height above the ground.', 'sense'],
 
   // references and helpers
@@ -83,13 +87,13 @@ export const PRIMITIVES = [
 
 // Commands the host accepts from a sandbox (fire-and-forget).
 export const HOST_COMMANDS = new Set([
-  'drive', 'steer', 'rise', 'stop', 'jump', 'push', 'partSpin', 'partColor', 'color',
-  'spawn', 'play', 'say', 'broadcast', 'remove', 'gravity', 'log',
+  'drive', 'speedUp', 'slowDown', 'steer', 'rise', 'stop', 'jump', 'push', 'partSpin', 'partColor', 'color',
+  'spawn', 'play', 'say', 'broadcast', 'explode', 'remove', 'gravity', 'log',
 ]);
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).
 export const HOST_QUERIES = new Set([
-  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone',
+  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone', 'see',
 ]);
 
 export function primitivesReference() {

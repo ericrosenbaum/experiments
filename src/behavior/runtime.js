@@ -12,9 +12,11 @@ export { matchFilter };
 const DEG = Math.PI / 180;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : 0));
 const wrap180 = (a) => ((a + 540) % 360) - 180;
+const MAX_SPEED = 50; // studs a second, for drive, speedUp, move and goTo
+const TURN_RATE = 360; // degrees a second for turn() and face(); they ease in at the end
 const MAX_SPAWNED_PER_ACTOR = 60;
 // What the World can't do, and how to say so.
-const NOT_FOR_WORLD = new Set(['drive', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
+const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
 
 export class Runtime {
   constructor({ world, audio, ui }) {
@@ -311,7 +313,17 @@ class Program {
 
   // ---- commands -------------------------------------------------------------
 
-  cmd_drive(speed) { this.control.drive = clamp(speed, -25, 25); }
+  cmd_drive(speed) { this.control.drive = clamp(speed, -MAX_SPEED, MAX_SPEED); }
+  // Like a toy car's gas and reverse: speeding up adds forward speed, and
+  // slowing down takes it away, past 0 into backing up.
+  cmd_speedUp(amount) {
+    const c = this.control;
+    c.drive = clamp(c.drive + clamp(amount, 0, MAX_SPEED), -MAX_SPEED, MAX_SPEED);
+  }
+  cmd_slowDown(amount) {
+    const c = this.control;
+    c.drive = clamp(c.drive - clamp(amount, 0, MAX_SPEED), -MAX_SPEED, MAX_SPEED);
+  }
   cmd_steer(rate) { this.control.steer = clamp(rate, -360, 360); }
   cmd_rise(speed) { this.control.rise = clamp(speed, -20, 20); }
   cmd_stop() {
@@ -338,7 +350,7 @@ class Program {
   cmd_partSpin(name, speed) {
     const n = String(name).toLowerCase();
     if (n.includes('wheel')) {
-      this.control.drive = clamp(speed / 30, -25, 25);
+      this.control.drive = clamp(speed / 30, -MAX_SPEED, MAX_SPEED);
       return;
     }
     const p = this._part(name);
@@ -433,8 +445,14 @@ class Program {
     }
     const lv = a.isWorld ? { x: 0, y: 0, z: 0 } : (a.bodies().find(({ body }) => body.isDynamic())?.body.linvel() ?? { x: 0, y: 0, z: 0 });
     const launch = clamp(opts.launch ?? 0, 0, 40);
-    const linvel = { x: lv.x + f.x * launch, y: lv.y + launch * 0.45, z: lv.z + f.z * launch };
-    const brick = w.addBrick({ size, color, x: pos.x, y: Math.max(pos.y, BRICK_H / 2 + 0.05), z: pos.z, yaw: a.heading(), owner: a, linvel, name: `${color} brick` });
+    // Thrown bricks get a little lift so they arc in normal gravity; with
+    // less gravity they fly flatter, and in space they shoot off level.
+    const lift = launch * 0.45 * Math.max(0, w.gravityScale);
+    const linvel = { x: lv.x + f.x * launch, y: lv.y + lift, z: lv.z + f.z * launch };
+    const flower = String(opts.shape ?? '').toLowerCase() === 'flower';
+    const brick = flower
+      ? w.addFlower({ color, x: pos.x, y: Math.max(pos.y, 0.95), z: pos.z, yaw: a.heading(), owner: a, linvel })
+      : w.addBrick({ size, color, x: pos.x, y: Math.max(pos.y, BRICK_H / 2 + 0.05), z: pos.z, yaw: a.heading(), owner: a, linvel, name: `${color} brick` });
     a.spawned = (a.spawned ?? []).filter((b) => !b.removed);
     a.spawned.push(brick);
     while (a.spawned.length > MAX_SPAWNED_PER_ACTOR) w.remove(a.spawned.shift());
@@ -450,6 +468,14 @@ class Program {
     this.rt.ui.say(this.actor, String(text).slice(0, this.actor.isWorld ? 160 : 80), clamp(seconds, 0.5, 10));
   }
   cmd_broadcast(name) { this.rt.broadcast(String(name).slice(0, 40)); }
+  cmd_explode(power) {
+    const a = this.actor, w = this.world;
+    const center = a.bounds().getCenter(new THREE.Vector3());
+    const replaced = w.explode(a.members, { center, power: clamp(power || 5, 1, 10) });
+    this.rt.audio.play('boom', center);
+    // finish this message first: removing stops this very program
+    if (replaced) setTimeout(() => this.rt.stage?.removeActor(this.actor), 0);
+  }
   cmd_remove() {
     // finish this message first: removing stops this very program
     setTimeout(() => this.rt.stage?.removeActor(this.actor), 0);
@@ -462,7 +488,7 @@ class Program {
   q_move(distance, speed) {
     const a = this.actor;
     const dist = clamp(distance, -200, 200);
-    const sp = Math.abs(clamp(speed, 0.5, 25)) * Math.sign(dist || 1);
+    const sp = Math.abs(clamp(speed, 0.5, MAX_SPEED)) * Math.sign(dist || 1);
     const start = a.position.setY(0);
     a.control.drive = sp;
     return this._task(() => a.position.setY(0).distanceTo(start) >= Math.abs(dist), Math.abs(dist) / Math.abs(sp) * 3 + 2,
@@ -474,14 +500,14 @@ class Program {
     const total = clamp(degrees, -3600, 3600);
     let turned = 0;
     let last = a.heading();
-    const rate = 120;
+    const rate = TURN_RATE;
     return this._task(() => {
       const h = a.heading();
       turned += wrap180(h - last);
       last = h;
       const remaining = total - turned;
       if (Math.abs(remaining) < 2) return true;
-      a.control.steer = Math.sign(remaining) * Math.min(rate, Math.max(25, Math.abs(remaining) * 3));
+      a.control.steer = Math.sign(remaining) * Math.min(rate, Math.max(25, Math.abs(remaining) * 5));
       return false;
     }, Math.abs(total) / 40 + 2, () => { a.control.steer = 0; });
   }
@@ -493,14 +519,14 @@ class Program {
     return this._task(() => {
       const ang = this.rt.angleTo(a, tgt.pos);
       if (Math.abs(ang) < 3) return true;
-      a.control.steer = Math.sign(ang) * Math.min(120, Math.max(25, Math.abs(ang) * 3));
+      a.control.steer = Math.sign(ang) * Math.min(TURN_RATE, Math.max(25, Math.abs(ang) * 5));
       return false;
     }, 5, () => { a.control.steer = 0; });
   }
 
   q_goTo(target, speed) {
     const a = this.actor;
-    const sp = clamp(speed, 0.5, 25);
+    const sp = clamp(speed, 0.5, MAX_SPEED);
     if (!this.rt.resolveTarget(a, target)) return false;
     const reach = a.halfLength();
     return this._task(() => {
@@ -509,7 +535,7 @@ class Program {
       const d = tgt.pos.clone().setY(0).distanceTo(a.position.setY(0));
       if (d < tgt.radius + reach) return true;
       const ang = this.rt.angleTo(a, tgt.pos);
-      a.control.steer = clamp(ang * 3, -140, 140);
+      a.control.steer = clamp(ang * 5, -TURN_RATE, TURN_RATE);
       a.control.drive = sp * Math.max(0, Math.cos(ang * DEG)) * (Math.abs(ang) > 60 ? 0.2 : 1);
       return false;
     }, 30, () => { a.control.drive = 0; a.control.steer = 0; });
@@ -593,6 +619,44 @@ class Program {
       }
     }
     return false;
+  }
+
+  // Its eyes: a picture of what's straight ahead goes to Claude with the
+  // labels, and the answer is one of them or "none". One look at a time per
+  // program, at most one a second, since each is an API call.
+  async q_see(labels) {
+    const a = this.actor;
+    const choices = (Array.isArray(labels) ? labels : []).map((l) => String(l).trim()).filter(Boolean).slice(0, 12);
+    if (!choices.length) throw new Error('see() needs a list of labels, like see(["food", "a friend"])');
+    const prev = this._seeing ?? Promise.resolve();
+    const turn = prev.then(async () => {
+      const wait = 1000 - (performance.now() - (this._lastSee ?? -1e9));
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      this._lastSee = performance.now();
+      if (!a.alive) return 'none';
+      const image = this.rt.ui.snapshot?.(a);
+      if (!image) return 'none';
+      const show = (label) => this.rt.ui.showSeen?.(a, image, label);
+      show(null); // the picture goes up at once, with "looking…"
+      try {
+        const r = await fetch('./api/see', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image, labels: choices, looker: a.describe().name }),
+        });
+        const out = await r.json();
+        if (!r.ok) throw new Error(out.error ?? `HTTP ${r.status}`);
+        this.rt.ui.log?.(`👀 ${a.describe().name} sees ${out.seen} → ${out.label}`);
+        const label = choices.includes(out.label) ? out.label : 'none';
+        show(label);
+        return label;
+      } catch (err) {
+        this.rt.ui.log?.(`👀 ${a.describe().name} couldn't look (${err.message}), so it saw "none".`, 'error');
+        show('none');
+        return 'none';
+      }
+    });
+    this._seeing = turn.catch(() => {});
+    return turn;
   }
 
   q_position() {

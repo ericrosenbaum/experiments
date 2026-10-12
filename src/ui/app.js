@@ -2,7 +2,7 @@
 // assembly, one brick of it, or the World), dragging them around, the
 // sentence composer with pointing, behavior cards, speech bubbles, the log.
 import * as THREE from 'three';
-import { LIBRARY, LIBRARY_BY_ID, CATEGORIES } from '../world/library.js';
+import { LIBRARY, LIBRARY_BY_ID, CATEGORIES, modelBottom } from '../world/library.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, findNamedBehaviors, probeClaude, syntaxError } from '../behavior/generate.js';
@@ -33,6 +33,7 @@ export class App {
     this.pointing = false;
     this.drag = null;
     this.bubbles = new Map(); // actor -> {el, until}
+    this.seen = new Map(); // actor -> {el, until}: what see() looked at, above its speech bubble
     this.savedRange = null;
     this.raycaster = new THREE.Raycaster();
     this.hoverBox = new THREE.BoxHelper(new THREE.Object3D(), 0xffcc00);
@@ -75,8 +76,8 @@ export class App {
 
   setFollow(on) {
     this.follow = on;
-    $('btn-follow').classList.toggle('checked', on);
-    $('btn-follow').setAttribute('aria-checked', String(on));
+    $('btn-follow').classList.toggle('on', on);
+    $('btn-follow').setAttribute('aria-pressed', String(on));
   }
 
   // The World button shows how many behaviors the World has.
@@ -92,7 +93,7 @@ export class App {
     $('world-select').value = this.stage.worldId;
     if (location.hash.slice(1) !== this.stage.worldId) history.replaceState(null, '', `#${this.stage.worldId}`);
     this.select(this.world.actor(this.stage.preset.select));
-    this.setFollow(!!this.stage.preset.follow); // big worlds start with the camera following the player
+    this.setFollow(!!this.stage.preset.follow); // off, unless the world starts following its player (MEGA GOLF)
     this.log(`${this.stage.preset.emoji} ${this.stage.preset.name}: ${this.stage.preset.blurb}`);
   }
 
@@ -144,6 +145,7 @@ export class App {
       $('btn-pause').classList.toggle('paused', this.world.paused);
     };
     $('btn-reset').onclick = () => this.stage.reset();
+    $('btn-export').onclick = () => this.exportWorld();
     $('btn-world').onclick = () => this.select(this.world.actor('world'));
     $('btn-follow').onclick = () => this.setFollow(!this.follow);
     $('btn-mute').onclick = () => {
@@ -203,7 +205,7 @@ export class App {
 
   select(actor) {
     if (actor && !actor.alive) actor = null;
-    if (actor !== this.selected) { this.stopListening?.(); this.setPointing(false); this.setPop('menu', false); this.setPop('parts', false); }
+    if (actor !== this.selected) { this.stopListening?.(); this.setPointing(false); this.setFollow(false); this.setPop('menu', false); this.setPop('parts', false); }
     this.selected = actor;
     this.runtime.setKeyTarget(actor);
     $('no-selection').classList.toggle('hidden', !!actor);
@@ -370,6 +372,12 @@ export class App {
       }),
       moved: false,
     };
+    // Its footprint and bottom, for riding up over whatever it's dragged onto.
+    const box = a.bounds(true);
+    const c = box.getCenter(new THREE.Vector3());
+    this.drag.foot = { minY: box.min.y, cx: c.x, cz: c.z, hx: (box.max.x - box.min.x) / 2, hz: (box.max.z - box.min.z) / 2 };
+    this.drag.own = new Set();
+    for (const { body } of this.drag.base) for (let i = 0; i < body.numColliders(); i++) this.drag.own.add(body.collider(i).handle);
     this.renderer.domElement.style.cursor = 'grabbing';
     this._moveDrag(ev);
   }
@@ -381,6 +389,27 @@ export class App {
     if (!this.raycaster.ray.intersectPlane(d.plane, p)) return;
     d.delta.set(p.x - d.start.x, 0, p.z - d.start.z);
     if (d.delta.length() > 0.2) d.moved = true;
+  }
+
+  // Lift the dragged thing up through anything under it, so it rides on top
+  // and lands there when dropped: drop its footprint straight down from high
+  // above, through everything but itself, and stand it on the first thing hit.
+  // It is only ever raised, so floating things (coins, clouds) stay up.
+  _liftOver(d) {
+    const { R, physics } = this.world;
+    const f = d.foot;
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), d.yaw * DEG);
+    const at = new THREE.Vector3(f.cx, 0, f.cz).sub(d.pivot).applyQuaternion(q).add(d.pivot);
+    const cos = Math.abs(Math.cos(d.yaw * DEG)), sin = Math.abs(Math.sin(d.yaw * DEG));
+    const hx = Math.max(0.05, (cos * f.hx + sin * f.hz) * 0.95), hz = Math.max(0.05, (sin * f.hx + cos * f.hz) * 0.95);
+    const from = 300;
+    const hit = physics.castShape(
+      { x: at.x + d.delta.x, y: from, z: at.z + d.delta.z }, { x: 0, y: 0, z: 0, w: 1 }, { x: 0, y: -1, z: 0 },
+      new R.Cuboid(hx, 0.05, hz), 0, from + 50, false, R.QueryFilterFlags.EXCLUDE_SENSORS,
+      undefined, undefined, undefined, (col) => !d.own.has(col.handle),
+    );
+    const surface = hit ? from - hit.time_of_impact - 0.05 : 0;
+    d.delta.y = Math.max(0, surface + 0.02 - f.minY);
   }
 
   // Hold the dragged thing where the pointer is (every frame, against gravity).
@@ -457,6 +486,7 @@ export class App {
     };
     rec.onend = () => {
       this.listening = false;
+      this._showInterim('');
       btn.classList.remove('on');
       btn.title = 'Talk: say what it should do. You can point while you talk. Say “generate” to finish.';
       $('point-hint').textContent = this.pointing ? 'Click a part, a thing, or the ground' : '';
@@ -473,12 +503,31 @@ export class App {
         let words = r[0].transcript.trim();
         const done = /\b(make it so|generate)\W*$/i.test(words);
         if (done) words = words.replace(/\W*(make it so|generate)\W*$/i, '');
+        this._showInterim(''); // the final words take the place of the guess
         if (words) this._insertSpoken(words);
         if (done) { rec.stop(); this.make(); return; }
       }
-      $('point-hint').textContent = interim ? `🎤 …${interim.trim()}` : 'Say what it should do';
+      this._showInterim(interim.trim());
     };
     this.stopListening = () => this.listening && rec.stop();
+  }
+
+  // What the recognizer has heard so far, shown greyed at the cursor in the
+  // box until it settles on the final words. Never part of what's sent.
+  _showInterim(text) {
+    let el = this.interimEl;
+    if (!text) { el?.remove(); this.interimEl = null; return; }
+    if (!el?.isConnected) {
+      el = this.interimEl = document.createElement('span');
+      el.className = 'interim';
+      el.contentEditable = 'false';
+      this._insertNode(el);
+    }
+    const r = document.createRange();
+    r.selectNodeContents($('composer'));
+    r.setEndBefore(el);
+    const before = r.toString();
+    el.textContent = (before && !/\s$/.test(before) ? ' ' : '') + text;
   }
 
   _insertSpoken(words) {
@@ -562,6 +611,7 @@ export class App {
     let out = '';
     for (const n of node.childNodes) {
       if (n.nodeType === Node.TEXT_NODE) out += n.textContent;
+      else if (n.classList?.contains('interim')) continue; // words still being heard
       else if (n.dataset?.token) out += n.dataset.token;
       else if (n.nodeName === 'BR') out += '\n';
       else { out += (n.nodeName === 'DIV' ? '\n' : '') + this.serialize(n); }
@@ -819,6 +869,110 @@ export class App {
     addEventListener('blur', () => { for (const k of [...this.runtime.heldKeys]) this.runtime.keyUp(k); });
   }
 
+  // ---- eyes -----------------------------------------------------------------------
+
+  // A picture of what's straight ahead of a thing, from about where its eyes
+  // are, as base64 JPEG (for see()). It renders one frame from there with the
+  // thing itself and the selection marks hidden, shrinks it to 512 wide, then
+  // draws the normal view again straight away, so nothing flickers.
+  snapshot(actor) {
+    const box = actor.bounds();
+    const f = actor.forward();
+    // from its middle (it's hidden in the picture), so a thing right in
+    // front of it fits in the frame instead of filling it
+    const eye = box.getCenter(new THREE.Vector3());
+    eye.y = box.min.y + (box.max.y - box.min.y) * 0.8;
+    const cam = new THREE.PerspectiveCamera(75, this.camera.aspect, 0.1, 300);
+    cam.position.copy(eye);
+    cam.lookAt(eye.clone().add(f.clone().multiplyScalar(10)).add(new THREE.Vector3(0, -1.5, 0))); // a little downward
+    const hidden = [this.ring, this.selBox, this.aim, this.hoverBox, ...actor.members.flatMap((e) => e.bodies.map((b) => b.object3d))]
+      .filter((o) => o?.visible);
+    for (const o of hidden) o.visible = false;
+    let data = null;
+    try {
+      this.renderer.render(this.scene, cam);
+      const src = this.renderer.domElement;
+      const out = document.createElement('canvas');
+      out.width = 512;
+      out.height = Math.round(512 * src.height / src.width);
+      out.getContext('2d').drawImage(src, 0, 0, out.width, out.height);
+      data = out.toDataURL('image/jpeg', 0.85).split(',')[1];
+      this.lastSnapshot = data; // handy for checking what a thing saw
+    } finally {
+      for (const o of hidden) o.visible = true;
+      this.renderer.render(this.scene, this.camera);
+    }
+    return data;
+  }
+
+  // Show what a thing's see() looked at: a balloon with the picture and,
+  // once Claude answers, the label it chose ("looking…" until then).
+  showSeen(actor, image, label) {
+    let b = this.seen.get(actor);
+    if (!b) {
+      const el = document.createElement('div');
+      el.className = 'bubble seen';
+      el.innerHTML = '<img alt=""><span></span>';
+      $('bubbles').appendChild(el);
+      b = { el };
+      this.seen.set(actor, b);
+    }
+    b.el.querySelector('img').src = `data:image/jpeg;base64,${image}`;
+    b.el.querySelector('img').alt = `What ${actor.describe().name} saw`;
+    const cap = b.el.querySelector('span');
+    cap.textContent = label == null ? 'looking…' : label;
+    b.el.classList.toggle('pending', label == null);
+    b.el.classList.toggle('none', label === 'none');
+    b.until = performance.now() + (label == null ? 30000 : 4000);
+  }
+
+  // ---- export -------------------------------------------------------------------
+
+  // Save the current world as JSON: what it's based on, what was added, moved
+  // or deleted, every behavior, and where everything is right now, so it can
+  // be turned into a premade world.
+  exportWorld() {
+    const { stage, world } = this;
+    const round = (v) => Math.round(v * 100) / 100;
+    const xyz = (v) => [round(v.x), round(v.y), round(v.z)];
+    const things = [...world.things().keys()].map((key) => {
+      const a = world.actor(key);
+      const d = a.describe();
+      const box = a.bounds();
+      return {
+        key, name: d.name, kind: d.kind, color: d.color, ...(d.type ? { model: d.type } : {}),
+        position: xyz(a.position), heading: round(a.heading()), bottom: round(box.min.y),
+        ...(a.members.length > 1 ? { bricks: a.members.length } : {}),
+      };
+    });
+    const behaviors = {};
+    for (const [key, list] of stage.state.behaviors) {
+      if (!list.length) continue;
+      behaviors[key] = list.map((b) => ({
+        title: b.title, text: b.text, summary: b.summary, code: b.code,
+        ...(b.keys && Object.keys(b.keys).length ? { keys: b.keys } : {}),
+        ...(b.enabled ? {} : { enabled: false }), source: b.source,
+      }));
+    }
+    const out = {
+      format: 'brick-behaviors-world', version: 1, exported: new Date().toISOString(),
+      basedOn: stage.worldId, name: stage.preset.name,
+      camera: { pos: xyz(this.camera.position), target: xyz(this.controls.target) },
+      gravity: world.gravityScale,
+      added: stage.state.added, moved: stage.state.moves, deleted: [...stage.state.deleted],
+      behaviors, things,
+    };
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${stage.worldId}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    this.log(`💾 Saved ${a.download}: ${things.length} things, ${Object.values(behaviors).flat().length} behaviors.`);
+  }
+
   // ---- bubbles, log, per-frame --------------------------------------------------
 
   say(actor, text, seconds) {
@@ -861,7 +1015,7 @@ export class App {
   }
 
   update() {
-    if (this.drag) { this._holdDrag(); this.world.sync(); }
+    if (this.drag) { this._liftOver(this.drag); this._holdDrag(); this.world.sync(); }
     this._lightBlocks();
     const a = this.selected;
     if (a && !a.alive) this.select(null);
@@ -879,8 +1033,11 @@ export class App {
       }
       const p = this.selected.position;
       if (this.selected.model) {
+        // at its feet, wherever it stands (a raised green, a plateau); just above roads and ponds on the ground
+        const m = this.selected.model;
+        const feet = m.chassis.translation().y + modelBottom(m.def); // its colliders' bottom (a held putter hangs lower)
         this.ring.visible = true;
-        this.ring.position.set(p.x, 0.07, p.z); // above roads and ponds
+        this.ring.position.set(p.x, Math.max(0.07, feet + 0.07), p.z);
       } else {
         this.selBox.box.copy(this.selected.bounds()).expandByScalar(0.15);
         this.selBox.visible = true;
@@ -896,6 +1053,12 @@ export class App {
     if (this.hoverBox.visible && this.hoverTarget) this.hoverBox.setFromObject(this.hoverTarget);
 
     const now = performance.now();
+    for (const [actor, b] of this.seen) {
+      if (now > b.until || !actor.alive) { b.el.remove(); this.seen.delete(actor); continue; }
+      const s = this._screen(actor.position.setY(actor.bounds().max.y + 1));
+      b.el.style.display = s ? '' : 'none';
+      if (s) { b.el.style.left = `${s.x}px`; b.el.style.top = `${s.y}px`; }
+    }
     for (const [actor, b] of this.bubbles) {
       if (now > b.until || !actor.alive) { b.el.remove(); this.bubbles.delete(actor); continue; }
       if (actor.isWorld) continue; // the World's words are a banner at the top

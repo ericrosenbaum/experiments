@@ -5,12 +5,33 @@
 // thingId form one assembly (a house of loose bricks); see actor.js for how
 // programs address models, assemblies, single bricks and the world itself.
 import * as THREE from 'three';
-import { brickMesh, wheelMesh, material, SIZES, BRICK_H } from './bricks.js';
+import { brickMesh, wheelMesh, flowerMesh, material, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
 import { buildMinifig, buildSeatedMinifig, FIG } from './minifig.js';
 
 const DEG = Math.PI / 180;
+// Split boxes into brick-sized pieces (at most 2 studs across and a brick
+// tall), coarser if that would make too many to keep the world quick.
+const MAX_PIECES = 160;
+function splitIntoBricks(boxes) {
+  const counts = (scale) => boxes.map(({ size: [w, h, d] }) => [Math.ceil(w / (2 * scale) - 0.01), Math.ceil(h / (1.2 * scale) - 0.01), Math.ceil(d / (2 * scale) - 0.01)]);
+  let scale = 1, n = counts(scale);
+  while (n.reduce((sum, [a, b, c]) => sum + a * b * c, 0) > MAX_PIECES && scale < 20) n = counts(scale *= 1.25);
+  const out = [];
+  boxes.forEach(({ size: [w, h, d], color, pos, quat }, i) => {
+    const [nx, ny, nz] = n[i];
+    const sw = w / nx, sh = h / ny, sd = d / nz;
+    for (let ix = 0; ix < nx; ix++) for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) {
+      const local = new THREE.Vector3(-w / 2 + sw * (ix + 0.5), -h / 2 + sh * (iy + 0.5), -d / 2 + sd * (iz + 0.5));
+      out.push({ size: [sw * 0.96, sh * 0.96, sd * 0.96], color, pos: local.applyQuaternion(quat).add(pos), quat });
+    }
+  });
+  return out;
+}
+
+export const WHEEL_ACCEL = 60; // studs/s² a wheeled model speeds up by, at most
+const TRACTION = 90; // studs/s² the traction assist can change a wheeled model's ground speed by
 export const GRAVITY = -25; // studs/s^2 — "toy scale" gravity, snappy but readable
 const FAR = 150; // things that fly further than this are cleaned up
 
@@ -329,6 +350,101 @@ export class World {
     return this._register(e);
   }
 
+  // A little flower (spawn({shape: "flower"})). The heavy round plate at its
+  // foot and a light stem and bloom keep it landing upright.
+  addFlower({ color = 'red', x, y, z, yaw = 0, quat, name, thingId, id, owner, linvel, angvel }) {
+    const R = this.R;
+    const e = new Entity({ kind: 'flower', name: name ?? `${color} flower`, color, thingId, owner, id });
+    const desc = R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setRotation(quat ?? yawQuat(yaw)).setAngularDamping(0.5);
+    if (linvel) desc.setLinvel(linvel.x, linvel.y, linvel.z);
+    if (angvel) desc.setAngvel(angvel);
+    const body = this.physics.createRigidBody(desc);
+    this._attachCollider(R.ColliderDesc.cuboid(0.48, 0.19, 0.48).setTranslation(0, -0.71, 0).setFriction(0.9).setDensity(2.5), body, e, null, 'green');
+    this._attachCollider(R.ColliderDesc.cuboid(0.4, 0.62, 0.4).setTranslation(0, 0.28, 0).setFriction(0.6).setDensity(0.05), body, e, null, color);
+    const obj = new THREE.Group();
+    const m = flowerMesh(color);
+    m.traverse((o) => { o.userData.entity = e; });
+    obj.add(m);
+    this.scene.add(obj);
+    e.chassis = body;
+    e.bodies.push({ body, object3d: obj, part: null });
+    e.recipe = { type: 'flower', opts: { color, name: e.name } };
+    this._syncOne(body, obj);
+    return this._register(e);
+  }
+
+  // ---- explosions ----------------------------------------------------------
+
+  // Burst things into loose bricks flying out from `center`. Props and models
+  // become bricks (big blocks split into brick-sized pieces); things that are
+  // already loose bricks (a house, a tower) are just flung. The originals are
+  // hidden and stop colliding at once, so the pieces don't start inside them;
+  // returns whether they need removing (props and models do).
+  explode(entities, { center, power = 5 }) {
+    const boxes = []; // {size, color, pos, quat} in world space
+    const fling = [];
+    let replaced = false;
+    for (const e of entities) {
+      if (e.removed) continue;
+      if (e.kind === 'model') this._modelBoxes(e, boxes);
+      else if (e.recipe?.type === 'static') this._propBoxes(e, boxes);
+      else { fling.push(e); continue; }
+      replaced = true;
+      for (const { body, object3d } of e.bodies) {
+        for (let i = 0; i < body.numColliders(); i++) body.collider(i).setEnabled(false);
+        object3d.visible = false;
+      }
+    }
+    const speed = 3 + power * 2.5;
+    const kick = (pos) => {
+      const d = new THREE.Vector3().subVectors(pos, center);
+      d.y = Math.max(d.y, 0) + 1.5; // outward and up, never into the ground
+      return d.normalize().multiplyScalar(speed * (0.7 + Math.random() * 0.6));
+    };
+    const spin = () => ({ x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.5) * 12, z: (Math.random() - 0.5) * 12 });
+    for (const p of splitIntoBricks(boxes)) {
+      const v = kick(p.pos);
+      this.addBrick({ dims: p.size, color: p.color, x: p.pos.x, y: p.pos.y, z: p.pos.z, quat: p.quat, linvel: v, angvel: spin(), name: `${p.color} brick` });
+    }
+    for (const e of fling) {
+      for (const { body } of e.bodies) {
+        if (!body.isDynamic()) continue;
+        const t = body.translation();
+        body.setLinvel(kick(new THREE.Vector3(t.x, t.y, t.z)), true);
+        body.setAngvel(spin(), true);
+      }
+    }
+    return replaced;
+  }
+
+  _propBoxes(e, out) {
+    const t = e.chassis.translation(), r = e.chassis.rotation();
+    const q = new THREE.Quaternion(r.x, r.y, r.z, r.w), at = new THREE.Vector3(t.x, t.y, t.z);
+    for (const bx of e.recipe.opts.boxes) {
+      const bq = bx.rot ? new THREE.Quaternion().setFromEuler(new THREE.Euler(...bx.rot)) : new THREE.Quaternion();
+      out.push({ size: bx.size, color: bx.color, pos: new THREE.Vector3(...bx.at).applyQuaternion(q).add(at), quat: q.clone().multiply(bq) });
+    }
+  }
+
+  // A model's visible bricks, chassis and parts; wheels become dark blocks.
+  // Minifigures are drawn rather than built, so they burst into their
+  // collision boxes (which carry the figure's colors).
+  _modelBoxes(e, out) {
+    const place = (body, list) => {
+      const t = body.translation(), r = body.rotation();
+      const q = new THREE.Quaternion(r.x, r.y, r.z, r.w), at = new THREE.Vector3(t.x, t.y, t.z);
+      const shown = list.filter((b) => !b.hidden);
+      for (const b of shown.length ? shown : list) out.push({ size: b.size, color: b.color, pos: new THREE.Vector3(...b.at).applyQuaternion(q).add(at), quat: q.clone() });
+    };
+    place(e.chassis, e.def.bricks);
+    for (const p of e.parts.values()) {
+      if (p.def.kind === 'wheel') {
+        const t = p.body.translation(), r = p.body.rotation(), d = p.def.radius * 1.6;
+        out.push({ size: [p.def.width, d, d], color: 'black', pos: new THREE.Vector3(t.x, t.y, t.z), quat: new THREE.Quaternion(r.x, r.y, r.z, r.w) });
+      } else place(p.body, p.def.bricks);
+    }
+  }
+
   // A prop built from boxes: [{at, size, color, rot?}]. It doesn't fall or get
   // knocked over, but a program can still drive it around (it's kinematic).
   // sensor: things pass through it but it still feels touches (coins).
@@ -387,6 +503,7 @@ export class World {
     switch (recipe.type) {
       case 'model': return this.addModel(def, { x, y, z, yaw, id, thingId, name });
       case 'brick': return this.addBrick({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name, sleeping });
+      case 'flower': return this.addFlower({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
       case 'static': return this.addStatic({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
       case 'ball': return this.addBall({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
       default: return null;
@@ -425,9 +542,16 @@ export class World {
       const wheels = [...e.parts.values()].filter((p) => p.def.kind === 'wheel');
       const track = Math.max(...wheels.map((w) => Math.abs(w.def.at[0]))) * 2;
       const omega = c.steer * DEG;
+      // Ease the wheels toward the asked-for speed. Jumping straight to a high
+      // speed gives the motors so much torque that the car pops a wheelie and
+      // flips; braking toward a stop is allowed to be quicker than speeding up.
+      const was = e._wheelDrive ?? 0;
+      const braking = Math.abs(c.drive) < Math.abs(was) || Math.sign(c.drive) !== Math.sign(was);
+      const step = (braking ? 2 : 1) * WHEEL_ACCEL * dt;
+      e._wheelDrive = was + Math.max(-step, Math.min(step, c.drive - was));
       for (const w of wheels) {
         const sideSign = w.def.side === 'left' ? -1 : 1;
-        const v = c.drive + sideSign * omega * track / 2;
+        const v = e._wheelDrive + sideSign * omega * track / 2;
         w.joint.configureMotorVelocity(v / w.def.radius, 40 * (def.wheelPower ?? 1));
       }
       // Skid-steering four grippy wheels barely turns, so help the chassis
@@ -440,6 +564,20 @@ export class World {
         e.chassis.setAngvel({ x: av.x + up.x * k, y: av.y + up.y * k, z: av.z + up.z * k }, true);
       }
       c._wasSteering = Math.abs(c.steer) > 0.01;
+      // Traction: nudge the chassis's ground velocity toward "forward at the
+      // wheels' speed", a little each step. On their own, four grippy wheels
+      // get going sluggishly and scrub off most of their speed in a turn; this
+      // keeps a toy car rolling where it points. Only while driving, on the
+      // ground and upright, and limited, so it can't plow through a tower.
+      const lv = e.chassis.linvel();
+      const upY = new THREE.Vector3(0, 1, 0).applyQuaternion(e.quaternion).y;
+      if ((c.drive || e._wheelDrive) && Math.abs(lv.y) < 2 && upY > 0.7) {
+        const f = e.forward();
+        const dx = f.x * e._wheelDrive - lv.x, dz = f.z * e._wheelDrive - lv.z;
+        const d = Math.hypot(dx, dz), most = TRACTION * dt;
+        const k = d > most ? most / d : 1;
+        e.chassis.setLinvel({ x: lv.x + dx * k, y: lv.y, z: lv.z + dz * k }, true);
+      }
       if (c.rise) { const lv = e.chassis.linvel(); e.chassis.setLinvel({ x: lv.x, y: c.rise, z: lv.z }, true); }
     } else {
       // glide: steer the chassis velocity directly, keep gravity

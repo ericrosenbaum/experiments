@@ -157,6 +157,7 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 .composer-box:focus-within { border-color: var(--purple); }
 #composer { min-height: 50px; max-height: 220px; overflow: auto; font-size: 15px; line-height: 1.7; outline: none; white-space: pre-wrap; padding-right: 4px; }
 #composer:empty::before { content: attr(data-placeholder); color: var(--muted); }
+#composer .interim { color: var(--muted); font-style: italic; } /* speech still being heard */
 .composer-tools { display: flex; gap: 2px; align-items: center; }
 .composer-tools button { white-space: nowrap; flex: none; }
 #point-hint { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 6px; text-align: right; }
@@ -284,6 +285,17 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   overflow: hidden; text-overflow: ellipsis;
 }
 .bubble::after { content: ''; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+/* what see() looked at: a picture and the label Claude chose, stacked above the speech bubble */
+.bubble.seen {
+  transform: translate(-50%, calc(-100% - 46px)); display: flex; flex-direction: column; align-items: stretch; gap: 5px;
+  padding: 6px; max-width: none; white-space: normal; border-radius: 12px; outline: 3px solid var(--purple);
+}
+.bubble.seen::after { display: none; }
+.bubble.seen img { display: block; width: 168px; height: auto; border-radius: 7px; }
+.bubble.seen span { text-align: center; font-size: 14px; line-height: 1.2; padding: 1px 4px 2px; }
+.bubble.seen span::before { content: '👀 '; }
+.bubble.seen.pending span { color: #777; font-style: italic; }
+.bubble.seen.none span { color: #777; }
 /* the World's words: in the top bar's row, between the world picker and the buttons on the right */
 .banner {
   position: absolute; top: 12px; left: 50%; transform: translateX(calc(-50% - 190px)); background: var(--yellow); color: #222; border-radius: 14px;

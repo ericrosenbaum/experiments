@@ -2,7 +2,9 @@
 // sun whose shadow map follows the camera, and a post stack of ambient
 // occlusion, a little bloom, a grade and a vignette. Add ?fx=low to the URL
 // for a plain look (flat sky color, no reflections or post effects) that
-// slow GPUs can keep up with; it drops to that by itself if frames get slow.
+// slow GPUs can keep up with; it drops to that by itself if frames get slow,
+// and this browser remembers, so later visits start plain instead of
+// switching a few seconds in. ?fx=high forgets that and tries the full look.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -13,6 +15,11 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { setGloss } from './world/bricks.js';
 
 const SUN_DIR = new THREE.Vector3(30, 50, 20).normalize();
+const FX_KEY = 'brick-behaviors.fx'; // 'low' once this browser was too slow for the full look
+const store = {
+  get() { try { return localStorage.getItem(FX_KEY); } catch { return null; } },
+  set(v) { try { if (v) localStorage.setItem(FX_KEY, v); else localStorage.removeItem(FX_KEY); } catch { /* storage blocked */ } },
+};
 const SHADOW_R = 45; // half-size of the shadow box around the camera target
 
 // Gentle contrast and saturation, then a vignette. Runs on display colors.
@@ -34,7 +41,9 @@ const GradeShader = {
 
 export class Graphics {
   constructor(container) {
-    this.fancy = !/[?&]fx=low\b/.test(location.search);
+    const asked = location.search.match(/[?&]fx=(low|high)\b/)?.[1];
+    if (asked === 'high') store.set(null);
+    this.fancy = asked ? asked === 'high' : store.get() !== 'low';
     const renderer = new THREE.WebGLRenderer({ antialias: !this.fancy, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
@@ -178,9 +187,13 @@ export class Graphics {
     this._placeSun(target);
     if (!this.composer) { this.renderer.render(this.scene, this.camera); return; }
     // If it can't keep up, fall back to plain rendering rather than stutter.
-    this._slow = dt > 1 / 28 ? this._slow + dt : Math.max(0, this._slow - dt);
+    // One long frame (loading, a tab switch) counts as a short one, so only
+    // seconds of steady slowness switch it.
+    const step = Math.min(dt, 0.25);
+    this._slow = dt > 1 / 28 ? this._slow + step : Math.max(0, this._slow - step);
     if (this._slow > 4) {
-      console.info('graphics: frames are slow, switching to the plain look (add ?fx=low to start that way)');
+      console.info('graphics: frames are slow, switching to the plain look; this browser will start that way next time (?fx=high to try again)');
+      store.set('low');
       this.composer = null;
       this.fancy = false;
       setGloss(false);

@@ -32,6 +32,8 @@ check('wander', 'robot', ['forever(', 'move(random(']);
 check('when it sees a red brick, roar and wag the tail', 'dino', ['look(15)', 'is(seen, {color: "red", kind: "brick"})', 'play("roar")', 'part("tail").wiggle(']);
 check('when it hears go, drive forward fast', 'racecar', ['onMessage("go"', 'drive(13)']);
 check('when I press b, tell everyone go', 'robot', ['broadcast("go")']);
+check('when I press the up arrow, speed up by 4', 'racecar', ['onKey("ArrowUp"', 'speedUp(4)']);
+check('when I press b, brake', 'racecar', ['slowDown(3)']);
 check('when I press h, say "Hello, friend!" for 4 seconds', 'robot', ['say("Hello, friend!", 4)']);
 check('when I press h, say hi', 'robot', ['say("hi");']);
 check('spin around 2 times and turn blue', 'robot', ['await turn(720)', 'color("blue")']);
@@ -58,6 +60,7 @@ assert.deepEqual(r.unknown, ['fly to the moon']);
 
 // card titles name the whole behavior, not its first step
 const title = (text, model = 'robot') => compileLocal(text, LIBRARY_BY_ID[model]).title;
+assert.equal(title('When I press the up arrow, speed up. When I press the down arrow, slow down.', 'racecar'), 'Gas and Brakes');
 assert.equal(title('When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.', 'racecar'), 'Move with Arrows');
 assert.equal(title('While I hold left, turn left. While I hold right, turn right.'), 'Steer with Arrows');
 assert.equal(title('Forever, turn the head left, wait 1 second, turn the head right, wait 1 second.'), 'Turn Head Back and Forth');

@@ -9,7 +9,7 @@ import { RAINBOW } from './props.js';
 const RAINBOW_UP = [...RAINBOW].reverse(); // purple at the bottom, red on top
 import { BRICK_H as B } from './bricks.js';
 
-const ARROWS = 'When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.';
+const ARROWS = 'When I press the up arrow, drive forward fast. When I press the down arrow, drive backward fast. While I hold left, turn left very fast. While I hold right, turn right very fast.';
 const STEER = ARROWS;
 
 const SKY = {
@@ -19,12 +19,25 @@ const SKY = {
 // Every coin in the platform game knows the same thing.
 const COIN = {
   title: 'Spinning Coin',
-  text: 'When the hero touches it, play coin and disappear. Spin slowly.',
-  summary: ['Always: spin slowly', 'When the Hero touches it: play coin and disappear'],
-  code: 'onStart(() => steer(90)); // spin slowly\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
+  text: 'When the hero touches it, play coin and disappear. Keep spinning.',
+  summary: ['Always: spin', 'When the Hero touches it: play coin and disappear'],
+  code: 'onStart(() => steer(180)); // spin\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
 };
 
 export const WORLDS = [
+  {
+    id: 'blank',
+    name: 'Blank',
+    emoji: '⬜',
+    blurb: 'Just the ground. Add models from the menu, and teach the World its own rules.',
+    theme: { ...SKY.day, ground: { base: '#3f9e44', stud: '#4db352', edge: '#2f7f34' } },
+    camera: { pos: [-8, 20, -28], target: [0, 0, 2] },
+    build() {},
+    models: [],
+    behaviors: {},
+    select: 'world',
+  },
+
   {
     id: 'playground',
     name: 'Playground',
@@ -47,7 +60,23 @@ export const WORLDS = [
       { id: 'racecar', def: 'racecar', x: 0, z: 0 },
       { id: 'catapult', def: 'catapult', x: 9, z: -3, yaw: 25 },
     ],
-    behaviors: { racecar: [{ text: ARROWS }] },
+    behaviors: {
+      racecar: [
+        {
+          title: 'Steer with Arrows',
+          text: 'While I hold left, turn left at speed 150. While I hold right, turn right at speed 150.',
+          summary: ['While ← is held: turn left', 'While → is held: turn right'],
+          code: 'onKey("ArrowLeft", () => steer(150));\nonKeyUp("ArrowLeft", () => steer(0));\nonKey("ArrowRight", () => steer(-150));\nonKeyUp("ArrowRight", () => steer(0));',
+        },
+        {
+          title: 'Gas and Brakes',
+          keys: { ArrowUp: 'faster', ArrowDown: 'slower', ' ': 'stop' },
+          text: 'While I hold the up arrow, speed up by 4. While I hold the down arrow, slow down by 4. When I press space, stop.',
+          summary: ['While ↑ is held: speed up', 'While ↓ is held: slow down, then back up', 'When space is pressed: stop'],
+          code: 'whileKey("ArrowUp", () => speedUp(4));\nwhileKey("ArrowDown", () => slowDown(4));\nonKey(" ", () => stop());',
+        },
+      ],
+    },
     select: 'racecar',
   },
 
@@ -122,7 +151,7 @@ export const WORLDS = [
         { text: 'While I hold w, fly up. While I hold s, fly down.' },
         { title: 'Laser Blaster', text: 'When I press space, play laser and shoot a red brick.' },
       ],
-      ufo: [{ text: 'Forever, spin the dome.' }, { text: 'Wander slowly.' }],
+      ufo: [{ text: 'Forever, spin the dome.' }, { text: 'Wander fast.' }],
       rocket: [{
         title: 'Blast Off',
         keys: { ' ': 'blast off' },
@@ -173,13 +202,13 @@ export const WORLDS = [
     behaviors: {
       world: [{ title: 'Game Goal', text: 'At the start, say "Get all the coins and reach the flag!" for 10 seconds.' }],
       hero: [{ text: STEER }, { text: 'When I press space, jump high.' }],
-      slime: [{ text: 'Forever, move 6 studs, then turn around.' }],
-      'slime-2': [{ text: 'Forever, move 6 studs, then turn around.' }],
+      slime: [{ text: 'Forever, move 6 studs fast, then turn around.' }],
+      'slime-2': [{ text: 'Forever, move 6 studs fast, then turn around.' }],
       lift: [{
         title: 'Up and Down Lift',
         text: 'Forever, move 6 studs, wait 1 second, move back 6 studs, wait 1 second.',
         summary: ['Forever: slide 6 studs one way, wait, slide back, wait'],
-        code: 'forever(async () => {\n  await move(6, 3);\n  await wait(1);\n  await move(-6, 3);\n  await wait(1);\n});',
+        code: 'forever(async () => {\n  await move(6, 6);\n  await wait(1);\n  await move(-6, 6);\n  await wait(1);\n});',
       }],
       ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`coin-${n}`, [COIN]])),
       block: [{
@@ -231,7 +260,7 @@ export const WORLDS = [
     behaviors: {
       truck: [{ text: ARROWS }, { text: 'When I press space, raise the dump bed, wait 1 second, lower the dump bed.' }],
       villager: [{ title: 'Lovely Day Wave', text: 'When I press h, wave the right arm and say "Lovely day!"' }],
-      'villager-2': [{ text: 'Wander slowly.' }],
+      'villager-2': [{ text: 'Wander.' }],
       mayor: [{ title: "Mayor's Welcome", keys: { h: 'hello' }, text: 'When I press h, raise both arms and say "Welcome to Brickton!" then lower both arms.' }],
     },
     select: 'truck',
@@ -264,12 +293,49 @@ export const WORLDS = [
       { id: 'cow-2', def: 'cow', x: 24, z: -7, yaw: 200, name: 'Buttercup' },
       { id: 'horse', def: 'horse', x: -6, z: -14, yaw: 60 },
       { id: 'farmer', def: 'farmer', x: 8, z: 3, yaw: -20 },
+      { id: 'alien', def: 'alien', x: 8, z: -22, yaw: -90, name: 'Zorp' },
+      { id: 'dragon', def: 'dragon', x: -24, z: -30, yaw: 40 },
     ],
     behaviors: {
       tractor: [{ text: ARROWS }, { text: 'When I press space, lift the loader, wait 1 second, lower the loader.' }],
       cow: [{ text: 'Every 5 seconds, wag the tail.' }],
       farmer: [{ title: 'Howdy Wave', text: 'When I press h, wave the left arm and say "Howdy!"' }],
       'cow-2': [{ text: 'Every 7 seconds, nod the head.' }],
+      horse: [{
+        title: 'Look Around',
+        keys: { ' ': 'look' },
+        text: 'When I press space, look at what is in front. If it is food, eat it. If it is something scary, turn around and run away. If it is a friendly person, say hi and ask for a carrot. If it is an alien, explode.',
+        summary: [
+          'When you press space: look at what is in front (Claude looks at the picture)',
+          'Food: eat it · something scary: run away · a friendly person: say hi and ask for a carrot · an alien: explode',
+        ],
+        code: `// Look at whatever is in front, and react to it.
+onKey(" ", async () => {
+  say("Hmm, what's that?", 2);
+  const what = await see(["food", "something scary, like a monster or a dragon", "a friendly person", "an alien"]);
+  if (what === "food") {
+    say("Yum, food!", 2);
+    play("chomp");
+    await part("head").turnTo(-40); // head down to eat
+    await part("head").wiggle(3);
+    await part("head").turnTo(0);
+  } else if (what === "something scary, like a monster or a dragon") {
+    play("neigh");
+    say("Eek!", 2);
+    await turn(180);
+    await move(15, 20); // gallop away
+  } else if (what === "a friendly person") {
+    say("Hi! Do you have a carrot for me?", 3);
+    await part("head").wiggle(2);
+  } else if (what === "an alien") {
+    say("AN ALIEN?!", 1);
+    await wait(0.8);
+    explode(9);
+  } else {
+    say("Nothing interesting here.", 2);
+  }
+});`,
+      }],
     },
     select: 'tractor',
   },
@@ -333,9 +399,9 @@ async function startHole() {
 }
 
 // aim
-onKey("ArrowLeft", () => steer(70));
+onKey("ArrowLeft", () => steer(120));
 onKeyUp("ArrowLeft", () => steer(0));
-onKey("ArrowRight", () => steer(-70));
+onKey("ArrowRight", () => steer(-120));
 onKeyUp("ArrowRight", () => steer(0));
 
 // putt: hold space to charge up, let go to hit
@@ -372,7 +438,7 @@ onStart(async () => { await face(thing(cups[0])); });`,
         summary: ['When the Golf Ball drops in: tell everyone "in the hole"'],
         code: 'onTouch(thing("golfball"), () => {\n  broadcast("in the hole");\n});',
       }]])),
-      spinner: [{ title: 'Spinner', text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(60)); // keep turning' }],
+      spinner: [{ title: 'Spinner', text: 'Forever, keep turning.', summary: ['Always: keep turning'], code: 'onStart(() => steer(100)); // keep turning' }],
       golfer: [{ title: 'Nice Putt Cheer', text: 'When it hears "in the hole", wave the left arm and say "Nice putt!"' }],
     },
     select: 'golfball',
@@ -382,7 +448,7 @@ onStart(async () => { await face(thing(cups[0])); });`,
     id: 'megagolf',
     name: 'MEGA GOLF',
     emoji: '🏌️',
-    blurb: "One giant hole, and you're the golfer. Walk with the arrows, hold space to wind up and let go to whack the ball (stand right next to it). Watch out for zoomy slimes and Big Rex. R puts the ball back on the tee.",
+    blurb: "One giant hole, and you're the golfer. Walk with the arrows, hold space to wind up and let go to whack the ball (stand right next to it). Watch out for Big Rex. R puts the ball back on the tee.",
     theme: { sky: 0xffd9a8, fog: [120, 260], hemi: [0xfff4e6, 0x6f8f3a, 1.45], sun: [0xffe9c4, 2.5], ground: { base: '#6bb04f', stud: '#7cc25e', edge: '#55903d' } },
     camera: { pos: [-16, 22, -76], target: [0, 3, -40] },
     follow: true,
@@ -394,7 +460,7 @@ onStart(async () => { await face(thing(cups[0])); });`,
       for (let i = 0; i < 5; i++) {
         w.addBrick({ dims: [4, 2.4, 4], color: RAINBOW_UP[i], x: 45, y: c.PLAT + 1.2 + i * 2.4, z: 38, kind: 'tower', name: 'Mega Tower', thingId: 'mega-tower', sleeping: true });
       }
-      P.cup(w, 'mega-cup', c.cup[0], c.cup[1], { name: 'Mega Cup', size: 9.6, depth: 2.4 }); // still counts with a slime under the ball
+      P.cup(w, 'mega-cup', c.cup[0], c.cup[1], { name: 'Mega Cup', size: 9.6, depth: 2.4 }); // still counts if confetti bricks end up under the ball
       P.giantPin(w, 'giant-flag', c.cup[0] + 6, c.GREEN, c.cup[1] + 6);
       P.bigRex(w, 'rex', 76, 80, { yaw: -90 });
       w.addBall({ radius: 3.5, color: 'white', x: c.tee[0], y: c.FAIR + 3.55, z: c.tee[1], name: 'Mega Ball', thingId: 'megaball', damping: 0.2, spinDamping: 0.6, bounce: 0.3, spots: false, density: 1 });
@@ -403,9 +469,6 @@ onStart(async () => { await face(thing(cups[0])); });`,
     },
     models: [
       { id: 'golfer', def: 'golfer', x: 0, z: -45, lift: 0.4, name: 'You' },
-      { id: 'zip', def: 'slime', x: -4, z: -30, yaw: 90, lift: 0.4, name: 'Zip' },
-      { id: 'zap', def: 'slime', x: 36, z: 6, yaw: -90, lift: 6.4, name: 'Zap' },
-      { id: 'zoom', def: 'slime', x: 30, z: 74, yaw: 45, lift: 3.6, name: 'Zoom' },
     ],
     behaviors: {
       world: [
@@ -527,20 +590,12 @@ onMessage("in the hole", async () => {
         summary: ['When the Mega Ball drops in: tell everyone "in the hole"'],
         code: 'onTouch(thing("megaball"), () => {\n  broadcast("in the hole");\n});',
       }],
-      spinner: [{ title: 'Spinner', text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(35)); // keep turning' }],
-      ...Object.fromEntries([['zip', 'lime'], ['zap', 'pink'], ['zoom', 'cyan']].map(([id, color]) => [id, [{
-        title: 'Zoomies',
-        text: `At the start, turn ${color}. Forever, zoom forward really fast, then turn a random amount. When the mega ball hits it, say "Wheee!" and jump.`,
-        summary: [`At the start: turn ${color}`, 'Forever: zoom forward really fast, then turn a random amount', 'When the Mega Ball hits it: say "Wheee!" and jump'],
-        code: `onStart(() => color("${color}"));
-forever(async () => {
-  await move(random(5, 12), 22); // zoom!
-  await turn(random(-150, 150));
-});
-onTouch(thing("megaball"), () => {
-  say("Wheee!", 1);
-  jump(8);
-});`,
+      spinner: [{ title: 'Spinner', text: 'Forever, keep turning.', summary: ['Always: keep turning'], code: 'onStart(() => steer(60)); // keep turning' }],
+      ...Object.fromEntries(['mushroom-1', 'mushroom-2'].map((id) => [id, [{
+        title: 'Mushroom Boom',
+        text: 'When the mega ball hits it, explode.',
+        summary: ['When the Mega Ball hits it: burst into bricks'],
+        code: 'onTouch(thing("megaball"), () => {\n  explode(8);\n});',
       }]])),
       rex: [{
         title: 'Ball Watcher',

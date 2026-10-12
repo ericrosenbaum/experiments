@@ -78,6 +78,39 @@ export function brickMesh(w, h, d, color, studs = true) {
   return m;
 }
 
+// A little LEGO flower, about 1.5 bricks tall: a 1x1 round plate, a stem
+// with two leaves, five petals and a yellow center stud. Centered on its
+// middle (y from -0.9 to 0.9), to match its physics body.
+export function flowerMesh(color = 'red', leaf = 'green') {
+  const g = new THREE.Group();
+  const add = (geo, c, pos, rot, scale) => {
+    const m = new THREE.Mesh(geo, material(c));
+    m.position.set(...pos);
+    if (rot) m.rotation.set(...rot);
+    if (scale) m.scale.set(...scale);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    g.add(m);
+    return m;
+  };
+  const ball = new THREE.SphereGeometry(1, 18, 12);
+  add(new THREE.CylinderGeometry(0.48, 0.48, 0.38, 28), leaf, [0, -0.71, 0]); // round plate
+  add(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 20), leaf, [0, -0.46, 0]); // where the stem plugs in
+  add(new THREE.CylinderGeometry(0.08, 0.09, 1.1, 12), leaf, [0, 0.03, 0]); // stem
+  for (const side of [1, -1]) { // two leaves angled up and out
+    add(ball, leaf, [side * 0.24, -0.12 + (side > 0 ? 0 : 0.18), 0], [0, side > 0 ? 0 : Math.PI / 5, side * 0.45], [0.3, 0.05, 0.14]);
+  }
+  const head = 0.66;
+  for (let i = 0; i < 5; i++) { // petals, tipped up a little like a cup
+    const a = (i / 5) * Math.PI * 2;
+    const p = add(ball, color, [Math.sin(a) * 0.25, head, Math.cos(a) * 0.25], null, [0.15, 0.07, 0.21]);
+    p.rotation.set(-0.35, a, 0, 'YXZ');
+  }
+  add(new THREE.CylinderGeometry(0.15, 0.15, 0.16, 20), 'yellow', [0, head + 0.04, 0]); // center
+  add(new THREE.CylinderGeometry(0.09, 0.09, 0.08, 16), 'yellow', [0, head + 0.16, 0]); // its stud
+  return g;
+}
+
 // A tire with a hub, axis along X.
 export function wheelMesh(radius, width, color = 'black', hub = 'gray') {
   const g = new THREE.Group();
