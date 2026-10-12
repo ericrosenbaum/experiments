@@ -35,13 +35,13 @@ export function findNamedBehaviors(text, behaviors) {
   return behaviors.filter((b) => b.title && words(b.title).trim() && said.includes(words(b.title)));
 }
 
-export async function generateBehavior({ text, model, things, otherBehaviors, named = [], preferOffline = false }) {
+export async function generateBehavior({ text, model, things, otherBehaviors, named = [], messages = [], preferOffline = false }) {
   if (!preferOffline && (await probeClaude())) {
     try {
       const r = await fetch('./api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, model, things, otherBehaviors, named }),
+        body: JSON.stringify({ text, model, things, otherBehaviors, named, messages }),
       });
       const out = await r.json();
       if (!r.ok) throw new Error(out.error ?? `HTTP ${r.status}`);

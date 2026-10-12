@@ -36,6 +36,7 @@ Guidelines:
 - Prefer the simple high-level primitives over math. Keep programs short and readable — a child may read the code. Add brief comments only where they help a child follow along.
 - If something they asked for is impossible with these primitives, do the closest fun thing and say so in "notes".
 - see(labels) shows Claude a picture from the thing's eyes and returns one of the labels or "none". Use it when the child wants the thing to notice or recognize what's in front of it ("if it sees food", "when it looks at a person"): give short labels a child would use, put see() inside onKey or onMessage, and branch on the answer. It takes a second or two and costs a Claude call, so never call it in forever, every or a loop.
+- Coordinating with other things: the message may list the messages things already broadcast and listen for. When the child wants this thing to react to, trigger or team up with another thing, use those exact names: broadcast a message another thing is waiting for, or onMessage one another thing sends. Only invent a new name when nothing fits, and if nothing listens for it yet, say in notes which thing could be taught to answer it.
 - Sounds: when the child names a sound loosely ("make it bark", "a car noise"), pick the closest one from the list. You may also add a fitting sound they didn't ask for when it makes a moment more fun: a horn on a honk key, a boing on a jump, a coin when something is collected, a cheer on winning. Prefer the sounds suggested for this thing. Only add sounds to one-off moments (a key press, a touch, a message); never put a sound in forever, every, a loop or onStart unless the child asked for it to repeat, because sounds that play on their own over and over get annoying.
 - Changing an existing behavior: the message may list behaviors the child mentioned by name, with their code. If the child is explicitly asking to change one of them ("make Move with Arrows faster", "change Robot Wave so it waves both arms", "in Honk and Jump, honk twice"), set "modifies" to its exact title and return the complete updated program: keep everything they didn't ask to change, and keep its title unless the change makes the title wrong. If they only mention it (a new behavior "like Honk and Jump", or the name is just part of a new request), leave "modifies" empty and write a new behavior.
 
@@ -67,7 +68,7 @@ export const RESPONSE_SCHEMA = {
 // Build the user message: the model, nearby things, existing behaviors, the
 // behaviors the child named (with their code, in case they want one changed),
 // and the request.
-export function buildUserMessage({ text, model, things = [], otherBehaviors = [], named = [] }) {
+export function buildUserMessage({ text, model, things = [], otherBehaviors = [], named = [], messages = [] }) {
   const parts = (model.parts ?? []).map((p) => {
     if (p.kind === 'wheel') return `- "${p.name}" (wheel, ${p.side} side)`;
     return `- "${p.name}" (hinge; turnTo range ${p.limits?.[0] ?? -180}..${p.limits?.[1] ?? 180} degrees, 0 = resting pose, positive = up/forward/left)`;
@@ -78,6 +79,10 @@ export function buildUserMessage({ text, model, things = [], otherBehaviors = []
     : '';
   const namedList = named.length
     ? `\nThe child mentioned ${named.length === 1 ? 'this existing behavior' : 'these existing behaviors'} by name:\n${named.map((b) => `\n### ${b.title}\n${(b.summary ?? []).map((l) => `- ${l}\n`).join('')}\`\`\`js\n${b.code}\n\`\`\``).join('\n')}\n`
+    : '';
+  const who = (list) => (list.length ? list.slice(0, 8).join(', ') : 'nothing yet');
+  const messageList = messages.length
+    ? `\nMessages things in this world already use (a name ending in … is built from pieces in the code):\n${messages.slice(0, 30).map((m) => `- "${m.name}": sent by ${who(m.sentBy)}; heard by ${who(m.heardBy)}`).join('\n')}\n`
     : '';
   const suits = soundsFor(model);
   const kind = model.kind ?? 'model';
@@ -90,7 +95,7 @@ export function buildUserMessage({ text, model, things = [], otherBehaviors = []
 Moves by: ${moves}
 Parts:
 ${parts || '- (none)'}
-${suits.length ? `Sounds that suit it: ${suits.join(', ')}\n` : ''}${others}${namedList}
+${suits.length ? `Sounds that suit it: ${suits.join(', ')}\n` : ''}${others}${namedList}${messageList}
 Things in the world:
 ${thingList || '- (none)'}
 

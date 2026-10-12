@@ -244,6 +244,7 @@ class Program {
         this.rt.ui.onProgramsChanged?.();
         break;
       case 'pong': this.lastPong = performance.now(); break;
+      case 'ran': this.rt.ui.onScriptRan?.(this.behavior, m.at, m.ok); break;
       case 'trace': {
         const ids = (a) => (Array.isArray(a) ? a.slice(0, 500).filter(Number.isInteger) : []);
         const now = performance.now();
@@ -277,6 +278,10 @@ class Program {
   }
 
   _reply(id, value) { this.worker?.postMessage({ type: 'reply', id, value }); }
+
+  // Run one stack of blocks once (it was clicked): the program fires that
+  // script's handler as if its event happened. at: the top block's id.
+  runScript(at) { this.worker?.postMessage({ type: 'run', at }); }
 
   // A task runs every physics step until update() returns true.
   _task(update, timeout, onEnd) {

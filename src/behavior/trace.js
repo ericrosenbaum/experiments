@@ -86,6 +86,19 @@ export function instrument(code) {
     }
   }
 
+  // Mark each top-level script so the sandbox can run it on its own when its
+  // stack is clicked: __hat(ID) before an event, __def(ID, fn) after a
+  // function definition (clicking "define" runs the function).
+  for (const s of ast.body) {
+    const e = s.type === 'ExpressionStatement' && (s.expression.type === 'AwaitExpression' ? s.expression.argument : s.expression);
+    if (e?.type === 'CallExpression' && e.callee.type === 'Identifier' && EVENTS.has(e.callee.name)) {
+      edits.push({ pos: s.start, text: `__hat(${s.start}); `, close: false, depth: 0 });
+    } else if (s.type === 'FunctionDeclaration' && s.id) {
+      edits.push({ pos: s.end, text: ` __def(${s.start}, ${s.id.name});`, close: false, depth: 0 });
+    } else if (s.type === 'VariableDeclaration' && s.declarations.length === 1 && isFn(s.declarations[0].init) && s.declarations[0].id.type === 'Identifier') {
+      edits.push({ pos: s.end, text: ` __def(${s.start}, ${s.declarations[0].id.name});`, close: false, depth: 0 });
+    }
+  }
   for (const s of ast.body) visitStmt(s, false);
 
   // Apply insertions back to front. At the same spot: closings before

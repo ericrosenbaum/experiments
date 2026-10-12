@@ -12,7 +12,7 @@ programs.push('onKey("x", async () => {\n  for (let i = 0; i < 3; i++) { if (i =
 
 for (const code of programs) {
   const traced = instrument(code);
-  assert.doesNotThrow(() => new AsyncFunction('__on', '__off', traced), `instrumented code should parse:\n${traced}`);
+  assert.doesNotThrow(() => new AsyncFunction('__on', '__off', '__hat', '__def', traced), `instrumented code should parse:\n${traced}`);
   const blocks = new Set([...renderBlocks(code).matchAll(/data-at="(\d+)"/g)].map((m) => +m[1]));
   for (const [, id] of traced.matchAll(/__on\((\d+)\)/g)) assert.ok(blocks.has(+id), `traced id ${id} should be a block in:\n${code}`);
 }
@@ -25,9 +25,14 @@ let start;
 const api = {
   onStart: (fn) => { start = fn; }, wait: () => Promise.resolve(), log: (...v) => out.push(...v),
   __on: (id) => counts.set(id, (counts.get(id) ?? 0) + 1), __off: (id) => counts.set(id, counts.get(id) - 1),
+  __hat: (id) => hats.push(id), __def: (id, fn) => defs.set(id, fn),
 };
+const hats = [], defs = new Map();
 await new AsyncFunction(...Object.keys(api), instrument(code))(...Object.values(api));
 await start();
 assert.deepEqual(out, [1, 10]);
 assert.ok(counts.size > 3 && [...counts.values()].every((c) => c === 0), 'every __on should be matched by __off');
+// each script is marked for running by a click: events by __hat, definitions by __def
+assert.deepEqual(hats, [code.indexOf('onStart')], 'the onStart script is marked with its block id');
+assert.equal(await defs.get(code.indexOf('async function'))(1), 2, 'clicking "define f" can call f');
 console.log('trace: all checks passed');

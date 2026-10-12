@@ -7,6 +7,7 @@ import { LIBRARY_BY_ID } from '../src/world/library.js';
 import { generate } from '../server/generate.js';
 import { findNamedBehaviors, generateBehavior } from '../src/behavior/generate.js';
 import { SOUND_LIST, soundsFor } from '../src/behavior/sounds.js';
+import { messagesIn, worldMessages } from '../src/behavior/messages.js';
 import { existsSync } from 'node:fs';
 
 for (const [sig] of PRIMITIVES) assert.ok(SYSTEM_PROMPT.includes(sig), `prompt should document ${sig}`);
@@ -17,6 +18,20 @@ const msg = buildUserMessage({
   otherBehaviors: ['When ↑ is held: drive forward'],
 });
 for (const s of ['"left arm"', '"head"', 'id "tree-3"', '{part:left arm}', 'drive forward']) assert.ok(msg.includes(s), `user message should include ${s}`);
+// messages: what each program sends and hears, and how the world's list reaches Claude
+const io = messagesIn('// broadcast("not me")\nonMessage("go", () => broadcast("done"));\nfor (let i = 0; i < 3; i++) onMessage("lap " + i, () => {});\nbroadcast(`hit ${n}`);');
+assert.deepEqual([...io.sends].sort(), ['done', 'hit …']);
+assert.deepEqual([...io.hears].sort(), ['go', 'lap …']);
+assert.deepEqual(messagesIn('onMessage(').sends.size, 0, 'broken code has no messages');
+const msgs = worldMessages(new Map([
+  ['cup', [{ enabled: true, code: 'onTouch("ball", () => broadcast("in the hole"));' }]],
+  ['ball', [{ enabled: true, code: 'onMessage("in the hole", () => say("yay"));' }, { enabled: false, code: 'broadcast("off");' }]],
+]), (k) => k.toUpperCase());
+assert.deepEqual(msgs, [{ name: 'in the hole', sentBy: ['CUP'], heardBy: ['BALL'] }], 'switched-off behaviors are left out');
+const withMsgs = buildUserMessage({ text: 'jump when the ball goes in', model: LIBRARY_BY_ID.golfer, messages: msgs });
+assert.ok(withMsgs.includes('- "in the hole": sent by CUP; heard by BALL'));
+assert.ok(!msg.includes('Messages things in this world'), 'no messages section when there are none');
+
 // sounds: every one is in the prompt, recordings are on disk, and things get fitting suggestions
 for (const x of SOUND_LIST) {
   assert.ok(SYSTEM_PROMPT.includes(`${x.id} (${x.about})`), `prompt should list the ${x.id} sound`);

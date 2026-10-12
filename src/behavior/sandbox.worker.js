@@ -25,6 +25,11 @@ const pending = new Map();
 let nextQuery = 1;
 let stopped = false;
 let cloned = false;
+// Clicking a stack of blocks runs it once: its top block's id -> how to run it.
+// The traced code calls __hat(ID) just before each top-level event registers.
+const byHat = new Map();
+let currentHat = null;
+const scriptOf = (run) => { if (currentHat != null) byHat.set(currentHat, run); currentHat = null; };
 
 const cmd = (name, ...args) => { if (!stopped) post({ type: 'cmd', name, args: clone(args) }); };
 const query = (name, ...args) => new Promise((resolve) => {
@@ -67,22 +72,26 @@ const flushTrace = () => {
 const traced = () => { traceTimer ??= setTimeout(flushTrace, 50); };
 
 const api = {
-  onStart: (fn) => handlers.start.push(safe(fn, 'start')),
-  onKey: (key, fn) => handlers.key.push({ key: normKey(key), fn: safe(fn, `key ${key}`) }),
-  onKeyUp: (key, fn) => handlers.keyup.push({ key: normKey(key), fn: safe(fn, `key up ${key}`) }),
-  whileKey: (key, fn) => handlers.hold.push({ key: normKey(key), fn: safe(fn, `hold ${key}`), busy: false }),
+  onStart: (fn) => { const run = safe(fn, 'start'); handlers.start.push(run); scriptOf(run); },
+  onKey: (key, fn) => { const run = safe(fn, `key ${key}`); handlers.key.push({ key: normKey(key), fn: run }); scriptOf(run); },
+  onKeyUp: (key, fn) => { const run = safe(fn, `key up ${key}`); handlers.keyup.push({ key: normKey(key), fn: run }); scriptOf(run); },
+  whileKey: (key, fn) => { const run = safe(fn, `hold ${key}`); handlers.hold.push({ key: normKey(key), fn: run, busy: false }); scriptOf(run); },
   onTouch: (filter, fn) => {
     if (typeof filter === 'function') { fn = filter; filter = null; }
     handlers.touch.push({ filter: ref(filter), fn: safe(fn, 'touch'), busy: false });
+    // clicked, it runs as if it bumped into nothing in particular
+    scriptOf(() => safe(fn, 'touch')({ name: 'nothing (the blocks were clicked)', kind: 'none', color: null, id: null }));
   },
-  onMessage: (name, fn) => handlers.message.push({ name: String(name), fn: safe(fn, `message ${name}`) }),
-  onClone: (fn) => handlers.clone.push(safe(fn, 'clone')),
+  onMessage: (name, fn) => { const run = safe(fn, `message ${name}`); handlers.message.push({ name: String(name), fn: run }); scriptOf(run); },
+  onClone: (fn) => { const run = safe(fn, 'clone'); handlers.clone.push(run); scriptOf(run); },
   forever: (fn) => {
     const run = safe(fn, 'forever');
+    scriptOf(run); // clicking runs one time around
     handlers.start.push(async () => { while (!stopped) { await run(); await sleep(1 / 30); } });
   },
   every: (seconds, fn) => {
     const run = safe(fn, 'every');
+    scriptOf(run);
     handlers.start.push(async () => { while (!stopped) { await sleep(Math.max(0.05, seconds)); await run(); } });
   },
 
@@ -125,6 +134,8 @@ const api = {
   isClone: () => cloned,
   is: (thing, filter) => matchFilter(filter, thing),
   random: (min = 1, max = 10) => Math.floor(min + Math.random() * (max - min + 1)),
+  __hat: (id) => { currentHat = id; },
+  __def: (id, fn) => { if (typeof fn === 'function') byHat.set(id, safe(fn, 'define')); },
   __on: (id) => { live.set(id, (live.get(id) ?? 0) + 1); seen.add(id); traced(); },
   __off: (id) => { const n = (live.get(id) ?? 1) - 1; if (n > 0) live.set(id, n); else live.delete(id); traced(); },
   log: (...v) => cmd('log', v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' ')),
@@ -185,6 +196,12 @@ listen('message', async (ev) => {
       }
       break;
     case 'message': handlers.message.filter((h) => h.name === m.name).forEach((h) => h.fn()); break;
+    case 'run': { // a stack of blocks was clicked
+      const run = byHat.get(m.at);
+      post({ type: 'ran', at: m.at, ok: !!run });
+      run?.();
+      break;
+    }
     case 'ping': post({ type: 'pong', t: m.t }); break;
     case 'stop':
       stopped = true;

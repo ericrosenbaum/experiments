@@ -10,6 +10,7 @@ import { renderBlocks } from './blocks.js';
 import { highlight } from './highlight.js';
 import { keyLabels, padGroups, padHtml } from './pad.js';
 import { makeBehavior, describeTarget } from '../stage.js';
+import { worldMessages } from '../behavior/messages.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -648,6 +649,11 @@ export class App {
         text, model: describeTarget(a), things,
         otherBehaviors: behaviors.filter((b) => b.enabled && !named.includes(b)).flatMap((b) => b.summary ?? []),
         named: named.map((b) => ({ title: b.title, summary: b.summary, code: b.code })),
+        // the messages things already send and listen for, so this one can join in
+        messages: worldMessages(this.stage.state.behaviors, (k) => {
+          const name = k === 'world' ? 'the World' : this.world.actor(k).describe().name;
+          return k === a.key ? `${name} (this thing)` : name;
+        }),
       });
       if (!res.code.trim()) {
         this.log(`I couldn't turn that into a program${res.unknown?.length ? `: I didn't understand “${res.unknown.join('”, “')}”` : ''}.`, 'error');
@@ -740,6 +746,11 @@ export class App {
       card.querySelector('.b-title').onclick = fold;
       card.querySelector('.switch').onclick = () => { b.enabled = !b.enabled; this._restart(a, b); this.renderBehaviors(); };
       if (b.collapsed) { list.appendChild(card); continue; }
+      card.querySelector('.bk-scripts')?.addEventListener('click', (ev) => {
+        const script = ev.target.closest('.bk-script');
+        const at = script?.querySelector('[data-at]')?.dataset.at;
+        if (at != null) this.runScript(a, b, Number(at), script);
+      });
       card.querySelector('.code').onclick = () => { b.showCode = !b.showCode; this.renderBehaviors(); };
       card.querySelector('.del').onclick = () => {
         b.enabled = false;
@@ -781,6 +792,27 @@ export class App {
       };
       list.appendChild(card);
     }
+  }
+
+  // Clicking a stack of blocks runs it once, like in Scratch: the behavior's
+  // program fires that script's handler (a key, a message, a "define"...).
+  runScript(a, b, at, el) {
+    const p = [...this.runtime.programs].find((x) => x.behavior === b && x.actor === a);
+    if (!p) { this.log(`“${b.title}” is switched off. Turn it on to run its blocks.`); this._nope(el); return; }
+    p.runScript(at);
+  }
+
+  onScriptRan(b, at, ok) {
+    if (ok) return;
+    const el = $('behaviors').querySelector(`[data-bid="${b.id}"] .bk-script [data-at="${at}"]`)?.closest('.bk-script');
+    this._nope(el);
+  }
+
+  _nope(el) { // a quick shake: there's nothing in this stack to run
+    if (!el) return;
+    el.classList.remove('nope');
+    void el.offsetWidth;
+    el.classList.add('nope');
   }
 
   // ---- key pad ------------------------------------------------------------------

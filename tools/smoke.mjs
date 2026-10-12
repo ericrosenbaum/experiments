@@ -104,7 +104,6 @@ await page.waitForTimeout(800);
 const r1 = await pos('catapult');
 check(Math.hypot(r1.x - r0.x, r1.z - r0.z) > 3, `dragging moves the catapult (${Math.hypot(r1.x - r0.x, r1.z - r0.z).toFixed(1)} studs)`);
 check(await selected() === 'catapult', 'and it stays selected');
-await page.click('#btn-top-menu');
 await page.click('#btn-reset');
 await page.waitForTimeout(800);
 const r2 = await pos('catapult');
