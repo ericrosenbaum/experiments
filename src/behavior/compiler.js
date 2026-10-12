@@ -200,9 +200,11 @@ const ACTIONS = [
 
   // say
   (p, ctx) => {
-    const m = ctx.raw.match(/\b(say|says|shout|shouts|yell|yells)\s+["“]?(.+?)["”]?$/i);
+    // say "hi" [for 3 seconds]
+    const m = ctx.raw.match(/\b(say|says|shout|shouts|yell|yells)\s+["“]?(.+?)["”]?(?:\s+for\s+(\d+(?:\.\d+)?)\s+sec(?:ond)?s?)?$/i);
     if (!m || !/^(say|shout|yell)/.test(p.replace(/^(it |you )/, ''))) return null;
-    return { code: [`say(${q(m[2])});`], label: `say "${m[2]}"` };
+    const secs = m[3] ? `, ${Number(m[3])}` : '';
+    return { code: [`say(${q(m[2])}${secs});`], label: `say "${m[2]}"${m[3] ? ` for ${Number(m[3])} seconds` : ''}` };
   },
 
   // broadcast

@@ -15,6 +15,8 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const css = (hex) => '#' + colorHex(hex).toString(16).padStart(6, '0');
 const DEG = Math.PI / 180;
+// popup name -> [popup id, the button that opens it]
+const POPS = { top: ['top-menu', 'btn-top-menu'], menu: ['sel-menu', 'btn-more'], parts: ['parts-pop', 'btn-parts'] };
 const svg = (d, w = 15) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 const ICON = {
   chevron: svg('<path d="M6 9l6 6 6-6"/>', 18),
@@ -66,13 +68,22 @@ export class App {
     this._wirePicking();
     this._wireKeys();
     probeClaude().then((ok) => {
-      const s = $('gen-status');
-      s.textContent = ok ? '✨ Claude writes the code' : '🔧 Offline helper writes the code';
-      s.title = ok ? 'Descriptions are turned into code by Claude (claude-opus-5-5) on the dev server.'
-        : 'No ANTHROPIC_API_KEY on the server, so a simple built-in compiler handles a fixed set of phrases. Start the dev server with a key to use Claude.';
-      s.classList.toggle('good', ok);
+      if (!ok) this.log('🔧 No ANTHROPIC_API_KEY on the server, so a simple offline helper writes the code (it knows a fixed set of phrases). Start the dev server with a key to use Claude.');
     });
     this.loadWorld(location.hash.slice(1) || 'playground');
+  }
+
+  setFollow(on) {
+    this.follow = on;
+    $('btn-follow').classList.toggle('checked', on);
+    $('btn-follow').setAttribute('aria-checked', String(on));
+  }
+
+  // The World button shows how many behaviors the World has.
+  renderWorldCount() {
+    const n = this.stage ? this.stage.behaviorsOf('world').length : 0;
+    $('world-count').textContent = n;
+    $('btn-world').title = `World rules (${n === 1 ? '1 behavior' : `${n} behaviors`}): teach the World itself (gravity, dropping and copying things), or click the ground`;
   }
 
   loadWorld(id) {
@@ -81,6 +92,7 @@ export class App {
     $('world-select').value = this.stage.worldId;
     if (location.hash.slice(1) !== this.stage.worldId) history.replaceState(null, '', `#${this.stage.worldId}`);
     this.select(this.world.actor(this.stage.preset.select));
+    this.setFollow(!!this.stage.preset.follow); // big worlds start with the camera following the player
     this.log(`${this.stage.preset.emoji} ${this.stage.preset.name}: ${this.stage.preset.blurb}`);
   }
 
@@ -128,13 +140,19 @@ export class App {
     document.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => $(b.dataset.close).classList.add('hidden'); });
     $('btn-pause').onclick = () => {
       this.world.paused = !this.world.paused;
-      $('btn-pause').textContent = this.world.paused ? '▶ Resume' : '⏸ Pause';
-      $('btn-pause').classList.toggle('on', this.world.paused);
+      $('btn-pause').querySelector('span').textContent = this.world.paused ? 'Resume' : 'Pause';
+      $('btn-pause').classList.toggle('paused', this.world.paused);
     };
     $('btn-reset').onclick = () => this.stage.reset();
     $('btn-world').onclick = () => this.select(this.world.actor('world'));
-    $('btn-follow').onclick = () => { this.follow = !this.follow; $('btn-follow').classList.toggle('on', this.follow); };
-    $('btn-mute').onclick = () => { this.audio.muted = !this.audio.muted; $('btn-mute').textContent = this.audio.muted ? '🔇' : '🔊'; };
+    $('btn-follow').onclick = () => this.setFollow(!this.follow);
+    $('btn-mute').onclick = () => {
+      this.audio.muted = !this.audio.muted;
+      $('btn-mute').classList.toggle('muted', this.audio.muted);
+      $('btn-mute').setAttribute('aria-checked', String(!this.audio.muted));
+    };
+    $('btn-top-menu').onclick = (ev) => { ev.stopPropagation(); this.setPop('top', $('top-menu').classList.contains('hidden')); };
+    $('top-menu').onclick = (ev) => { ev.stopPropagation(); this.setPop('top', false); }; // every item closes it
     $('btn-respawn').onclick = () => { const m = this.selected?.model; if (m) this.world.resetModel(m); };
     $('btn-whole').onclick = () => { const e = this.selected?.members[0]; if (e) this.select(this.world.actorOf(e)); };
     $('btn-copy').onclick = () => {
@@ -164,17 +182,18 @@ export class App {
     $('btn-parts').onclick = (ev) => { ev.stopPropagation(); this.setPop('parts', $('parts-pop').classList.contains('hidden')); };
     $('sel-menu').onclick = () => this.setPop('menu', false); // every item closes it
     $('parts-pop').onclick = (ev) => ev.stopPropagation(); // stay open to add several parts
-    document.addEventListener('click', () => { this.setPop('menu', false); this.setPop('parts', false); });
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { this.setPop('menu', false); this.setPop('parts', false); } });
+    const closeAll = () => { for (const p of Object.keys(POPS)) this.setPop(p, false); };
+    document.addEventListener('click', closeAll);
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeAll(); });
     this._wireSpeech();
     $('btn-console').onclick = () => this.setConsole(false);
     $('btn-console-open').onclick = () => this.setConsole(true);
   }
 
-  // The ⋯ menu and the Parts popover in the inspector
+  // The popups: the top bar's menu, and the inspector's ⋯ menu and Parts popover
   setPop(which, open) {
-    if (open) this.setPop(which === 'menu' ? 'parts' : 'menu', false); // one at a time
-    const [pop, btn] = which === 'menu' ? [$('sel-menu'), $('btn-more')] : [$('parts-pop'), $('btn-parts')];
+    if (open) for (const p of Object.keys(POPS)) if (p !== which) this.setPop(p, false); // one at a time
+    const [pop, btn] = POPS[which].map($);
     pop.classList.toggle('hidden', !open);
     btn.classList.toggle('on', open);
     btn.setAttribute('aria-expanded', String(open));
@@ -628,6 +647,7 @@ export class App {
     const a = this.selected;
     const list = $('behaviors');
     this.renderPad();
+    this.renderWorldCount();
     if (!a) return;
     list.innerHTML = '';
     const behaviors = this.stage.behaviorsOf(a.key);
@@ -850,7 +870,7 @@ export class App {
     this.aim.visible = false;
     if (this.selected && !this.selected.isWorld) {
       if (this.selected.usesOwnYaw) {
-        const s = this.selected, c = s.position, box = s.bounds();
+        const s = this.selected, c = s.position, box = s.bounds(true); // precise, or a rolled ball's box dips below the ground
         const reach = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
         const f = s.forward();
         this.aim.position.set(c.x + f.x * (reach + 0.3), box.min.y + 0.06, c.z + f.z * (reach + 0.3));

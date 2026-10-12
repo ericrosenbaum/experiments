@@ -109,12 +109,14 @@ export class Actor {
   }
 
   // World-space bounding box of everything in the actor.
-  bounds() {
+  // precise: measure the actual vertices. Otherwise each mesh's box is
+  // rotated and re-boxed, which is quick but grows as a ball rolls.
+  bounds(precise = false) {
     const box = new THREE.Box3();
     for (const e of this.members) {
       for (const { object3d } of e.bodies) {
         object3d.updateMatrixWorld(true);
-        box.expandByObject(object3d);
+        box.expandByObject(object3d, precise);
       }
     }
     return box;

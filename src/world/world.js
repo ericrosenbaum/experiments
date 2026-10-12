@@ -358,14 +358,14 @@ export class World {
   }
 
   // damping slows its roll (a golf ball rolls to a stop on the green); bounce is restitution.
-  addBall({ radius = 1.2, color = 'white', x, y, z, quat, name = 'Ball', kind = 'ball', thingId, id, damping = 0.1, spinDamping = 0.4, bounce = 0.6, spots = true }) {
+  addBall({ radius = 1.2, color = 'white', x, y, z, quat, name = 'Ball', kind = 'ball', thingId, id, damping = 0.1, spinDamping = 0.4, bounce = 0.6, spots = true, density = 0.2 }) {
     const R = this.R;
     const e = new Entity({ kind, name, color, thingId, id: id ?? thingId });
     const desc = R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setAngularDamping(spinDamping).setLinearDamping(damping).setCcdEnabled(true);
     if (quat) desc.setRotation(quat);
     const body = this.physics.createRigidBody(desc);
-    this._attachCollider(R.ColliderDesc.ball(radius).setFriction(0.6).setRestitution(bounce).setDensity(0.2), body, e, null, color);
-    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(radius, 2), material(color));
+    this._attachCollider(R.ColliderDesc.ball(radius).setFriction(0.6).setRestitution(bounce).setDensity(density), body, e, null, color);
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(radius, radius > 2 ? 4 : 2), material(color)); // smoother when it's big
     m.castShadow = true;
     m.userData.entity = e;
     const obj = new THREE.Group();
@@ -378,7 +378,7 @@ export class World {
     this.scene.add(obj);
     e.chassis = body;
     e.bodies.push({ body, object3d: obj, part: null });
-    e.recipe = { type: 'ball', opts: { radius, color, name, kind, damping, spinDamping, bounce, spots } };
+    e.recipe = { type: 'ball', opts: { radius, color, name, kind, damping, spinDamping, bounce, spots, density } };
     return this._register(e);
   }
 

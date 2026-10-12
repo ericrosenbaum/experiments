@@ -66,22 +66,34 @@ button { font: inherit; cursor: pointer; color: inherit; }
   pointer-events: none;
 }
 #topbar > * { pointer-events: auto; }
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; background: var(--panel); padding: 6px 12px; border-radius: 12px; box-shadow: var(--shadow); }
-.logo { width: 22px; height: 16px; background: var(--accent); border-radius: 3px; position: relative; }
-.logo::before, .logo::after { content: ''; position: absolute; top: -4px; width: 7px; height: 4px; background: var(--accent); border-radius: 2px 2px 0 0; }
-.logo::before { left: 3px; } .logo::after { right: 3px; }
 .tb { background: var(--panel); border: 0; padding: 8px 12px; border-radius: 12px; box-shadow: var(--shadow); font-weight: 700; }
 .tb:hover { transform: translateY(-1px); }
 .tb.on { background: var(--yellow); color: #222; }
 .world-pick { padding: 0; display: flex; }
 .world-pick select { font: inherit; font-weight: 800; color: inherit; background: none; border: 0; padding: 8px 10px; border-radius: 12px; cursor: pointer; }
 .world-pick select:focus-visible { outline: 2px solid var(--blue); }
-.pill { background: var(--panel); border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 700; box-shadow: var(--shadow); color: var(--muted); }
-.pill.good { color: var(--green); }
+.icon-tb { position: relative; width: 40px; height: 40px; padding: 0; display: grid; place-items: center; font-size: 19px; line-height: 1; }
+.icon-tb svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.icon-tb.on { background: var(--yellow); color: #222; }
+.count {
+  position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+  background: var(--purple); color: #fff; font-size: 11px; font-weight: 800; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px var(--panel);
+}
+.count:empty { display: none; }
+.top-menu { position: relative; }
+.top-menu .menu { top: 46px; z-index: 12; }
+/* menus anywhere: line icons, and a check mark on the toggles that are on */
+.menu svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.menu [role="menuitemcheckbox"]::after { content: ''; margin-left: auto; padding-left: 16px; font-weight: 800; color: var(--on-ink); }
+.menu [aria-checked="true"]::after { content: '✓'; }
+#btn-pause .ico-play, #btn-pause.paused .ico-pause { display: none; } /* a play triangle while paused */
+#btn-pause.paused .ico-play { display: inline; fill: currentColor; }
+#btn-mute .cross, #btn-mute.muted .waves { display: none; }
+#btn-mute.muted .cross { display: inline; }
 
 /* library */
 #library {
-  position: fixed; top: 64px; left: 12px; width: 300px; max-height: calc(100% - 140px); overflow: auto; background: var(--panel);
+  position: fixed; top: 64px; right: 392px; width: 300px; max-height: calc(100% - 140px); overflow: auto; background: var(--panel);
   border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; z-index: 11;
 }
 .panel-title { font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -272,17 +284,20 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   overflow: hidden; text-overflow: ellipsis;
 }
 .bubble::after { content: ''; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+/* the World's words: in the top bar's row, between the world picker and the buttons on the right */
 .banner {
-  position: absolute; top: 72px; left: 50%; transform: translateX(calc(-50% - 190px)); background: var(--yellow); color: #222; border-radius: 14px;
-  padding: 8px 16px; font-weight: 800; font-size: 17px; box-shadow: var(--shadow); max-width: min(560px, calc(100vw - 420px));
+  position: absolute; top: 12px; left: 50%; transform: translateX(calc(-50% - 190px)); background: var(--yellow); color: #222; border-radius: 14px;
+  padding: 9px 16px; font-weight: 800; font-size: 16px; line-height: 1.35; text-align: center; box-shadow: var(--shadow);
+  max-width: max(260px, min(560px, calc(100vw - 840px))); text-wrap: balance;
 }
 
 @media (max-width: 760px) {
   #pad { right: 12px; bottom: calc(52% + 12px); }
   #topbar { right: 12px; }
+  #library { right: 12px; }
   #inspector { top: auto; left: 12px; right: 12px; width: auto; height: 52%; }
   #console { display: none; }
-  .banner { transform: translateX(-50%); max-width: calc(100vw - 24px); }
+  .banner { top: 62px; transform: translateX(-50%); max-width: calc(100vw - 24px); }
 }
 
 /* Brick Talk chat */

@@ -4,6 +4,9 @@
 // thing id ('world' holds the World's rules); a behavior is either a sentence
 // for the offline compiler ({text}) or ready-made {text, summary, code}.
 import * as P from './props.js';
+import { RAINBOW } from './props.js';
+
+const RAINBOW_UP = [...RAINBOW].reverse(); // purple at the bottom, red on top
 import { BRICK_H as B } from './bricks.js';
 
 const ARROWS = 'When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.';
@@ -168,7 +171,7 @@ export const WORLDS = [
       { id: 'slime-2', def: 'slime', x: 7, z: 20, yaw: -90 },
     ],
     behaviors: {
-      world: [{ title: 'Game Goal', text: 'At the start, say "Get all the coins and reach the flag!"' }],
+      world: [{ title: 'Game Goal', text: 'At the start, say "Get all the coins and reach the flag!" for 10 seconds.' }],
       hero: [{ text: STEER }, { text: 'When I press space, jump high.' }],
       slime: [{ text: 'Forever, move 6 studs, then turn around.' }],
       'slime-2': [{ text: 'Forever, move 6 studs, then turn around.' }],
@@ -305,7 +308,7 @@ export const WORLDS = [
       { id: 'golfer', def: 'golfer', x: 21.5, z: -9, yaw: -90 },
     ],
     behaviors: {
-      world: [{ title: 'How to Play', text: 'At the start, say "Minigolf! Aim with ← →. Hold space, let go to putt."' }],
+      world: [{ title: 'How to Play', text: 'At the start, say "Minigolf! Aim with ← →. Hold space, let go to putt." for 10 seconds.' }],
       golfball: [{
         title: 'Minigolf Ball',
         keys: { ArrowLeft: 'aim', ArrowRight: 'aim', ArrowUp: 'tap', ' ': 'putt', r: 'restart' },
@@ -373,6 +376,191 @@ onStart(async () => { await face(thing(cups[0])); });`,
       golfer: [{ title: 'Nice Putt Cheer', text: 'When it hears "in the hole", wave the left arm and say "Nice putt!"' }],
     },
     select: 'golfball',
+  },
+
+  {
+    id: 'megagolf',
+    name: 'MEGA GOLF',
+    emoji: '🏌️',
+    blurb: "One giant hole, and you're the golfer. Walk with the arrows, hold space to wind up and let go to whack the ball (stand right next to it). Watch out for zoomy slimes and Big Rex. R puts the ball back on the tee.",
+    theme: { sky: 0xffd9a8, fog: [120, 260], hemi: [0xfff4e6, 0x6f8f3a, 1.45], sun: [0xffe9c4, 2.5], ground: { base: '#6bb04f', stud: '#7cc25e', edge: '#55903d' } },
+    camera: { pos: [-16, 22, -76], target: [0, 3, -40] },
+    follow: true,
+    build(w) {
+      const c = P.megaCourse(w);
+      P.mushroom(w, 'mushroom-1', 4, -24, { y: c.FAIR }); // its stem is right in the way of a straight shot
+      P.mushroom(w, 'mushroom-2', -5, -9, { y: c.FAIR, cap: 'orange', name: 'Orange Mushroom' });
+      P.giantSpinner(w, 'spinner', 40, c.PLAT, 26);
+      for (let i = 0; i < 5; i++) {
+        w.addBrick({ dims: [4, 2.4, 4], color: RAINBOW_UP[i], x: 45, y: c.PLAT + 1.2 + i * 2.4, z: 38, kind: 'tower', name: 'Mega Tower', thingId: 'mega-tower', sleeping: true });
+      }
+      P.cup(w, 'mega-cup', c.cup[0], c.cup[1], { name: 'Mega Cup', size: 9.6, depth: 2.4 }); // still counts with a slime under the ball
+      P.giantPin(w, 'giant-flag', c.cup[0] + 6, c.GREEN, c.cup[1] + 6);
+      P.bigRex(w, 'rex', 76, 80, { yaw: -90 });
+      w.addBall({ radius: 3.5, color: 'white', x: c.tee[0], y: c.FAIR + 3.55, z: c.tee[1], name: 'Mega Ball', thingId: 'megaball', damping: 0.2, spinDamping: 0.6, bounce: 0.3, spots: false, density: 1 });
+      const trees = [[-28, -40], [-26, 0], [-24, 36], [-6, 40], [14, 60], [66, 20], [70, 48], [64, -16], [30, -40], [60, 104], [20, 100]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: 1.6 + (i % 3) * 0.3 }));
+    },
+    models: [
+      { id: 'golfer', def: 'golfer', x: 0, z: -45, lift: 0.4, name: 'You' },
+      { id: 'zip', def: 'slime', x: -4, z: -30, yaw: 90, lift: 0.4, name: 'Zip' },
+      { id: 'zap', def: 'slime', x: 36, z: 6, yaw: -90, lift: 6.4, name: 'Zap' },
+      { id: 'zoom', def: 'slime', x: 30, z: 74, yaw: 45, lift: 3.6, name: 'Zoom' },
+    ],
+    behaviors: {
+      world: [
+        { title: 'How to Play', text: 'At the start, say "MEGA GOLF! Walk with the arrows. Hold space to wind up, let go to whack the ball." for 10 seconds.' },
+        {
+          title: 'Brick Confetti',
+          text: 'When it hears "in the hole", drop a shower of rainbow bricks on the green.',
+          summary: ['When it hears "in the hole": drop rainbow bricks all over the green'],
+          code: `onMessage("in the hole", async () => {
+  const colors = ["red", "orange", "yellow", "green", "blue", "purple"];
+  for (let i = 0; i < 18; i++) {
+    spawn({ color: colors[i % 6], size: "2x2", at: place(random(28, 52), random(68, 90)) });
+    await wait(0.1);
+  }
+});`,
+        },
+      ],
+      golfer: [
+        { title: 'Walk Around', text: STEER },
+        {
+          title: 'Mega Swing',
+          keys: { ' ': 'swing', r: 'reset' },
+          text: 'Hold space to wind up and let go to swing: it tells the ball how hard. R sends the ball and me back to the tee. When it hears "in the hole", cheer, then go back to the tee.',
+          summary: [
+            'While space is held: wind up (the longer, the harder); let go to swing',
+            'When R is pressed: the ball and I go back to the tee',
+            'When it hears "in the hole": cheer, then back to the tee',
+          ],
+          code: `// Hold space to wind up, let go to swing. The ball works out which way to fly.
+let power = 1;
+whileKey(" ", () => {
+  if (power === 1) part("right arm").turnTo(-60); // wind up
+  power = Math.min(10, power + 0.2);
+  const bars = Math.round(power);
+  say("Power " + "▮".repeat(bars) + "▯".repeat(10 - bars), 1);
+});
+onKeyUp(" ", async () => {
+  broadcast("whack " + Math.round(power));
+  power = 1;
+  await part("right arm").turnTo(120);
+  await wait(0.2);
+  await part("right arm").turnTo(0);
+});
+
+async function backToTee() {
+  await teleport(place(0, -45));
+  await face(place(0, -40));
+}
+onKey("r", async () => {
+  broadcast("back to the tee");
+  await backToTee();
+});
+
+onMessage("in the hole", async () => {
+  say("MEGA PUTT!", 3);
+  part("left arm").turnTo(160);
+  await part("right arm").turnTo(160);
+  await wait(1.5);
+  part("left arm").turnTo(0);
+  await part("right arm").turnTo(0);
+  await wait(2.5);
+  await backToTee();
+});`,
+        },
+      ],
+      megaball: [{
+        title: 'Mega Ball',
+        text: 'When the golfer swings close by, fly away from them, harder the longer they wound up. Count the strokes. When it hears "in the hole", cheer and go back to the tee.',
+        summary: [
+          'When the golfer swings next to it: fly away from them (each swing is a stroke)',
+          'When it hears "back to the tee": go back to the tee',
+          'When it hears "in the hole": cheer and go back to the tee',
+        ],
+        code: `// The MEGA ball. When the golfer swings close by, it flies away from them.
+let strokes = 0;
+
+async function whack(power) {
+  const golfer = await nearest(thing("golfer"));
+  if (!golfer || golfer.distance > 8) { say("Too far away!", 1.5); return; }
+  strokes = strokes + 1;
+  // fly away from the golfer: split it into a forward/back push and a left/right push
+  const away = (golfer.direction + 180) / 57.3; // 57.3 turns degrees into the angle units sin and cos use
+  const strength = power * 1.5; // a mega ball needs a mega swing to get up the ramp
+  shove(Math.cos(away) * strength, "forward", "backward");
+  shove(Math.sin(away) * strength, "left", "right");
+  play("hit");
+  say("Stroke " + strokes, 1.5);
+}
+// push one way or the other; a push tops out at 10, so a bigger one takes two
+function shove(amount, plus, minus) {
+  const way = amount > 0 ? plus : minus;
+  const size = Math.abs(amount);
+  if (size >= 1) push(way, Math.min(size, 10));
+  if (size >= 11) push(way, size - 10);
+}
+
+// the golfer says how hard: "whack 1" up to "whack 10"
+for (let i = 0; i < 10; i++) {
+  const power = i + 1;
+  onMessage("whack " + power, () => whack(power));
+}
+
+onMessage("back to the tee", async () => {
+  strokes = 0;
+  await teleport(place(0, -40));
+});
+
+onMessage("in the hole", async () => {
+  play("yay");
+  say(strokes === 1 ? "MEGA HOLE IN ONE!" : "In the hole in " + strokes + "!", 4);
+  await wait(4);
+  strokes = 0;
+  await teleport(place(0, -40));
+});`,
+      }],
+      'mega-cup': [{
+        title: 'Cup Catcher',
+        text: 'When the mega ball drops in, tell everyone "in the hole".',
+        summary: ['When the Mega Ball drops in: tell everyone "in the hole"'],
+        code: 'onTouch(thing("megaball"), () => {\n  broadcast("in the hole");\n});',
+      }],
+      spinner: [{ title: 'Spinner', text: 'Forever, turn slowly.', summary: ['Always: turn slowly'], code: 'onStart(() => steer(35)); // keep turning' }],
+      ...Object.fromEntries([['zip', 'lime'], ['zap', 'pink'], ['zoom', 'cyan']].map(([id, color]) => [id, [{
+        title: 'Zoomies',
+        text: `At the start, turn ${color}. Forever, zoom forward really fast, then turn a random amount. When the mega ball hits it, say "Wheee!" and jump.`,
+        summary: [`At the start: turn ${color}`, 'Forever: zoom forward really fast, then turn a random amount', 'When the Mega Ball hits it: say "Wheee!" and jump'],
+        code: `onStart(() => color("${color}"));
+forever(async () => {
+  await move(random(5, 12), 22); // zoom!
+  await turn(random(-150, 150));
+});
+onTouch(thing("megaball"), () => {
+  say("Wheee!", 1);
+  jump(8);
+});`,
+      }]])),
+      rex: [{
+        title: 'Ball Watcher',
+        text: 'Forever, turn to watch the mega ball, and if it is close, say something about how tiny it is. When it hears "in the hole", roar and say "ROAR! That was AMAZING!"',
+        summary: ['Forever: turn to watch the Mega Ball, and talk about how tiny it is when it comes close', 'When it hears "in the hole": roar and cheer'],
+        code: `// Big Rex keeps an eye on that tiny little ball.
+const comments = ["Ooh, a tiny ball!", "Is that a pebble?", "So small. So cute.", "I could eat that in one bite."];
+forever(async () => {
+  await face(thing("megaball"));
+  const ball = await nearest(thing("megaball"));
+  if (ball && ball.distance < 40) say(comments[random(0, comments.length - 1)], 2.5);
+  await wait(4);
+});
+onMessage("in the hole", () => {
+  play("roar");
+  say("ROAR! That was AMAZING!", 3);
+});`,
+      }],
+    },
+    select: 'golfer',
   },
 ];
 

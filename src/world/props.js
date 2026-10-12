@@ -420,6 +420,13 @@ export function pond(world, id, x, z, w = 10, d = 7) {
 // A raised green: surface pieces with a square cup cut out, and walls on top
 // so the ball stays in. rects and walls are [cx, cz, w, d] in local studs.
 export function green(world, id, x, z, { rects, walls, cup, name = 'Green', height = B, cupSize = 1.8 }) {
+  const boxes = greenBoxes({ rects, cup, height, cupSize });
+  for (const [cx, cz, w, d] of walls) boxes.push(box(cx, height + 0.4, cz, w, 0.8, d, 'brown', { studs: false }));
+  world.addStatic({ kind: 'green', name, color: 'green', x, z, thingId: id, boxes });
+}
+
+// The surface of a green, with a square cup cut out of it.
+function greenBoxes({ rects, cup, height, cupSize }) {
   const boxes = [];
   const c = cupSize / 2;
   const [hx, hz] = cup;
@@ -433,15 +440,15 @@ export function green(world, id, x, z, { rects, walls, cup, name = 'Green', heig
       if (e - a > 0.01 && f - b > 0.01) boxes.push(box((a + e) / 2, height / 2, (b + f) / 2, e - a, height, f - b, 'green', { studs: false }));
     }
   }
-  for (const [cx, cz, w, d] of walls) boxes.push(box(cx, height + 0.4, cz, w, 0.8, d, 'brown', { studs: false }));
-  world.addStatic({ kind: 'green', name, color: 'green', x, z, thingId: id, boxes });
+  return boxes;
 }
 
 // The bottom of a cup: dark, and a sensor, so its behaviors feel the ball drop in.
-export function cup(world, id, x, z, { name = 'Cup', size = 1.7 } = {}) {
+// depth: how high the sensor reaches, so a ball resting on something in the cup still counts.
+export function cup(world, id, x, z, { name = 'Cup', size = 1.7, depth = 0.9 } = {}) {
   world.addStatic({
     kind: 'cup', name, color: 'black', x, z, thingId: id, sensor: true,
-    boxes: [box(0, 0.45, 0, size, 0.9, size, 'black', { studs: false })],
+    boxes: [box(0, depth / 2, 0, size, depth, size, 'black', { studs: false })],
   });
 }
 
@@ -464,6 +471,134 @@ export function spinner(world, id, x, y, z, { reach = 3.3, name = 'Spinner' } = 
       box(0, 1.0, 0, 0.6, 2.0, 0.6, 'yellow', { studs: false }),
       box(0, 0.5, 0, reach * 2, 0.8, 0.4, 'red', { studs: false }),
       box(0, 0.6, 0, 0.4, 0.9, reach * 2, 'white', { studs: false }),
+    ],
+  });
+}
+
+// ---- MEGA GOLF: a course built for a ball bigger than a minifig ---------------
+
+// A ramp between two heights: a slab whose top runs from y0 to y1 along `axis`
+// ('x' or 'z') across the rectangle [x0, x1] × [z0, z1], with stepped blocks
+// underneath so it looks solid. Returns boxes in world space (for a prop at 0, 0).
+function slope([x0, x1], [z0, z1], y0, y1, axis, { color = 'green', fill = 'tan', t = 0.8, steps = 4 } = {}) {
+  const run = axis === 'x' ? x1 - x0 : z1 - z0;
+  const a = Math.atan2(y1 - y0, run);
+  const len = Math.hypot(run, y1 - y0);
+  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, cy = (y0 + y1) / 2 - t / 2 / Math.cos(a);
+  const boxes = [axis === 'x'
+    ? box(cx, cy, cz, len, t, z1 - z0, color, { rot: [0, 0, a], studs: false })
+    : box(cx, cy, cz, x1 - x0, t, len, color, { rot: [-a, 0, 0], studs: false })];
+  const under = (u) => y0 + (y1 - y0) * u - t / Math.cos(a) - 0.05; // underside at fraction u of the run
+  for (let i = 0; i < steps; i++) {
+    const h = Math.min(under(i / steps), under((i + 1) / steps));
+    if (h < 0.3) continue;
+    const s0 = x0 + ((axis === 'x' ? run : 0) * i) / steps, s1 = x0 + ((axis === 'x' ? run : 0) * (i + 1)) / steps;
+    const r0 = z0 + ((axis === 'z' ? run : 0) * i) / steps, r1 = z0 + ((axis === 'z' ? run : 0) * (i + 1)) / steps;
+    boxes.push(axis === 'x'
+      ? box((s0 + s1) / 2, h / 2, cz, s1 - s0, h, z1 - z0, fill, { studs: false })
+      : box(cx, h / 2, (r0 + r1) / 2, x1 - x0, h, r1 - r0, fill, { studs: false }));
+  }
+  return { boxes, angle: a };
+}
+
+// The whole MEGA GOLF hole: a tee fairway, a ramp up to a plateau with two
+// turns, a ramp down, and a raised green with a cup big enough for the ball.
+// Returns the spots the world needs (tee, cup, obstacles).
+export function megaCourse(world) {
+  const FAIR = 0.4, PLAT = 6.4, GREEN = 3.6, WALL = 3.2, T = 1;
+  const boxes = []; // one prop, so the pieces can meet without counting as things stuck inside each other
+  const add = (more) => boxes.push(...more);
+  // a flat wall along x or z, standing on a surface at height y
+  const wallX = (x0, x1, z, y) => box((x0 + x1) / 2, y + WALL / 2, z, x1 - x0 + T, WALL, T, 'brown', { studs: false });
+  const wallZ = (z0, z1, x, y) => box(x, y + WALL / 2, (z0 + z1) / 2, T, WALL, z1 - z0 + T, 'brown', { studs: false });
+
+  // 1. the tee fairway, on the ground; it turns right at the far end
+  add([
+    box(0, FAIR / 2, -19, 20, FAIR, 66, 'green', { studs: false }),
+    wallZ(-52, 14, -10.5, FAIR), wallZ(-52, -6, 10.5, FAIR), wallX(-10, 10, -52.5, FAIR), wallX(-10, 10, 14.5, FAIR),
+  ]);
+  // 2. a ramp up to the plateau
+  const up = slope([10, 30], [-6, 14], FAIR, PLAT, 'x');
+  const midUp = (FAIR + PLAT) / 2;
+  add([
+    ...up.boxes,
+    box(20, midUp + WALL / 2, -6.5, 21, WALL, T, 'brown', { rot: [0, 0, up.angle], studs: false }),
+    box(20, midUp + WALL / 2, 14.5, 21, WALL, T, 'brown', { rot: [0, 0, up.angle], studs: false }),
+  ]);
+  // 3. the plateau: turn left, then past the obstacles
+  add([
+    box(40, (PLAT - FAIR) / 2, 19, 20, PLAT - FAIR, 50, 'tan', { studs: false }),
+    box(40, PLAT - FAIR / 2, 19, 20, FAIR, 50, 'green', { studs: false }),
+    wallZ(-6, 44, 50.5, PLAT), wallX(30, 50, -6.5, PLAT), wallZ(14, 44, 29.5, PLAT),
+  ]);
+  // 4. a ramp down to the green
+  const down = slope([30, 50], [44, 64], PLAT, GREEN, 'z');
+  const midDown = (PLAT + GREEN) / 2;
+  add([
+    ...down.boxes,
+    box(29.5, midDown + WALL / 2, 54, T, WALL, 21, 'brown', { rot: [-down.angle, 0, 0], studs: false }),
+    box(50.5, midDown + WALL / 2, 54, T, WALL, 21, 'brown', { rot: [-down.angle, 0, 0], studs: false }),
+  ]);
+  // 5. the green, raised, with the cup cut out of it
+  const cup = [40, 84];
+  add(greenBoxes({ cup, cupSize: 10.4, height: GREEN, rects: [[40, 78, 32, 28]] }));
+  add([
+    wallZ(64, 92, 23.5, GREEN), wallZ(64, 92, 56.5, GREEN), wallX(24, 56, 92.5, GREEN),
+    wallX(24, 30, 63.5, GREEN), wallX(50, 56, 63.5, GREEN),
+  ]);
+  world.addStatic({ kind: 'green', name: 'Mega Course', color: 'green', x: 0, z: 0, thingId: 'course', boxes });
+  return { FAIR, PLAT, GREEN, tee: [0, -40], cup };
+}
+
+// A giant toadstool: a white stem and a spotty red cap.
+export function mushroom(world, id, x, z, { y = 0, name = 'Giant Mushroom', cap = 'red' } = {}) {
+  // the cap is up above the mega ball (7 studs tall), so only the stem is in the way
+  const dots = [[-2.5, -2], [2, -2.5], [0, 1], [-2, 2.8], [2.8, 2]].map(([dx, dz]) => box(dx, 10.25, dz, 1.4, 0.3, 1.4, 'white', { studs: false }));
+  world.addStatic({
+    kind: 'mushroom', name, color: cap, x, y, z, thingId: id,
+    boxes: [box(0, 4, 0, 3, 8, 3, 'white', { studs: false }), box(0, 9, 0, 9, 2, 9, cap, { studs: false }), ...dots],
+  });
+}
+
+// A spinning bar as wide as a fairway (teach it to turn).
+export function giantSpinner(world, id, x, y, z, { reach = 9, name = 'Giant Spinner' } = {}) {
+  world.addStatic({
+    kind: 'spinner', name, color: 'red', x, y, z, thingId: id,
+    boxes: [
+      box(0, 3.5, 0, 2, 7, 2, 'yellow', { studs: false }),
+      box(0, 2.2, 0, reach * 2, 3.2, 1.2, 'red', { studs: false }),
+      box(0, 2.2, 0, 1.2, 3.2, reach * 2, 'white', { studs: false }),
+    ],
+  });
+}
+
+// A flag pole tall enough to see from the tee.
+export function giantPin(world, id, x, y, z, { color = 'red', name = 'Giant Flag' } = {}) {
+  world.addStatic({
+    kind: 'flag', name, color, x, y, z, thingId: id,
+    boxes: [box(0, 8, 0, 0.6, 16, 0.6, 'white', { studs: false }), box(0, 14, 2.6, 0.2, 3.6, 5, color, { studs: false })],
+  });
+}
+
+// Big Rex: a dinosaur taller than most houses, with comically tiny arms.
+// Faces +z; a prop, so a program can turn it and slide it around.
+export function bigRex(world, id, x, z, { yaw = 0, name = 'Big Rex', color = 'lime' } = {}) {
+  const spikes = [-6, -3, 0, 3].map((sz, i) => box(0, 14.9 - i * 0.2, sz - 1, 1.8, 1.8, 1.8, 'green', { rot: [Math.PI / 4, 0, 0], studs: false }));
+  const teeth = [-2.2, -1.1, 0, 1.1, 2.2].map((tx) => box(tx, 18.2, 10.6, 0.5, 0.7, 0.5, 'white', { studs: false }));
+  world.addStatic({
+    kind: 'dinosaur', name, color, x, z, yaw, thingId: id,
+    boxes: [
+      box(3, 4, 0, 3, 8, 4, color, { studs: false }), box(-3, 4, 0, 3, 8, 4, color, { studs: false }), // legs
+      box(3, 0.6, 1.4, 3.4, 1.2, 6, 'green', { studs: false }), box(-3, 0.6, 1.4, 3.4, 1.2, 6, 'green', { studs: false }), // feet
+      box(0, 11, -1, 9, 7, 13, color), // body
+      box(0, 10.5, 5.6, 6, 5, 0.5, 'yellow', { studs: false }), // belly
+      box(0, 10, -10, 5, 4, 8, color), box(0, 9, -16, 3, 2.5, 6, color), // tail
+      box(0, 16, 4, 5, 6, 5, color), // neck
+      box(0, 20, 6.5, 7, 4.4, 9.5, color), box(0, 17.6, 7, 6, 1.2, 8, 'green', { studs: false }), // head and jaw
+      box(3.6, 21, 7.5, 0.3, 1.6, 1.6, 'white', { studs: false }), box(-3.6, 21, 7.5, 0.3, 1.6, 1.6, 'white', { studs: false }), // eyes
+      box(3.75, 21, 7.8, 0.2, 0.8, 0.8, 'black', { studs: false }), box(-3.75, 21, 7.8, 0.2, 0.8, 0.8, 'black', { studs: false }),
+      box(3.2, 12.5, 5.5, 1, 1, 2.4, color, { studs: false }), box(-3.2, 12.5, 5.5, 1, 1, 2.4, color, { studs: false }), // tiny arms
+      ...spikes, ...teeth,
     ],
   });
 }

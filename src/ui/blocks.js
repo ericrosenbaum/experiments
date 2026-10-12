@@ -57,7 +57,7 @@ const PART_SPECS = {
   wiggle: ['parts', 'wiggle {p}[ {0} times]'],
   color: ['parts', 'color {p} {0:color}'],
 };
-const MATH = { min: 'smaller of {0} and {1}', max: 'bigger of {0} and {1}', round: 'round {0}', floor: 'round down {0}', ceil: 'round up {0}', abs: 'size of {0}', sqrt: 'square root of {0}', random: 'random fraction' };
+const MATH = { min: 'smaller of {0} and {1}', max: 'bigger of {0} and {1}', round: 'round {0}', floor: 'round down {0}', ceil: 'round up {0}', abs: 'size of {0}', sqrt: 'square root of {0}', sin: 'sin of {0}', cos: 'cos of {0}', random: 'random fraction' };
 const COMPARE = { '===': '=', '==': '=', '!==': '≠', '!=': '≠', '<': '<', '>': '>', '<=': '≤', '>=': '≥' };
 
 const word = (t) => `<span class="bk-w">${esc(t)}</span>`;

@@ -446,7 +446,8 @@ class Program {
     this.rt.audio.play(s, this.actor.isWorld ? null : this.actor.position);
   }
   cmd_say(text, seconds) {
-    this.rt.ui.say(this.actor, String(text).slice(0, 80), clamp(seconds, 0.5, 10));
+    // the World's banner has room for a sentence or two; bubbles stay short
+    this.rt.ui.say(this.actor, String(text).slice(0, this.actor.isWorld ? 160 : 80), clamp(seconds, 0.5, 10));
   }
   cmd_broadcast(name) { this.rt.broadcast(String(name).slice(0, 40)); }
   cmd_remove() {

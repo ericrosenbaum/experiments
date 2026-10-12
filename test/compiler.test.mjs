@@ -32,6 +32,8 @@ check('wander', 'robot', ['forever(', 'move(random(']);
 check('when it sees a red brick, roar and wag the tail', 'dino', ['look(15)', 'is(seen, {color: "red", kind: "brick"})', 'play("roar")', 'part("tail").wiggle(']);
 check('when it hears go, drive forward fast', 'racecar', ['onMessage("go"', 'drive(13)']);
 check('when I press b, tell everyone go', 'robot', ['broadcast("go")']);
+check('when I press h, say "Hello, friend!" for 4 seconds', 'robot', ['say("Hello, friend!", 4)']);
+check('when I press h, say hi', 'robot', ['say("hi");']);
 check('spin around 2 times and turn blue', 'robot', ['await turn(720)', 'color("blue")']);
 check('when I press g, go to {place:10,-5}', 'robot', ['goTo(place(10, -5), 7)']);
 check('{part:head} spins fast', 'robot', ['part("head").spin(650)']);
