@@ -270,11 +270,6 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   background: var(--panel); color: var(--muted); box-shadow: var(--shadow); transition: color .15s, transform .15s;
 }
 .console-fab:hover { color: var(--ink); transform: translateY(-1px); }
-#console-badge {
-  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
-  background: var(--accent); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center;
-}
-#console-badge:empty { display: none; }
 #console-body .error { color: #dc2626; }
 
 /* speech bubbles */
@@ -368,6 +363,7 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 .k-looks { --c: #9966ff; --cd: #774dcb; }
 .k-sound { --c: #cf63cf; --cd: #bd42bd; }
 .k-parts { --c: #0fbd8c; --cd: #0b8e69; }
+.k-pen { --c: #0fbd8c; --cd: #0b8e69; } /* Scratch's pen extension */
 .k-world { --c: #e6533c; --cd: #b8402d; }
 .k-control { --c: #ffab19; --cd: #cf8b17; }
 .k-sensing { --c: #5cb1d6; --cd: #2e8eb8; }

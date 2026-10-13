@@ -47,11 +47,11 @@ export const WORLDS = [
     camera: { pos: [-6, 19, -27], target: [0, 1, 3] },
     build(w) {
       const trees = [[-30, 6], [-26, 18], [-14, 30], [8, 34], [30, 18], [36, 0], [-36, -8], [12, -34], [-6, -30], [40, -28]];
-      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 3 === 0 ? 1.3 : 1 }));
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 3 === 0 ? 1.3 : 1, loose: true })); // smashable
       P.house(w, 'house-1', -20, -14, 'tan', 'red');
       P.house(w, 'house-2', 24, -16, 'white', 'blue');
       P.tower(w, 'tower', 14, 12);
-      P.ramp(w, 'ramp', -6, 22);
+      P.ramp(w, 'ramp', -6, 22, { yaw: 180 });
       w.addBall({ x: 4, y: 1.3, z: 14, color: 'white', name: 'Ball', thingId: 'ball' });
       const loose = [['red', -13, 5], ['blue', -9, 8], ['yellow', -13, 11], ['green', -8.5, 3.5], ['orange', 5, -11], ['purple', 9.5, -12]];
       loose.forEach(([color, x, z], i) => w.addBrick({ size: i % 2 ? '2x2' : '2x4', color, x, y: B / 2, z, yaw: i * 37, sleeping: true, thingId: `brick-${i + 1}` }));
@@ -71,9 +71,9 @@ export const WORLDS = [
         {
           title: 'Gas and Brakes',
           keys: { ArrowUp: 'faster', ArrowDown: 'slower', ' ': 'stop' },
-          text: 'While I hold the up arrow, speed up by 4. While I hold the down arrow, slow down by 4. When I press space, stop.',
+          text: 'While I hold the up arrow, speed up by 1. While I hold the down arrow, slow down by 1. When I press space, stop.',
           summary: ['While ↑ is held: speed up', 'While ↓ is held: slow down, then back up', 'When space is pressed: stop'],
-          code: 'whileKey("ArrowUp", () => speedUp(4));\nwhileKey("ArrowDown", () => slowDown(4));\nonKey(" ", () => stop());',
+          code: 'whileKey("ArrowUp", () => speedUp(1));\nwhileKey("ArrowDown", () => slowDown(1));\nonKey(" ", () => stop());',
         },
       ],
     },
@@ -614,6 +614,105 @@ onMessage("in the hole", () => {
       }],
     },
     select: 'golfer',
+  },
+
+  {
+    id: 'turtle',
+    name: 'Turtle Geometry',
+    emoji: '🐢',
+    blurb: 'A Logo turtle on a sheet of paper. Press s, t, p or f for a square, a star, a spiral or a flower; drive with the arrows to draw by hand; d lifts or lowers the pen, c erases.',
+    theme: { ...SKY.day, ground: { base: '#f4f1e6', stud: '#fbf9f1', edge: '#e2dccb' } },
+    camera: { pos: [0, 52, -30], target: [0, 0, 6] },
+    build() {},
+    models: [{ id: 'turtle', def: 'turtle', x: 0, z: 0 }],
+    behaviors: {
+      world: [{ title: 'How to Play', text: 'At the start, say "Press s, t, p or f to draw a shape. Drive with the arrows. d: pen up or down. c: erase." for 10 seconds.' }],
+      turtle: [
+        { title: 'Drive Around', text: 'When I press the up arrow, drive forward. When I press the down arrow, drive backward. While I hold left, turn left. While I hold right, turn right.' },
+        {
+          title: 'Pen',
+          keys: { d: 'pen', c: 'erase' },
+          text: 'At the start, put the pen down. When I press d, lift the pen or put it down. When I press c, erase the drawing.',
+          summary: ['At the start: pen down', 'When you press d: pen up or down', 'When you press c: erase the drawing'],
+          code: `let drawing = true;
+onStart(() => {
+  penColor("blue");
+  penDown();
+});
+onKey("d", () => {
+  drawing = !drawing;
+  if (drawing) {
+    penDown();
+    say("Pen down", 1);
+  } else {
+    penUp();
+    say("Pen up", 1);
+  }
+});
+onKey("c", () => {
+  clearDrawing();
+});`,
+        },
+        {
+          title: 'Square',
+          keys: { s: 'square' },
+          text: 'When I press s, draw a red square: 4 times, go forward 10 and turn right 90.',
+          summary: ['When you press s: draw a square (4 times: forward 10, right 90)'],
+          code: `onKey("s", async () => {
+  penColor("red");
+  for (let i = 0; i < 4; i++) {
+    await move(10, 14);
+    await turn(-90); // right 90
+  }
+});`,
+        },
+        {
+          title: 'Star',
+          keys: { t: 'star' },
+          text: 'When I press t, draw an orange star: 5 times, go forward 14 and turn right 144.',
+          summary: ['When you press t: draw a star (5 times: forward 14, right 144)'],
+          code: `onKey("t", async () => {
+  penColor("orange");
+  for (let i = 0; i < 5; i++) {
+    await move(14, 14);
+    await turn(-144); // right 144
+  }
+});`,
+        },
+        {
+          title: 'Rainbow Spiral',
+          keys: { p: 'spiral' },
+          text: 'When I press p, draw a rainbow spiral: 36 times, change color, go forward a little more each time, and turn right 61.',
+          summary: ['When you press p: draw a rainbow spiral (each side a bit longer, right 61)'],
+          code: `onKey("p", async () => {
+  const colors = ["red", "orange", "yellow", "green", "blue", "purple"];
+  for (let i = 0; i < 36; i++) {
+    penColor(colors[i % 6]);
+    await move(1 + i * 0.6, 16);
+    await turn(-61); // right 61
+  }
+});`,
+        },
+        {
+          title: 'Circle Flower',
+          keys: { f: 'flower' },
+          text: 'When I press f, draw a flower of 8 pink circles: each circle is 24 times forward a little and right 15, then turn right 45.',
+          summary: ['When you press f: draw 8 circles, turning a bit between each, to make a flower'],
+          code: `onKey("f", async () => {
+  penColor("pink");
+  for (let petal = 0; petal < 8; petal++) {
+    // one circle: 24 little steps, turning 15 each time
+    for (let i = 0; i < 24; i++) {
+      await move(0.8, 16);
+      await turn(-15);
+    }
+    await turn(-45); // turn before the next circle
+  }
+});`,
+        },
+      ],
+    },
+    select: 'turtle',
   },
 ];
 

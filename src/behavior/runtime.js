@@ -16,7 +16,7 @@ const MAX_SPEED = 50; // studs a second, for drive, speedUp, move and goTo
 const TURN_RATE = 360; // degrees a second for turn() and face(); they ease in at the end
 const MAX_SPAWNED_PER_ACTOR = 60;
 // What the World can't do, and how to say so.
-const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
+const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
 
 export class Runtime {
   constructor({ world, audio, ui }) {
@@ -80,7 +80,19 @@ export class Runtime {
     if (!this.heldKeys.size) return;
     for (const p of this.programs) if (this._hearsKeys(p)) p.send({ type: 'tick' });
   }
-  _ping() { for (const p of this.programs) p.ping(); }
+  // Once a second: ask every program to answer. If these checks themselves
+  // ran late (a background tab, where browsers slow timers right down, or the
+  // page busy for a while), no program had a fair chance to answer, so give
+  // them all a fresh start instead of calling them stuck.
+  _ping() {
+    const now = performance.now();
+    const late = now - (this._lastCheck ?? now) > 2000;
+    this._lastCheck = now;
+    for (const p of this.programs) {
+      if (late) p.lastPong = now;
+      p.ping();
+    }
+  }
 
   // ---- physics hooks --------------------------------------------------------
 
@@ -275,6 +287,20 @@ class Program {
     if (name === 'gravity' && !this.actor.isWorld) {
       throw new Error('only the World can change gravity. Click the ground to teach the World.');
     }
+  }
+
+  // A precise model (the Logo turtle) ends a move or turn exactly on target,
+  // so drawn shapes close: snap it the last little bit and stop it there. Only
+  // when it got close, so something that was blocked isn't pulled through.
+  _land(goal, heading) {
+    const a = this.actor;
+    if (!a.model?.def.precise || !a.alive) return;
+    const here = a.position;
+    const delta = goal ? goal.clone().sub(here).setY(0) : new THREE.Vector3();
+    const dyaw = heading == null ? 0 : wrap180(heading - a.heading());
+    if (delta.length() > 1 || Math.abs(dyaw) > 6) return;
+    this.world.transform(a.members, { delta, dyaw, pivot: here, keepSpawn: true });
+    for (const { body } of a.bodies()) { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); }
   }
 
   _reply(id, value) { this.worker?.postMessage({ type: 'reply', id, value }); }
@@ -473,6 +499,11 @@ class Program {
     this.rt.ui.say(this.actor, String(text).slice(0, this.actor.isWorld ? 160 : 80), clamp(seconds, 0.5, 10));
   }
   cmd_broadcast(name) { this.rt.broadcast(String(name).slice(0, 40)); }
+  cmd_penDown() { this.world.penDown(this.actor.key); }
+  cmd_penUp() { this.world.penUp(this.actor.key); }
+  cmd_penColor(color) { this.world.pen(this.actor.key).color = this._color(color); }
+  cmd_penSize(size) { this.world.pen(this.actor.key).size = clamp(size, 1, 10); }
+  cmd_clearDrawing() { this.world.clearDrawing(); }
   cmd_explode(power) {
     const a = this.actor, w = this.world;
     const center = a.bounds().getCenter(new THREE.Vector3());
@@ -495,9 +526,10 @@ class Program {
     const dist = clamp(distance, -200, 200);
     const sp = Math.abs(clamp(speed, 0.5, MAX_SPEED)) * Math.sign(dist || 1);
     const start = a.position.setY(0);
+    const goal = start.clone().add(a.forward().multiplyScalar(dist)); // for precise models
     a.control.drive = sp;
     return this._task(() => a.position.setY(0).distanceTo(start) >= Math.abs(dist), Math.abs(dist) / Math.abs(sp) * 3 + 2,
-      () => { a.control.drive = 0; });
+      () => { a.control.drive = 0; this._land(goal, null); });
   }
 
   q_turn(degrees) {
@@ -505,6 +537,7 @@ class Program {
     const total = clamp(degrees, -3600, 3600);
     let turned = 0;
     let last = a.heading();
+    const goalHeading = last + total; // for precise models
     const rate = TURN_RATE;
     return this._task(() => {
       const h = a.heading();
@@ -514,7 +547,7 @@ class Program {
       if (Math.abs(remaining) < 2) return true;
       a.control.steer = Math.sign(remaining) * Math.min(rate, Math.max(25, Math.abs(remaining) * 5));
       return false;
-    }, Math.abs(total) / 40 + 2, () => { a.control.steer = 0; });
+    }, Math.abs(total) / 40 + 2, () => { a.control.steer = 0; this._land(null, goalHeading); });
   }
 
   q_face(target) {

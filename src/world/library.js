@@ -567,6 +567,38 @@ export const LIBRARY = [
     ],
   },
   {
+    id: 'turtle',
+    name: 'Turtle',
+    blurb: 'A Logo turtle. With its pen down it draws a line wherever it goes, and it moves and turns exactly, so shapes come out right.',
+    category: 'animals',
+    examples: ['When I press s, put the pen down and draw a square.', 'When I press c, erase.', 'When I press r, set the pen color to red.'],
+    color: 'green',
+    motion: 'glide',
+    precise: true, // move() and turn() end exactly on target (see runtime q_move/q_turn)
+    bricks: [
+      b(1.1, -0.65, 1.0, 0.8, 0.7, 0.8, 'lime', { studs: false }),
+      b(-1.1, -0.65, 1.0, 0.8, 0.7, 0.8, 'lime', { studs: false }),
+      b(1.1, -0.65, -1.0, 0.8, 0.7, 0.8, 'lime', { studs: false }),
+      b(-1.1, -0.65, -1.0, 0.8, 0.7, 0.8, 'lime', { studs: false }),
+      b(0, -0.3, -1.85, 0.4, 0.3, 0.7, 'lime', { studs: false }), // tail
+      b(0, -0.2, 0, 2.6, P, 3.2, 'green', { studs: false }), // belly
+      b(0, 0.5, 0, 2.4, 1.0, 3.0, 'green', { studs: false }), // shell
+      b(0, 1.3, 0, 1.6, 0.6, 2.2, 'green'), // top of the shell
+      b(0.4, 1.66, 0.5, 0.5, 0.1, 0.5, 'lime', { studs: false }), // spots, just above the top of the shell
+      b(-0.4, 1.66, -0.5, 0.5, 0.1, 0.5, 'lime', { studs: false }),
+    ],
+    parts: [
+      {
+        name: 'head', kind: 'hinge', pivot: [0, 0.1, 1.55], axis: [0, 1, 0], sign: 1, limits: [-60, 60], strength: 1,
+        bricks: [
+          b(0, 0.1, 0.55, 1.0, 0.9, 1.1, 'lime', { studs: false }),
+          b(0.42, 0.3, 0.85, 0.2, 0.2, 0.2, 'black', { studs: false }),
+          b(-0.42, 0.3, 0.85, 0.2, 0.2, 0.2, 'black', { studs: false }),
+        ],
+      },
+    ],
+  },
+  {
     id: 'cow',
     name: 'Cow',
     blurb: 'A spotty cow. Nods, swishes its tail, and says moo.',

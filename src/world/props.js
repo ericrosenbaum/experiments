@@ -10,8 +10,20 @@ export const RAINBOW = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 const box = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h, d], color, ...extra });
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 
-export function tree(world, id, x, z, { scale = 1, name, leaf = 'green', top = 'lime' } = {}) {
+// loose: built from loose bricks, asleep until something knocks it apart (a
+// trunk of stacked bricks under three layers of leaves), instead of a prop.
+export function tree(world, id, x, z, { scale = 1, name, leaf = 'green', top = 'lime', loose = false } = {}) {
   const h = 4 * B * scale;
+  name ??= `Tree ${id.replace(/\D+/g, '')}`;
+  if (loose) {
+    const n = Math.max(2, Math.round(h / B)), t = h / n; // trunk pieces about a brick tall
+    const add = (y, w, hh, d, color) => world.addBrick({ dims: [w, hh, d], color, x, y, z, kind: 'tree', name, thingId: id, sleeping: true });
+    for (let i = 0; i < n; i++) add(t * (i + 0.5), 2, t, 2, 'brown');
+    add(h + B / 2, 6, B, 6, leaf);
+    add(h + B * 1.5, 4, B, 4, leaf);
+    add(h + B * 2.5, 2, B, 2, top);
+    return;
+  }
   world.addStatic({
     kind: 'tree', name: name ?? `Tree ${id.replace(/\D+/g, '')}`, color: leaf, x, z, thingId: id,
     boxes: [

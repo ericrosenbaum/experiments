@@ -5,12 +5,28 @@
 // thingId form one assembly (a house of loose bricks); see actor.js for how
 // programs address models, assemblies, single bricks and the world itself.
 import * as THREE from 'three';
-import { brickMesh, wheelMesh, flowerMesh, material, SIZES, BRICK_H } from './bricks.js';
+import { brickMesh, wheelMesh, flowerMesh, material, colorHex, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
 import { buildMinifig, buildSeatedMinifig, FIG } from './minifig.js';
 
 const DEG = Math.PI / 180;
+// A seated minifigure's collision boxes, [half-sizes, center] in the space of
+// buildSeatedMinifig (origin where its thighs meet the seat): legs out front,
+// body, head.
+const RIDER_BOXES = [
+  [0.9, 0.5, 0.95, 0, 0.55, 0.85],
+  [0.9, 1.0, 0.5, 0, 1.85, 0],
+  [0.6, 0.6, 0.6, 0, 3.6, 0],
+];
+// How sudden a change in a model's speed in one physics step throws its rider
+// out (studs a second): driving, steering and bumps stay well under this.
+const RIDER_JOLT = 9;
+const toWorldPoint = (local, q, x, y, z) => local.clone().applyQuaternion(q).add(new THREE.Vector3(x, y, z));
+
+// Pen lines: matte, colored per vertex, drawn from both sides.
+const PEN_MATERIAL = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, side: THREE.DoubleSide });
+
 // Split boxes into brick-sized pieces (at most 2 studs across and a brick
 // tall), coarser if that would make too many to keep the world quick.
 const MAX_PIECES = 160;
@@ -209,15 +225,30 @@ export class World {
       e.walk = 0;
     }
     // a rider (a race car's driver) is only for looks: no collider, but clicking it picks the model
-    if (def.rider) {
-      const rider = buildSeatedMinifig(def.rider.figure, { reach: def.rider.reach });
-      rider.position.set(...def.rider.at);
-      tag(rider);
-      chassisObj.add(rider);
-    }
     this.scene.add(chassisObj);
     e.chassis = chassis;
     e.bodies.push({ body: chassis, object3d: chassisObj, part: null });
+    // A rider (the race car's driver) is its own body held in the seat by a
+    // joint, so it bumps into things; a crash, a hard landing or flipping over
+    // lets go of it and it tumbles out (see _checkRiders). Reset puts it back.
+    if (def.rider) {
+      const at = new THREE.Vector3(...def.rider.at);
+      const rp = toWorldPoint(at, q, x, y, z);
+      const body = this.physics.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(rp.x, rp.y, rp.z).setRotation(q).setAngularDamping(0.4));
+      const color = def.rider.figure.torso ?? 'white';
+      for (const [hx, hy, hz, cx, cy, cz] of RIDER_BOXES) {
+        this._attachCollider(R.ColliderDesc.cuboid(hx, hy, hz).setTranslation(cx, cy, cz).setDensity(0.3).setFriction(0.8), body, e, null, color);
+      }
+      const joint = this.physics.createImpulseJoint(R.JointData.fixed(at, { x: 0, y: 0, z: 0, w: 1 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0, w: 1 }), chassis, body, true);
+      joint.setContactsEnabled(false);
+      const look = buildSeatedMinifig(def.rider.figure, { reach: def.rider.reach });
+      tag(look);
+      const obj = new THREE.Group();
+      obj.add(look);
+      this.scene.add(obj);
+      e.bodies.push({ body, object3d: obj, part: null });
+      e.rider = { body, joint, lastV: null };
+    }
 
     // parts
     const toWorld = (local) => new THREE.Vector3(...local).applyQuaternion(q).add(new THREE.Vector3(x, y, z));
@@ -371,6 +402,107 @@ export class World {
     e.recipe = { type: 'flower', opts: { color, name: e.name } };
     this._syncOne(body, obj);
     return this._register(e);
+  }
+
+  // A rider lets go of its seat when its model stops or swerves hard in one
+  // step (a crash, a hard landing) or tips well over, and pops up a little.
+  _checkRiders() {
+    for (const e of this.entities.values()) {
+      const r = e.rider;
+      if (!r?.joint || e.removed) continue;
+      const v = e.chassis.linvel();
+      const upY = new THREE.Vector3(0, 1, 0).applyQuaternion(e.quaternion).y;
+      const jolt = r.lastV ? Math.hypot(v.x - r.lastV.x, v.y - r.lastV.y, v.z - r.lastV.z) : 0;
+      r.lastV = { x: v.x, y: v.y, z: v.z };
+      if (jolt < RIDER_JOLT && upY > 0.4) continue;
+      this.physics.removeImpulseJoint(r.joint, true);
+      r.joint = null;
+      const rv = r.body.linvel();
+      r.body.setLinvel({ x: rv.x, y: rv.y + 5, z: rv.z }, true);
+      r.body.setAngvel({ x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 6, z: (Math.random() - 0.5) * 6 }, true);
+    }
+  }
+
+  // ---- pens ------------------------------------------------------------------
+  // Like a Logo turtle: a thing with its pen down leaves a ribbon on the ground
+  // under it. Each pen is one growing mesh with a color per vertex; later
+  // pieces sit a hair higher so crossings don't flicker.
+
+  pen(key) {
+    this.pens ??= new Map();
+    let p = this.pens.get(key);
+    if (!p) this.pens.set(key, p = { key, down: false, color: 'blue', size: 3, last: null });
+    return p;
+  }
+  penDown(key) { const p = this.pen(key); p.down = true; p.last = null; }
+  penUp(key) { const p = this.pen(key); p.down = false; p.last = null; }
+
+  clearDrawing() {
+    for (const p of this.pens?.values() ?? []) {
+      if (p.mesh) { this.scene.remove(p.mesh); p.mesh.geometry.dispose(); }
+      p.mesh = null;
+      p.last = null;
+    }
+    this.penLayer = 0;
+  }
+
+  _drawPens() {
+    for (const p of this.pens?.values() ?? []) {
+      if (!p.down) continue;
+      const a = this.actor(p.key);
+      if (!a.alive) continue;
+      const at = a.position;
+      at.y = Math.max(0.2, a.bounds().min.y + 0.05); // just above the studs, or whatever it stands on
+      if (!p.last) { p.last = at; continue; }
+      if (Math.hypot(at.x - p.last.x, at.z - p.last.z) < 0.12) continue;
+      this._penSegment(p, p.last, at);
+      p.last = at;
+    }
+  }
+
+  _penSegment(p, a, b) {
+    if (!p.mesh) {
+      p.cap = 0;
+      p.count = 0;
+      p.mesh = new THREE.Mesh(new THREE.BufferGeometry(), PEN_MATERIAL);
+      p.mesh.frustumCulled = false;
+      p.mesh.receiveShadow = true;
+      this.scene.add(p.mesh);
+    }
+    if (p.count === p.cap) { // grow: twice the room, keeping what's drawn
+      const cap = Math.max(256, p.cap * 2);
+      const grow = (old, n) => { const arr = new old.constructor(n); arr.set(old); return arr; };
+      p.pos = p.pos ? grow(p.pos, cap * 12) : new Float32Array(cap * 12);
+      p.col = p.col ? grow(p.col, cap * 12) : new Float32Array(cap * 12);
+      p.nrm = p.nrm ? grow(p.nrm, cap * 12) : new Float32Array(cap * 12); // all straight up, so the lighting sees the color
+      p.idx = p.idx ? grow(p.idx, cap * 6) : new Uint32Array(cap * 6);
+      const g = p.mesh.geometry;
+      g.setAttribute('position', new THREE.BufferAttribute(p.pos, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(p.col, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(p.nrm, 3));
+      g.setIndex(new THREE.BufferAttribute(p.idx, 1));
+      p.cap = cap;
+    }
+    const half = 0.08 + p.size * 0.06;
+    const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz);
+    const ux = dx / len, uz = dz / len; // along the line
+    const nx = -uz * half, nz = ux * half; // across it
+    const lift = (this.penLayer = (this.penLayer ?? 0) + 1) * 1e-5;
+    const ya = a.y + lift, yb = b.y + lift;
+    const ax = a.x - ux * half, az = a.z - uz * half, bx = b.x + ux * half, bz = b.z + uz * half; // square ends overlap at corners
+    const v = p.count * 12;
+    p.pos.set([ax + nx, ya, az + nz, ax - nx, ya, az - nz, bx + nx, yb, bz + nz, bx - nx, yb, bz - nz], v);
+    const c = new THREE.Color(colorHex(p.color));
+    for (let i = 0; i < 4; i++) { p.col.set([c.r, c.g, c.b], v + i * 3); p.nrm.set([0, 1, 0], v + i * 3); }
+    const base = p.count * 4;
+    p.idx.set([base, base + 2, base + 1, base + 1, base + 2, base + 3], p.count * 6);
+    p.count++;
+    const g = p.mesh.geometry;
+    g.attributes.position.needsUpdate = true;
+    g.attributes.color.needsUpdate = true;
+    g.attributes.normal.needsUpdate = true;
+    g.index.needsUpdate = true;
+    g.setDrawRange(0, p.count * 6);
   }
 
   // ---- explosions ----------------------------------------------------------
@@ -527,6 +659,8 @@ export class World {
 
   // Remove everything but the ground.
   clear() {
+    this.clearDrawing();
+    this.pens?.clear();
     for (const e of [...this.entities.values()]) if (e.kind !== 'ground') this.remove(e);
     this.memberCount.clear();
     for (const a of this.actors.values()) { a._control.drive = a._control.steer = a._control.rise = 0; a.yaw = null; a._wasActive = a._wasMoving = false; }
@@ -631,7 +765,9 @@ export class World {
       this.accum -= this.dt;
       steps++;
     }
+    this._checkRiders();
     this.sync();
+    this._drawPens();
     this._animateFigures(Math.min(frameDt, 0.1));
     this._cleanupFallen();
   }
@@ -680,6 +816,19 @@ export class World {
     e.chassis.setRotation(q, true);
     e.chassis.setLinvel({ x: 0, y: 0, z: 0 }, true);
     e.chassis.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    if (e.rider) { // back in the seat, buckled in again
+      const r = e.rider;
+      const at = new THREE.Vector3(...e.def.rider.at);
+      r.body.setTranslation(at.clone().applyQuaternion(q).add(base), true);
+      r.body.setRotation(q, true);
+      r.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      r.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      if (!r.joint) {
+        r.joint = this.physics.createImpulseJoint(this.R.JointData.fixed(at, { x: 0, y: 0, z: 0, w: 1 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0, w: 1 }), e.chassis, r.body, true);
+        r.joint.setContactsEnabled(false);
+      }
+      r.lastV = null;
+    }
     for (const p of e.parts.values()) {
       const local = p.def.kind === 'wheel' ? p.def.at : p.def.pivot;
       p.body.setTranslation(new THREE.Vector3(...local).applyQuaternion(q).add(base), true);

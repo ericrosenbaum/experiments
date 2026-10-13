@@ -64,6 +64,11 @@ export const PRIMITIVES = [
   ['say(text, seconds)', 'Show a speech bubble above the model.', 'action'],
   ['broadcast(name)', 'Send a message everything can hear with onMessage(name, ...).', 'action'],
   ['await clone(what, where)', 'Make a copy, with all its behaviors. what: null for this thing, or another thing: thing("...") or a kind like "tree" (the nearest one). where (optional): place(x, z), "front", "back", "left", "right" or "above"; leave it out for a clear spot right beside. Returns the copy as {name, kind, color, id}, or null if there are too many copies already.', 'wait'],
+  ['penDown()', 'Start drawing, like a Logo turtle: from now on it leaves a line on the ground wherever it goes.', 'action'],
+  ['penUp()', 'Stop drawing.', 'action'],
+  ['penColor(color)', 'Set the color of the line it draws.', 'action'],
+  ['penSize(size)', 'Set how thick its line is, 1..10 (default 3).', 'action'],
+  ['clearDrawing()', 'Erase every line drawn in the world.', 'action'],
   ['explode(power)', 'Burst into loose bricks that fly apart, power 1..10 (default 5). A prop or model breaks into its bricks; a house or tower of loose bricks gets flung apart. Like remove(), Reset world brings it back.', 'action'],
   ['remove()', 'Take this thing out of the world (copies are gone for good; Reset world brings the original back).', 'action'],
   ['gravity(amount)', 'World rules only: set gravity for everything. 1 = normal, 0 = everything floats, 0.3 = moon, negative = things fall up.', 'action'],
@@ -88,7 +93,7 @@ export const PRIMITIVES = [
 // Commands the host accepts from a sandbox (fire-and-forget).
 export const HOST_COMMANDS = new Set([
   'drive', 'speedUp', 'slowDown', 'steer', 'rise', 'stop', 'jump', 'push', 'partSpin', 'partColor', 'color',
-  'spawn', 'play', 'say', 'broadcast', 'explode', 'remove', 'gravity', 'log',
+  'spawn', 'play', 'say', 'broadcast', 'explode', 'penDown', 'penUp', 'penColor', 'penSize', 'clearDrawing', 'remove', 'gravity', 'log',
 ]);
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).

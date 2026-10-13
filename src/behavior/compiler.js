@@ -187,6 +187,16 @@ const ACTIONS = [
     return { code: [`rise(${v});`, `await wait(${t});`, 'rise(0);'], label: `fly ${word} for ${t} second${t === 1 ? '' : 's'}` };
   },
 
+  // the pen, like Logo (before "stop", so "stop drawing" lifts the pen)
+  (p) => (/^(put (the |its )?pen down|pen down|start drawing|draw as it goes)\b/.test(p) ? { code: ['penDown();'], label: 'pen down' } : null),
+  (p) => (/^(lift (the |its )?pen( up)?|pick (the |its )?pen up|pen up|stop drawing)\b/.test(p) ? { code: ['penUp();'], label: 'pen up' } : null),
+  (p) => {
+    const m = p.match(/^(?:set |change )?(?:the |its )?pen colou?r(?: to)?\s+(\w+)|^draw in (\w+)/);
+    const c = m && colorIn(m[1] ?? m[2]);
+    return c ? { code: [`penColor(${q(c)});`], label: `pen color ${c}` } : null;
+  },
+  (p) => (/^(erase|clear)( (the|all|everything))?( (drawings?|lines?|pictures?|pen))?$/.test(p) ? { code: ['clearDrawing();'], label: 'erase the drawing' } : null),
+
   // stop
   (p) => (/^(stop|halt|freeze|stand still)\b/.test(p) ? { code: ['stop();'], label: 'stop' } : null),
 

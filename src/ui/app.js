@@ -55,7 +55,6 @@ export class App {
     this.aim.visible = false;
     scene.add(this.aim);
     for (const o of [this.hoverBox, this.selBox, this.ring, this.aim]) o.raycast = () => {};
-    this.unread = 0;
   }
 
   attach({ runtime, stage }) { this.runtime = runtime; this.stage = stage; }
@@ -1029,7 +1028,6 @@ export class App {
   // The program log folds down to a round button in the corner while it's not in use.
   setConsole(open) {
     $('console').classList.toggle('collapsed', !open);
-    if (open) { this.unread = 0; $('console-badge').textContent = ''; }
   }
 
   log(msg, level = 'info') {
@@ -1040,10 +1038,7 @@ export class App {
     body.appendChild(line);
     while (body.childNodes.length > 200) body.firstChild.remove();
     body.scrollTop = body.scrollHeight;
-    if ($('console').classList.contains('collapsed')) {
-      if (level === 'error') this.setConsole(true);
-      else { this.unread++; $('console-badge').textContent = this.unread; }
-    }
+    if (level === 'error' && $('console').classList.contains('collapsed')) this.setConsole(true); // errors open it
   }
 
   _screen(pos) {

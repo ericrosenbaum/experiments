@@ -59,6 +59,9 @@ function callLabel(c) {
     case 'remove': return [2, 'vanish'];
     case 'explode': return [1, 'explode'];
     case 'see': return [2, 'look'];
+    case 'penDown': case 'penUp': return [2, 'pen'];
+    case 'penColor': return [2, 'color'];
+    case 'clearDrawing': return [2, 'erase'];
     case 'broadcast': return [3, String(c.arguments[0]?.value ?? 'message')];
     case 'play': return [4, String(c.arguments[0]?.value ?? 'sound')];
     case 'say': return [5, 'talk'];
