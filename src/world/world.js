@@ -46,6 +46,7 @@ function splitIntoBricks(boxes) {
   return out;
 }
 
+const GLIDE_ROUND = 0.2; // studs: the rounding on a glider's collision boxes
 export const WHEEL_ACCEL = 60; // studs/s² a wheeled model speeds up by, at most
 const TRACTION = 90; // studs/s² the traction assist can change a wheeled model's ground speed by
 export const GRAVITY = -25; // studs/s^2 — "toy scale" gravity, snappy but readable
@@ -202,8 +203,13 @@ export class World {
     const chassisObj = new THREE.Group();
     for (const br of def.bricks) {
       const [w, h, d] = br.size;
-      const desc = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...br.at).setDensity(def.density ?? 1);
-      // gliders slide on frictionless feet; their motion comes from applyControls
+      // Gliders slide on frictionless feet (their motion comes from
+      // applyControls), with rounded edges so they ride up over thin lips
+      // (a pond, a road) instead of catching on them like a box would.
+      const round = def.motion === 'glide' ? Math.min(GLIDE_ROUND, w / 4, h / 4, d / 4) : 0;
+      const desc = (round
+        ? R.ColliderDesc.roundCuboid(w / 2 - round, h / 2 - round, d / 2 - round, round)
+        : R.ColliderDesc.cuboid(w / 2, h / 2, d / 2)).setTranslation(...br.at).setDensity(def.density ?? 1);
       if (def.motion === 'glide') desc.setFriction(0).setFrictionCombineRule(R.CoefficientCombineRule.Min);
       else desc.setFriction(0.6);
       this._attachCollider(desc, chassis, e, null, br.color);

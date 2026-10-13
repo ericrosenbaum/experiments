@@ -79,4 +79,20 @@ for (const id of Object.keys(LIBRARY_BY_ID)) {
   assert.ok(flew > 6, `catapult should fling the brick forward, went ${flew.toFixed(1)}`);
   console.log(`ok: catapult flung a brick ${flew.toFixed(1)} studs forward`);
 }
+
+// goTo's path planning: around a wall, straight when clear, nothing when walled in
+{
+  const { planPath } = await import('../src/behavior/pathfind.js');
+  const THREE = await import('three');
+  const pw = await makeWorld();
+  pw.addStatic({ kind: 'wall', name: 'Wall', color: 'gray', x: 0, z: 0, thingId: 'wall', boxes: [{ at: [0, 1.5, 0], size: [20, 3, 1], color: 'gray' }] });
+  const opts = { radius: 1.5, bottom: 0, top: 3, ignore: () => false };
+  const around = planPath(pw, new THREE.Vector3(0, 0, -8), new THREE.Vector3(0, 0, 8), opts);
+  assert.ok(around && around.length > 1, 'a wall in the way gives a path with turns');
+  assert.ok(around.slice(0, -1).every((p) => Math.abs(p.x) > 10), `the path goes around the ends of the wall: ${around.map((p) => `(${p.x.toFixed(0)},${p.z.toFixed(0)})`).join(' ')}`);
+  assert.equal(planPath(pw, new THREE.Vector3(30, 0, -8), new THREE.Vector3(30, 0, 8), opts).length, 1, 'open ground: straight there');
+  for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; pw.addStatic({ kind: 'wall', name: 'Ring', color: 'red', x: -40 + Math.cos(a) * 6, z: Math.sin(a) * 6, thingId: `ring-${k}`, boxes: [{ at: [0, 1.5, 0], size: [3, 3, 3], color: 'red' }] }); }
+  assert.equal(planPath(pw, new THREE.Vector3(-60, 0, 0), new THREE.Vector3(-40, 0, 0), opts), null, 'a walled-in goal has no path');
+  console.log('ok: goTo plans around a wall, goes straight when clear, and knows when there is no way');
+}
 console.log('physics: all checks passed');

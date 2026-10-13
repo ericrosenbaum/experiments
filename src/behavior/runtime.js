@@ -6,6 +6,7 @@ import { COLORS, SOUNDS, HOST_COMMANDS, HOST_QUERIES } from './primitives.js';
 import { SIZES, BRICK_H, material, colorHex } from '../world/bricks.js';
 import { matchFilter } from './filter.js';
 import { instrument } from './trace.js';
+import { planPath } from './pathfind.js';
 
 export { matchFilter };
 
@@ -562,17 +563,33 @@ class Program {
     }, 5, () => { a.control.steer = 0; });
   }
 
+  // Drive to a target, around whatever is in the way: plan a path (see
+  // pathfind.js), steer from waypoint to waypoint, and plan again every second
+  // since things move. With no way around, head straight for it as before.
   q_goTo(target, speed) {
     const a = this.actor;
     const sp = clamp(speed, 0.5, MAX_SPEED);
     if (!this.rt.resolveTarget(a, target)) return false;
     const reach = a.halfLength();
-    return this._task(() => {
+    const goal = target && typeof target === 'object' && target.__ref === 'place' ? null : this.rt.resolveActor(a, target);
+    const ignore = (e) => a.has(e) || !!goal?.has(e);
+    let path = null, planned = -1e9;
+    return this._task((dt, t) => {
       const tgt = this.rt.resolveTarget(a, target); // things can move
       if (!tgt) return true;
-      const d = tgt.pos.clone().setY(0).distanceTo(a.position.setY(0));
+      const here = a.position;
+      const d = tgt.pos.clone().setY(0).distanceTo(here.clone().setY(0));
       if (d < tgt.radius + reach) return true;
-      const ang = this.rt.angleTo(a, tgt.pos);
+      if (t - planned > 1) {
+        planned = t;
+        const box = a.bounds();
+        const radius = Math.max(0.6, ((box.max.x - box.min.x) + (box.max.z - box.min.z)) / 4 + 0.3);
+        path = planPath(this.world, here.clone().setY(0), tgt.pos.clone().setY(0), { radius, bottom: box.min.y, top: box.max.y, ignore });
+      }
+      // next waypoint: drop the ones it has reached
+      while (path && path.length > 1 && path[0].distanceTo(here.clone().setY(0)) < Math.max(1.5, reach)) path.shift();
+      const aim = path?.length > 1 ? path[0] : tgt.pos;
+      const ang = this.rt.angleTo(a, aim);
       a.control.steer = clamp(ang * 5, -TURN_RATE, TURN_RATE);
       a.control.drive = sp * Math.max(0, Math.cos(ang * DEG)) * (Math.abs(ang) > 60 ? 0.2 : 1);
       return false;
