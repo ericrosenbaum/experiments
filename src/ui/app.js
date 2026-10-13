@@ -1075,7 +1075,9 @@ export class App {
         this.selBox.box.copy(this.selected.bounds()).expandByScalar(0.15);
         this.selBox.visible = true;
       }
-      if (this.follow) {
+      // not while dragging: the camera moving under the pointer would push the
+      // dragged thing further along, faster and faster
+      if (this.follow && !this.drag) {
         const delta = p.clone().sub(this.controls.target);
         delta.y = 0;
         delta.multiplyScalar(0.08);
