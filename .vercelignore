@@ -5,3 +5,6 @@ dist
 docs
 test
 tools
+server/sim
+Dockerfile
+fly.toml

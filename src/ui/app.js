@@ -5,11 +5,12 @@ import * as THREE from 'three';
 import { LIBRARY, LIBRARY_BY_ID, CATEGORIES, modelBottom } from '../world/library.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
-import { generateBehavior, findNamedBehaviors, probeClaude, syntaxError } from '../behavior/generate.js';
+import { generateBehavior, findNamedBehaviors, probeClaude } from '../behavior/generate.js';
 import { renderBlocks } from './blocks.js';
 import { highlight } from './highlight.js';
 import { keyLabels, padGroups, padHtml } from './pad.js';
-import { makeBehavior, describeTarget } from '../stage.js';
+import { describeTarget, applyTheme } from '../stage.js';
+import { dragBase, holdDrag } from '../world/drag.js';
 import { worldMessages } from '../behavior/messages.js';
 
 const $ = (id) => document.getElementById(id);
@@ -55,9 +56,13 @@ export class App {
     this.aim.visible = false;
     scene.add(this.aim);
     for (const o of [this.hoverBox, this.selBox, this.ring, this.aim]) o.raycast = () => {};
+    this.readOnly = false; // looking at a thing another player is using
+    this.marks = new Map(); // player id -> {box, tag}: what other players have selected
   }
 
-  attach({ runtime, stage }) { this.runtime = runtime; this.stage = stage; }
+  // session: the LocalSession (single player) or NetSession (a room); view: the lights and camera, for themes
+  attach({ session, view }) { this.session = session; this.view = view; }
+  get net() { return this.session.mode === 'net'; }
 
   // ---- setup ------------------------------------------------------------------
 
@@ -71,7 +76,8 @@ export class App {
     probeClaude().then((ok) => {
       if (!ok) this.log('🔧 No ANTHROPIC_API_KEY on the server, so a simple offline helper writes the code (it knows a fixed set of phrases). Start the dev server with a key to use Claude.');
     });
-    this.loadWorld(location.hash.slice(1) || 'playground');
+    if (this.net) { $('btn-pause').classList.add('hidden'); this.log(`🔗 Joining room “${this.session.room}”…`); }
+    this.session.start(location.hash.slice(1) || 'playground');
   }
 
   setLibrary(open) {
@@ -88,19 +94,40 @@ export class App {
 
   // The World button shows how many behaviors the World has.
   renderWorldCount() {
-    const n = this.stage ? this.stage.behaviorsOf('world').length : 0;
+    const n = this.session ? this.session.behaviorsOf('world').length : 0;
     $('world-count').textContent = n || ''; // no badge when the World has no behaviors
     $('btn-world').title = `World rules (${n === 1 ? '1 behavior' : `${n} behaviors`}): teach the World itself (gravity, dropping and copying things), or click the ground`;
   }
 
   loadWorld(id) {
     this.select(null);
-    this.stage.load(id);
-    $('world-select').value = this.stage.worldId;
-    if (location.hash.slice(1) !== this.stage.worldId) history.replaceState(null, '', `#${this.stage.worldId}`);
-    this.select(this.world.actor(this.stage.preset.select));
-    this.setFollow(!!this.stage.preset.follow); // off, unless the world starts following its player (MEGA GOLF)
-    this.log(`${this.stage.preset.emoji} ${this.stage.preset.name}: ${this.stage.preset.blurb}`);
+    this.session.loadWorld(id);
+  }
+
+  // The session loaded (or reloaded) a world: a new one, or Reset in a room.
+  onWorldLoaded() {
+    const { session } = this;
+    const preset = session.preset;
+    this.select(null);
+    if (this.net) this.applyTheme(preset);
+    $('world-select').value = session.worldId;
+    if (location.hash.slice(1) !== session.worldId) history.replaceState(null, '', `#${session.worldId}`);
+    for (const b of this.bubbles.values()) b.el.remove();
+    this.bubbles.clear();
+    this.select(this.world.actor(preset.select));
+    this.setFollow(!!preset.follow); // off, unless the world starts following its player (MEGA GOLF)
+    this.log(`${preset.emoji} ${preset.name}: ${preset.blurb}`);
+    this.renderPlayers();
+  }
+
+  // In a room the Stage lives on the server; the page sets the look itself.
+  applyTheme(preset) {
+    if (!this.view) return;
+    applyTheme(this.view, this.world, preset.theme);
+    const { pos, target } = preset.camera;
+    this.camera.position.set(...pos);
+    this.controls.target.set(...target);
+    this.controls.update();
   }
 
   _buildWorldPicker() {
@@ -137,9 +164,13 @@ export class App {
     this.camera.getWorldDirection(dir);
     const p = this.controls.target.clone().add(dir.setY(0).normalize().multiplyScalar(6));
     const pose = { x: p.x + (Math.random() - 0.5) * 4, z: p.z + (Math.random() - 0.5) * 4, yaw: Math.atan2(-dir.x, -dir.z) * 180 / Math.PI + 180 };
-    const a = this.stage.addModel(defId, pose);
-    this.select(a);
-    return a;
+    this.session.addModel(defId, pose);
+  }
+
+  // Something this page asked for (a model, a copy) is in the world: pick it up.
+  onMade(key) {
+    const a = this.world.actor(key);
+    if (a.alive) this.select(a);
   }
 
   _wireButtons() {
@@ -150,7 +181,7 @@ export class App {
       $('btn-pause').querySelector('span').textContent = this.world.paused ? 'Resume' : 'Pause';
       $('btn-pause').classList.toggle('paused', this.world.paused);
     };
-    $('btn-reset').onclick = () => this.stage.reset();
+    $('btn-reset').onclick = () => this.session.reset();
     $('btn-export').onclick = () => this.exportWorld();
     $('btn-world').onclick = () => this.select(this.world.actor('world'));
     $('btn-follow').onclick = () => this.setFollow(!this.follow);
@@ -161,28 +192,25 @@ export class App {
     };
     $('btn-top-menu').onclick = (ev) => { ev.stopPropagation(); this.setPop('top', $('top-menu').classList.contains('hidden')); };
     $('top-menu').onclick = (ev) => { ev.stopPropagation(); this.setPop('top', false); }; // every item closes it
-    $('btn-respawn').onclick = () => { const m = this.selected?.model; if (m) this.world.resetModel(m); };
+    $('btn-respawn').onclick = () => { if (this.selected?.model && !this.readOnly) this.session.respawn(this.selected); };
     $('btn-whole').onclick = () => { const e = this.selected?.members[0]; if (e) this.select(this.world.actorOf(e)); };
     $('btn-copy').onclick = () => {
       const a = this.selected;
-      if (!a || a.isWorld) return;
-      const copy = this.stage.cloneActor(a, null);
-      if (copy) this.select(copy);
+      if (!a || a.isWorld || this.readOnly) return;
+      this.session.clone(a);
     };
     $('btn-turn').onclick = () => {
       const a = this.selected;
-      if (!a?.alive || a.isWorld) return;
-      const pivot = a.position;
-      this.world.transform(a.members, { dyaw: 45, pivot });
-      if (a.usesOwnYaw) a.yaw = (a.yaw ?? 0) + 45;
-      this.stage.recordMove(a.key, new THREE.Vector3(), 45, pivot);
+      if (!a?.alive || a.isWorld || this.readOnly) return;
+      this.session.turn(a);
     };
     $('btn-remove').onclick = () => {
       const a = this.selected;
-      if (!a || a.isWorld) return;
-      this.stage.removeActor(a, { forever: true });
+      if (!a || a.isWorld || this.readOnly) return;
+      this.session.remove(a);
       this.select(null);
     };
+    $('btn-together').onclick = () => this.playTogether();
     $('btn-make').onclick = () => this.make();
     $('btn-point').onclick = () => this.setPointing(!this.pointing);
     $('btn-more').onclick = (ev) => { ev.stopPropagation(); this.setPop('menu', $('sel-menu').classList.contains('hidden')); };
@@ -213,7 +241,17 @@ export class App {
     if (actor && !actor.alive) actor = null;
     if (actor !== this.selected) { this.stopListening?.(); this.setPointing(false); this.setFollow(false); this.setPop('menu', false); this.setPop('parts', false); }
     this.selected = actor;
-    this.runtime.setKeyTarget(actor);
+    // Another player's thing can be looked at but not used: no lock is asked for.
+    const holder = this.session.holderOf(actor?.key);
+    this.readOnly = !!holder;
+    this.session.select(holder ? null : actor);
+    const lock = $('sel-lock');
+    lock.classList.toggle('hidden', !holder);
+    if (holder) { lock.textContent = `${holder.name} is using this`; lock.style.background = holder.color; }
+    $('composer').contentEditable = String(!holder);
+    $('btn-make').disabled = !!holder;
+    $('btn-more').disabled = !!holder;
+    $('selection').classList.toggle('read-only', !!holder);
     $('no-selection').classList.toggle('hidden', !!actor);
     $('selection').classList.toggle('hidden', !actor);
     $('btn-world').classList.toggle('on', !!actor?.isWorld);
@@ -256,6 +294,11 @@ export class App {
   }
   onActorRemoved(actor) { if (this.selected === actor) this.select(null); }
   onActorAdded() { this.onProgramsChanged(); }
+  onThingsChanged() { if (this.selected && !this.selected.alive) this.select(null); }
+  onBehaviorsChanged(key) {
+    this.renderWorldCount();
+    if (this.selected?.key === key) this.onProgramsChanged();
+  }
 
   _highlight(obj) {
     if (!obj) { this.hoverBox.visible = false; this.hoverTarget = null; return; }
@@ -302,7 +345,7 @@ export class App {
     // so grabbing the selected thing drags it instead of turning the camera.
     viewport.addEventListener('pointerdown', (ev) => {
       down = { x: ev.clientX, y: ev.clientY, alt: ev.altKey };
-      if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld) return;
+      if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld || this.readOnly) return;
       const hit = this._pick(ev);
       if (hit?.entity && this.selected.has(hit.entity)) {
         ev.stopPropagation();
@@ -368,15 +411,13 @@ export class App {
     const a = this.selected;
     this.controls.enabled = false;
     const pivot = a.position;
+    this.world.refreshQueries?.(); // a mirror's shape casts only see where things were last stepped
     this.drag = {
       actor: a, pivot, yaw: 0, delta: new THREE.Vector3(),
       plane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -hit.point.y),
       start: hit.point.clone(),
-      base: a.bodies().map(({ body }) => {
-        const t = body.translation(), r = body.rotation();
-        return { body, t: new THREE.Vector3(t.x, t.y, t.z), q: new THREE.Quaternion(r.x, r.y, r.z, r.w) };
-      }),
-      moved: false,
+      base: dragBase(a),
+      moved: false, frames: 0,
     };
     // Its footprint and bottom, for riding up over whatever it's dragged onto.
     const box = a.bounds(true);
@@ -385,6 +426,7 @@ export class App {
     this.drag.own = new Set();
     for (const { body } of this.drag.base) for (let i = 0; i < body.numColliders(); i++) this.drag.own.add(body.collider(i).handle);
     this.renderer.domElement.style.cursor = 'grabbing';
+    this.session.dragStart(this.drag);
     this._moveDrag(ev);
   }
 
@@ -409,6 +451,7 @@ export class App {
     const cos = Math.abs(Math.cos(d.yaw * DEG)), sin = Math.abs(Math.sin(d.yaw * DEG));
     const hx = Math.max(0.05, (cos * f.hx + sin * f.hz) * 0.95), hz = Math.max(0.05, (sin * f.hx + cos * f.hz) * 0.95);
     const from = 300;
+    if (this.world.mirror && d.frames++ % 10 === 0) this.world.refreshQueries();
     const hit = physics.castShape(
       { x: at.x + d.delta.x, y: from, z: at.z + d.delta.z }, { x: 0, y: 0, z: 0, w: 1 }, { x: 0, y: -1, z: 0 },
       new R.Cuboid(hx, 0.05, hz), 0, from + 50, false, R.QueryFilterFlags.EXCLUDE_SENSORS,
@@ -419,34 +462,16 @@ export class App {
   }
 
   // Hold the dragged thing where the pointer is (every frame, against gravity).
-  _holdDrag(d = this.drag, lift = 0.4) {
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), d.yaw * DEG);
-    for (const { body, t, q: bq } of d.base) {
-      const pos = t.clone().sub(d.pivot).applyQuaternion(q).add(d.pivot).add(d.delta);
-      pos.y += lift;
-      const rot = q.clone().multiply(bq);
-      body.setTranslation(pos, true);
-      body.setRotation(rot, true);
-      if (body.isKinematic()) { body.setNextKinematicTranslation(pos); body.setNextKinematicRotation(rot); }
-      else { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); }
-    }
-  }
+  _holdDrag(d = this.drag, lift = 0.4) { holdDrag(d, lift); }
 
   _endDrag() {
     const d = this.drag;
     this.drag = null;
     this.controls.enabled = true;
     this.renderer.domElement.style.cursor = '';
-    // Put it back where it was, then (if it moved) apply the move for real,
-    // so it's remembered for Reset.
-    this._holdDrag({ ...d, delta: new THREE.Vector3(), yaw: 0 }, 0);
-    if (!d.moved && !d.yaw) return;
-    this.world.transform(d.actor.members, { delta: d.delta, dyaw: d.yaw, pivot: d.pivot });
-    for (const { body } of d.base) {
-      if (body.isDynamic()) { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); body.wakeUp(); }
-    }
-    if (d.actor.usesOwnYaw && d.yaw) d.actor.yaw = (d.actor.yaw ?? 0) + d.yaw;
-    this.stage.recordMove(d.actor.key, d.delta, d.yaw, d.pivot);
+    // Single player: put it back where it was, then apply the move for real so
+    // it's remembered for Reset. In a room: tell the server, which does that.
+    this.session.dragEnd(d);
   }
 
   _describeHit(hit) {
@@ -642,14 +667,14 @@ export class App {
         .filter(([id]) => id !== a.key)
         .map(([id]) => ({ ...this.world.actor(id).describe(), id, distance: Math.round(this.world.thingCenter(id).distanceTo(here)) }))
         .sort((x, y) => x.distance - y.distance);
-      const behaviors = this.stage.behaviorsOf(a.key);
+      const behaviors = this.session.behaviorsOf(a.key);
       const named = findNamedBehaviors(text, behaviors);
       const res = await generateBehavior({
         text, model: describeTarget(a), things,
         otherBehaviors: behaviors.filter((b) => b.enabled && !named.includes(b)).flatMap((b) => b.summary ?? []),
         named: named.map((b) => ({ title: b.title, summary: b.summary, code: b.code })),
         // the messages things already send and listen for, so this one can join in
-        messages: worldMessages(this.stage.state.behaviors, (k) => {
+        messages: worldMessages(this.session.behaviorMap(), (k) => {
           const name = k === 'world' ? 'the World' : this.world.actor(k).describe().name;
           return k === a.key ? `${name} (this thing)` : name;
         }),
@@ -660,8 +685,12 @@ export class App {
       }
       if (!a.alive) return;
       const target = res.modifies && named.find((b) => b.title === res.modifies && behaviors.includes(b));
-      if (target) this._changeBehavior(a, target, { text, html: $('composer').innerHTML, ...res });
-      else this._addBehavior(a, { text, html: $('composer').innerHTML, ...res });
+      try {
+        if (target) this.session.change(a, target, { text, html: $('composer').innerHTML, ...res });
+        else this.session.teach(a, { text, html: $('composer').innerHTML, ...res });
+      } catch (err) { this.log(err.message, 'error'); return; }
+      this.renderBehaviors();
+      if (target) $('behaviors').querySelector(`[data-bid="${target.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       $('composer').innerHTML = '';
       this.savedRange = null;
       this.setPointing(false);
@@ -672,38 +701,6 @@ export class App {
     }
   }
 
-  _addBehavior(a, b) {
-    const behavior = makeBehavior({
-      ...b,
-      notes: [b.notes, b.unknown?.length ? `I didn't understand: “${b.unknown.join('”, “')}”` : ''].filter(Boolean).join(' '),
-    });
-    this.stage.behaviorsOf(a.key).push(behavior);
-    if (behavior.notes) this.log(`${behavior.title}: ${behavior.notes}`);
-    this.runtime.start(a, behavior);
-    this.renderBehaviors();
-  }
-
-  // A request that named an existing behavior and asked to change it: swap in
-  // the new program on the same card, keeping its place in the list.
-  _changeBehavior(a, b, res) {
-    const fresh = makeBehavior({ ...res, title: res.title || b.title });
-    Object.assign(b, {
-      code: fresh.code, title: fresh.title, summary: fresh.summary, keys: fresh.keys, notes: fresh.notes, source: fresh.source,
-      text: res.text, html: res.html, enabled: true, collapsed: false, draft: null, changedAt: performance.now(),
-    });
-    this.log(`Changed “${b.title}”${b.notes ? `: ${b.notes}` : ''}`);
-    this._restart(a, b);
-    this.renderBehaviors();
-    $('behaviors').querySelector(`[data-bid="${b.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
-
-  _restart(a, b) {
-    for (const p of [...this.runtime.programs]) if (p.behavior === b) p.stop();
-    this.runtime.resetControls(a);
-    if (a.isWorld && !b.enabled && /\bgravity\(/.test(b.code)) this.world.setGravity(1); // switching a gravity rule off
-    if (b.enabled) this.runtime.start(a, b);
-  }
-
   renderBehaviors() {
     const a = this.selected;
     const list = $('behaviors');
@@ -711,16 +708,18 @@ export class App {
     this.renderWorldCount();
     if (!a) return;
     list.innerHTML = '';
-    const behaviors = this.stage.behaviorsOf(a.key);
+    const behaviors = this.session.behaviorsOf(a.key);
+    const ro = this.readOnly;
     $('behavior-count').textContent = behaviors.length ? `(${behaviors.length})` : '(none yet)';
     for (const b of behaviors) {
       const card = document.createElement('div');
       card.className = `behavior ${b.enabled ? '' : 'off'} ${b.running ? 'running' : ''}`;
       card.dataset.bid = b.id;
+      const by = this.net && b.by && b.by !== this.session.me.id ? this.session.players.find((p) => p.id === b.by) : null;
       card.innerHTML = `
         <div class="b-head">
           <button class="fold" title="${b.collapsed ? 'Show the blocks' : 'Fold it up'}" aria-expanded="${!b.collapsed}">${ICON.chevron}</button>
-          <div class="b-title">${esc(b.title)}</div>
+          <div class="b-title">${esc(b.title)}${by ? `<span class="by" style="color:${by.color}" title="Taught by ${esc(by.name)}">${esc(by.name)}</span>` : ''}</div>
           <button class="switch ${b.enabled ? 'on' : ''}" role="switch" aria-checked="${b.enabled}" title="Turn this behavior on or off">
             <span class="sw-label">${b.enabled ? 'On' : 'Off'}</span><span class="sw-track"><span class="sw-knob"></span></span>
           </button>
@@ -743,7 +742,7 @@ export class App {
       const fold = () => { b.collapsed = !b.collapsed; this.renderBehaviors(); };
       card.querySelector('.fold').onclick = fold;
       card.querySelector('.b-title').onclick = fold;
-      card.querySelector('.switch').onclick = () => { b.enabled = !b.enabled; this._restart(a, b); this.renderBehaviors(); };
+      card.querySelector('.switch').onclick = () => { if (ro) return; this.session.setEnabled(a, b, !b.enabled); this.renderBehaviors(); };
       if (b.collapsed) { list.appendChild(card); continue; }
       card.querySelector('.bk-scripts')?.addEventListener('click', (ev) => {
         const script = ev.target.closest('.bk-script');
@@ -752,9 +751,8 @@ export class App {
       });
       card.querySelector('.code').onclick = () => { b.showCode = !b.showCode; this.renderBehaviors(); };
       card.querySelector('.del').onclick = () => {
-        b.enabled = false;
-        this._restart(a, b);
-        behaviors.splice(behaviors.indexOf(b), 1);
+        if (ro) return;
+        this.session.deleteBehavior(a, b);
         this.renderBehaviors();
       };
       const ta = card.querySelector('.code-edit textarea');
@@ -778,15 +776,8 @@ export class App {
       }
       if (card.querySelector('.run')) card.querySelector('.run').onclick = () => {
         const code = card.querySelector('textarea').value;
-        if (code === b.code) return;
-        const err = syntaxError(code);
-        if (err) { this.log(`That code has a typo: ${err}`, 'error'); return; }
-        b.code = code;
-        b.draft = null;
-        b.keys = null; // the labels may not fit the new code
-        b.source = 'edited';
-        b.enabled = true;
-        this._restart(a, b);
+        if (code === b.code || ro) return;
+        try { this.session.editCode(a, b, code); } catch (err) { this.log(err.message, 'error'); return; }
         this.renderBehaviors();
       };
       list.appendChild(card);
@@ -796,12 +787,12 @@ export class App {
   // Clicking a stack of blocks runs it once, like in Scratch: the behavior's
   // program fires that script's handler (a key, a message, a "define"...).
   runScript(a, b, at, el) {
-    const p = [...this.runtime.programs].find((x) => x.behavior === b && x.actor === a);
-    if (!p) { this.log(`“${b.title}” is switched off. Turn it on to run its blocks.`); this._nope(el); return; }
-    p.runScript(at);
+    if (this.readOnly) { this._nope(el); return; }
+    if (!this.session.runScript(a, b, at)) { this.log(`“${b.title}” is switched off. Turn it on to run its blocks.`); this._nope(el); }
   }
 
-  onScriptRan(b, at, ok) {
+  onScriptRan(b, at, ok, off) {
+    if (off) this.log(`“${b.title}” is switched off. Turn it on to run its blocks.`);
     if (ok) return;
     const el = $('behaviors').querySelector(`[data-bid="${b.id}"] .bk-script [data-at="${at}"]`)?.closest('.bk-script');
     this._nope(el);
@@ -821,7 +812,7 @@ export class App {
   renderPad() {
     const pad = $('pad');
     const labels = {};
-    for (const b of this.selected ? this.stage.behaviorsOf(this.selected.key) : []) {
+    for (const b of this.selected && !this.readOnly ? this.session.behaviorsOf(this.selected.key) : []) {
       if (!b.enabled) continue;
       if (b._keyLabels?.code !== b.code) b._keyLabels = { code: b.code, labels: keyLabels(b.code) };
       const read = b._keyLabels.labels;
@@ -833,17 +824,17 @@ export class App {
     const html = padHtml(padGroups(labels));
     if (html === this._padHtml) return; // don't rebuild under a finger that's holding a button
     this._padHtml = html;
-    for (const k of [...this.runtime.heldKeys]) this.runtime.keyUp(k);
+    for (const k of [...this.session.heldKeys]) this.session.keyUp(k);
     pad.innerHTML = html;
     pad.classList.toggle('hidden', !html);
     for (const btn of pad.querySelectorAll('.pad-key')) {
       const key = btn.dataset.key;
-      const up = () => { btn.classList.remove('down'); this.runtime.keyUp(key); };
+      const up = () => { btn.classList.remove('down'); this.session.keyUp(key); };
       btn.onpointerdown = (ev) => {
         ev.preventDefault();
         btn.setPointerCapture(ev.pointerId);
         btn.classList.add('down');
-        this.runtime.keyDown(key);
+        this.session.keyDown(key);
       };
       btn.onpointerup = up;
       btn.onpointercancel = up;
@@ -870,12 +861,13 @@ export class App {
     const a = this.selected;
     if (!a) return;
     const now = performance.now();
-    const programs = [...this.runtime.programs].filter((p) => p.actor === a);
+    const behaviors = this.session.behaviorsOf(a.key);
     for (const card of $('behaviors').children) {
-      const p = programs.find((x) => x.behavior.id === +card.dataset.bid);
+      const b = behaviors.find((x) => x.id === +card.dataset.bid);
+      const t = b && this.session.traceOf(a, b);
       for (const el of card.querySelectorAll('[data-at]')) {
         const id = +el.dataset.at;
-        el.classList.toggle('lit', !!p && (p.live.has(id) || now - (p.lastSeen.get(id) ?? -1e9) < 400));
+        el.classList.toggle('lit', !!t && (t.live.has(id) || now - (t.lastSeen.get(id) ?? -1e9) < 400));
       }
     }
   }
@@ -899,11 +891,11 @@ export class App {
       if (ev.key === 'Escape') { this.setPointing(false); return; }
       if (typing() || ev.metaKey || ev.ctrlKey) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(ev.key)) ev.preventDefault();
-      this.runtime.keyDown(norm(ev.key));
+      this.session.keyDown(norm(ev.key));
       this._padShowKey(norm(ev.key), true);
     });
-    addEventListener('keyup', (ev) => { this.runtime.keyUp(norm(ev.key)); this._padShowKey(norm(ev.key), false); });
-    addEventListener('blur', () => { for (const k of [...this.runtime.heldKeys]) this.runtime.keyUp(k); });
+    addEventListener('keyup', (ev) => { this.session.keyUp(norm(ev.key)); this._padShowKey(norm(ev.key), false); });
+    addEventListener('blur', () => { for (const k of [...this.session.heldKeys]) this.session.keyUp(k); });
   }
 
   // ---- eyes -----------------------------------------------------------------------
@@ -969,7 +961,8 @@ export class App {
   // or deleted, every behavior, and where everything is right now, so it can
   // be turned into a premade world.
   exportWorld() {
-    const { stage, world } = this;
+    const { session, world } = this;
+    const st = session.exportState();
     const round = (v) => Math.round(v * 100) / 100;
     const xyz = (v) => [round(v.x), round(v.y), round(v.z)];
     const things = [...world.things().keys()].map((key) => {
@@ -983,7 +976,7 @@ export class App {
       };
     });
     const behaviors = {};
-    for (const [key, list] of stage.state.behaviors) {
+    for (const [key, list] of st.behaviors) {
       if (!list.length) continue;
       behaviors[key] = list.map((b) => ({
         title: b.title, text: b.text, summary: b.summary, code: b.code,
@@ -993,21 +986,120 @@ export class App {
     }
     const out = {
       format: 'brick-behaviors-world', version: 1, exported: new Date().toISOString(),
-      basedOn: stage.worldId, name: stage.preset.name,
+      basedOn: session.worldId, name: session.preset.name,
       camera: { pos: xyz(this.camera.position), target: xyz(this.controls.target) },
       gravity: world.gravityScale,
-      added: stage.state.added, moved: stage.state.moves, deleted: [...stage.state.deleted],
+      added: st.added, moved: st.moved, deleted: st.deleted,
       behaviors, things,
     };
     const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${stage.worldId}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    a.download = `${session.worldId}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     this.log(`💾 Saved ${a.download}: ${things.length} things, ${Object.values(behaviors).flat().length} behaviors.`);
+  }
+
+  // ---- other players --------------------------------------------------------------
+
+  // Start (or share) a room: a short random name in the URL, same world.
+  playTogether() {
+    const url = new URL(location.href);
+    if (!url.searchParams.get('room')) {
+      url.searchParams.set('room', Math.random().toString(36).slice(2, 7));
+      location.href = url.href; // reload into the room
+      return;
+    }
+    navigator.clipboard?.writeText(url.href).then(() => this.toast('Link copied. Send it to a friend!'), () => this.toast(url.href));
+  }
+
+  renderPlayers() {
+    const el = $('players');
+    if (!this.net) { el.innerHTML = ''; return; }
+    const { players, me } = this.session;
+    el.innerHTML = players.map((p) => `<span class="player ${p.id === me.id ? 'me' : ''}" style="--c:${esc(p.color)}" title="${p.id === me.id ? 'You: click to change your name' : esc(p.name)}">${esc(p.name)}</span>`).join('');
+    const mine = el.querySelector('.player.me');
+    if (mine) mine.onclick = () => { const name = prompt('What should we call you?', me.name); if (name?.trim()) this.session.rename(name); };
+    $('btn-together').classList.toggle('on', true);
+    $('btn-together').title = 'Copy the link to this room';
+  }
+
+  onPlayers() {
+    const before = this._playerIds ?? new Set();
+    const now = new Set(this.session.players.map((p) => p.id));
+    this._playerIds = now;
+    this.renderPlayers();
+    for (const id of now) if (!before.has(id) && id !== this.session.me.id && before.size) this.toast(`${this.session.players.find((p) => p.id === id)?.name} joined`);
+    for (const id of before) if (!now.has(id)) { this.marks.get(id)?.box.removeFromParent(); this.marks.get(id)?.tag.remove(); this.marks.delete(id); }
+    this.renderBehaviors(); // "taught by" labels, and a thing may have been let go
+    if (this.selected && this.readOnly && !this.session.holderOf(this.selected.key)) this.select(this.selected); // theirs no more: take it
+  }
+
+  onSelected(playerId, key) {
+    if (playerId === this.session.me.id) return;
+    // The thing I was only looking at is free now: take it.
+    if (this.selected && this.readOnly && !this.session.holderOf(this.selected.key)) this.select(this.selected);
+    void key;
+  }
+
+  onLockDenied(key, name) {
+    this.toast(`${name} is using that`);
+    if (this.selected?.key === key) this.select(this.selected); // keep looking, read-only now
+  }
+
+  onConnection(state, info) {
+    const el = $('net-status');
+    const msgs = {
+      open: null, lost: 'Connection lost. Reconnecting…', failed: 'No room server. Retrying…',
+      full: `This room is full (${info} players).`, noRooms: 'The server has no room for another room right now.',
+    };
+    el.textContent = msgs[state] ?? '';
+    el.classList.toggle('hidden', !msgs[state]);
+    if (state === 'open') this.toast(`You're in room “${this.session.room}” as ${this.session.me.name}`);
+  }
+
+  toast(text) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = text;
+    $('toasts').appendChild(el);
+    setTimeout(() => el.classList.add('out'), 2600);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // Colored outlines and name tags on what other players have selected.
+  _updateMarks() {
+    if (!this.net) return;
+    const { players, me } = this.session;
+    const seen = new Set();
+    for (const p of players) {
+      if (p.id === me.id || !p.selection || p.selection === 'world') continue;
+      const a = this.world.actor(p.selection);
+      if (!a.alive) continue;
+      seen.add(p.id);
+      let m = this.marks.get(p.id);
+      if (!m) {
+        const box = new THREE.Box3Helper(new THREE.Box3(), new THREE.Color(p.color));
+        box.raycast = () => {};
+        this.scene.add(box);
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        $('bubbles').appendChild(tag);
+        m = { box, tag };
+        this.marks.set(p.id, m);
+      }
+      m.box.box.copy(a.bounds()).expandByScalar(0.2);
+      m.box.visible = true;
+      m.tag.textContent = p.name;
+      m.tag.style.background = p.color;
+      const s = this._screen(a.position.setY(a.bounds().max.y + 0.6));
+      m.tag.style.display = s ? '' : 'none';
+      if (s) { m.tag.style.left = `${s.x}px`; m.tag.style.top = `${s.y}px`; }
+    }
+    for (const [id, m] of this.marks) if (!seen.has(id)) { m.box.visible = false; m.tag.style.display = 'none'; }
   }
 
   // ---- bubbles, log, per-frame --------------------------------------------------
@@ -1050,6 +1142,7 @@ export class App {
   update() {
     if (this.drag) { this._liftOver(this.drag); this._holdDrag(); this.world.sync(); }
     this._lightBlocks();
+    this._updateMarks();
     const a = this.selected;
     if (a && !a.alive) this.select(null);
     this.ring.visible = false;

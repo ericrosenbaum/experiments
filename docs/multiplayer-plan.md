@@ -2,7 +2,7 @@
 
 A plan for making Brick Behaviors a shared world: a handful of kids in one room, one physics simulation everyone sees, visible selections with locks, and kids' programs running against the shared world. The server starts on a laptop and moves to the cloud without changing shape.
 
-Status: proposal. Nothing here is built yet. Where a choice was open I picked one and said why, so disagree inline.
+Status: built. Every phase below is implemented on the `claude/brick-behaviors` branch; the README's "Playing together" section is the user-facing summary. What differs from the plan as written is listed at the end, in section 13.
 
 ## 1. Goals and non-goals
 
@@ -304,3 +304,19 @@ About 16 working days end to end. Phases 0 through 2 are the risky ones, because
 1. Branch `multiplayer`. Add `server/sim/` and `test/room.test.mjs`.
 2. Phase 0 in the order listed: the `Runtime` hooks first (smallest), then `SandboxHost`, then the `Room` class around the existing harness.
 3. Do not touch `app.js` until a headless room runs the platformer in a Node test. That test is the proof that the server side works before any networking exists.
+
+## 13. What was built, and where it differs from the plan
+
+Everything in sections 4 through 10 exists. The differences:
+
+- **Snapshots went binary from the start** (15 bytes a body, not 14: a byte for the quaternion's largest component), with a codec test instead of a JSON interim.
+- **Selection of a locked thing is read-only viewing**, not a denied click. The page shows the cards and a banner with the holder's name, asks for no lock, and takes the thing the moment the holder lets go. A real denial (two clicks within the same tick) still snaps back with a toast.
+- **Leaving hands programs to the room sandbox** as planned; the `by` label stays so cards still say who taught them.
+- **`see()`** is answered by the lock holder's page as planned, with an 8 second timeout on the server.
+- **The isolate sandbox is in** (Phase 6) and the Dockerfile selects it. A worker thread stays the default for `npm run sim`, since it starts faster and nothing local is exposed. The confinement test (`test/sandbox.test.mjs`) runs both kinds: no Node or network globals inside, and a loop that never pauses stops only its own sandbox.
+- **Rate limits and caps**: 60 messages a second per page, 12 library models and 40 behaviors per player, 6 players and 20 rooms per process. The clone cap of 40 stayed per room.
+- **Renaming** was added (click your own chip); the plan had none.
+- **Lag switch** is `LAG_MS` on the sim server rather than a query on the page, so one setting covers both directions and every page.
+- **Not built**: client prediction, a "may I?" for Reset, saving rooms to disk. Section 11 still describes them accurately.
+
+What the two-page smoke test showed about headless Chromium is worth knowing: a page in the background gets neither animation frames nor prompt message delivery there, so the test places the mirror by hand before reading positions. Real browsers behave better, and the mirror is designed for it either way: snapshots that arrive late are applied the moment the tab is visible again.

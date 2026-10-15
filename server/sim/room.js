@@ -258,6 +258,7 @@ export class Room {
     const a = this._actor(player, m.key);
     if (!a || a.isWorld) return;
     const copy = this.stage.cloneActor(a, null);
+    this._flush(); // the copy's add goes out before the reply that names it
     if (copy) this.send(player, { type: 'made', key: copy.key, what: 'copy' });
   }
   on_remove(player, m) {
@@ -271,6 +272,7 @@ export class Room {
     if (player.added >= MAX_ADDED_PER_PLAYER) throw new Error(`That's ${MAX_ADDED_PER_PLAYER} models from you already. Delete some first.`);
     player.added++;
     const a = this.stage.addModel(m.defId, m.pose);
+    this._flush();
     this.send(player, { type: 'made', key: a.key, what: 'model' });
   }
 
@@ -332,6 +334,13 @@ export class Room {
   }
 
   on_pong() {}
+
+  on_rename(player, m) {
+    const was = player.name;
+    player.name = m.name;
+    this.broadcast({ type: 'players', players: this.playerList() });
+    this.events.log(`✏️ ${was} is now ${player.name}`);
+  }
 
   // Ask a player's page to look through a thing's eyes.
   see(actor, labels) {

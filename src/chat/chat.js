@@ -1,7 +1,8 @@
 // Brick Talk chat: a small collapsible window. You type (any language), Claude
 // maps it to symbols, the validator checks it, and only symbol ids go out —
 // to the chat log and to a bubble over the selected thing in the world.
-// There's no multiplayer: "Friend" mode and 🎲 simulate another player, whose
+// In a room the symbols go to the other players (over the thing the sender
+// has selected); alone, "Friend" mode and 🎲 simulate another player, whose
 // bubble appears over some other model in the world.
 import * as THREE from 'three';
 import { symbolImg, readAs, validateMessage } from './symbols.js';
@@ -23,8 +24,8 @@ const FRIEND_LINES = [
 ];
 
 export class Chat {
-  constructor({ app, camera, controls, world }) {
-    Object.assign(this, { app, camera, controls, world });
+  constructor({ app, camera, controls, world, session }) {
+    Object.assign(this, { app, camera, controls, world, session });
     this.asFriend = false;
     this.busy = false;
     this.bubbles = []; // {el, anchor: () => Vector3, until}
@@ -100,6 +101,7 @@ export class Chat {
       } else {
         this._show('me', out.phrases, { said: text, notes });
         this._bubble(out.phrases, this._myAnchor(), 'me');
+        this.session?.chat(out.phrases); // only the symbols leave this page
       }
       input.value = '';
     } catch (err) {
@@ -117,6 +119,17 @@ export class Chat {
     if (!validateMessage(phrases).ok) return; // never render anything that isn't valid Brick Talk
     this._show('friend', phrases, { said: simulated ? said : null, notes, simulated });
     this._bubble(phrases, this._friendAnchor(), 'friend');
+    if (this.el.classList.contains('collapsed')) { this.unread++; $('chat-badge').textContent = this.unread; }
+  }
+
+  // A message from another player in the room: symbols only, over the thing
+  // they have selected (or near the middle of the view).
+  receiveFrom({ from, name, phrases, key }) {
+    if (from === this.session?.me.id) return; // my own, already shown
+    if (!validateMessage(phrases).ok) return;
+    this._show('friend', phrases, { name });
+    const a = key && key !== 'world' ? this.world.actor(key) : null;
+    this._bubble(phrases, a?.alive ? this._above(a) : this._friendAnchor(), 'friend');
     if (this.el.classList.contains('collapsed')) { this.unread++; $('chat-badge').textContent = this.unread; }
   }
 
@@ -158,8 +171,8 @@ export class Chat {
 
   _notes(notes) { return notes.length ? `<div class="notes">${notes.join(' ')}</div>` : ''; }
 
-  _show(who, phrases, { said, notes = [], simulated } = {}) {
-    const label = who === 'me' ? 'You' : simulated ? 'Friend (simulated)' : 'Friend';
+  _show(who, phrases, { said, notes = [], simulated, name } = {}) {
+    const label = who === 'me' ? 'You' : name ? esc(name) : simulated ? 'Friend (simulated)' : 'Friend';
     this._row(who,
       `<div class="name">${label}</div>${said ? `<span class="said">“${esc(said)}”</span>` : ''}
        <div class="seq">${this._seq(phrases, 54)}</div>

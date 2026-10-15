@@ -7,6 +7,9 @@ import assert from 'node:assert/strict';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { Room } from '../server/sim/room.js';
 import { nodeSandbox } from '../server/sim/sandbox-node.js';
+
+// SANDBOX=isolate runs the same checks with the V8-isolate sandbox (isolated-vm).
+const makeSandbox = process.env.SANDBOX === 'isolate' ? (await import('../server/sim/sandbox-isolate.js')).isolateSandbox : nodeSandbox;
 import { decodeSnapshot } from '../src/net/codec.js';
 import { validate } from '../server/sim/protocol.js';
 
@@ -27,7 +30,7 @@ function fakeSocket() {
   };
 }
 
-const room = new Room({ id: 'test', RAPIER, makeSandbox: nodeSandbox, worldId: 'platformer', idleMs: 1e9 });
+const room = new Room({ id: 'test', RAPIER, makeSandbox, worldId: 'platformer', idleMs: 1e9 });
 const w = room.world;
 
 // ---- the premade programs run in Node ----------------------------------------
@@ -36,7 +39,7 @@ const programs = [...room.runtime.programs];
 assert.ok(programs.length >= 10, `the platformer has programs (${programs.length})`);
 assert.ok(programs.every((p) => p.behavior.running), `every program is ready: ${programs.filter((p) => !p.behavior.running).map((p) => p.label).join(', ')}`);
 assert.equal(room.sandboxes.size, 1, 'premade programs share the room sandbox');
-console.log(`ok: ${programs.length} pre-taught platformer programs run in one Node sandbox`);
+console.log(`ok: ${programs.length} pre-taught platformer programs run in one ${process.env.SANDBOX === 'isolate' ? 'V8 isolate' : 'Node worker thread'}`);
 
 // ---- two joiners get the same world -----------------------------------------
 const sa = fakeSocket(), sb = fakeSocket();

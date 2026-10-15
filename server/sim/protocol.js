@@ -49,13 +49,14 @@ const SHAPES = {
   chat: (m) => ({ phrases: Array.isArray(m.phrases) ? m.phrases.slice(0, 6).map((p) => (Array.isArray(p) ? p.slice(0, 8).map((s) => key(s) ?? '') : [])) : null, said: str(m.said, 300) ?? null }),
   seeReply: (m) => ({ id: int(m.id), label: str(m.label, 100) ?? 'none' }),
   pong: (m) => ({ t: num(m.t, 0, 1e15) }),
+  rename: (m) => ({ name: str(m.name, 24)?.trim() || null }),
 };
 
 const REQUIRED = {
   hello: ['room'], select: [], key: ['key'], dragStart: ['key'], drag: ['key', 'delta', 'yaw'], dragEnd: ['key', 'delta', 'yaw'],
   turn: ['key'], respawn: ['key'], clone: ['key'], remove: ['key'], addModel: ['defId'], teach: ['key', 'behavior'],
   change: ['key', 'id', 'behavior'], behavior: ['key', 'id', 'op'], run: ['key', 'id', 'at'], reset: [], world: ['id'],
-  chat: ['phrases'], seeReply: ['id'], pong: [],
+  chat: ['phrases'], seeReply: ['id'], pong: [], rename: ['name'],
 };
 
 // A clean copy of the message, or null if it is malformed.

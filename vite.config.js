@@ -17,9 +17,15 @@ export default defineConfig(({ mode }) => {
   return config;
 });
 
+// The sim server (npm run sim) is a separate process; the page talks to it
+// at /ws on this same origin, so dev and the cloud look alike to the page.
+const sim = { '/ws': { target: `ws://localhost:${process.env.SIM_PORT || 8787}`, ws: true } };
+
 const config = {
   base: './',
   plugins: [claudeApi],
   build: { target: 'esnext' },
   worker: { format: 'es' },
+  server: { proxy: sim },
+  preview: { proxy: sim },
 };

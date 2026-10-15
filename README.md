@@ -9,7 +9,8 @@ npm install
 cp .env.example .env.local           # then paste your key into .env.local
 npm run dev                          # Claude writes the code if a key is set,
                                      # otherwise the offline compiler is used
-npm test                             # compiler, prompt, physics, geometry, stage checks (headless)
+npm test                             # compiler, prompt, physics, geometry, stage, codec, sandbox and room checks (headless)
+npm run dev:all                      # the page plus the sim server, for playing together (below)
 ```
 
 Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to start in that world.
@@ -103,9 +104,34 @@ The physics engine is Rapier 3D, and Three.js mirrors its bodies for rendering (
 
 
 
+## Playing together
+
+Press 👥 **Play together** in the top bar (or add `?room=<name>` to the URL) and share the link. Everyone in a room sees one world: the physics runs once, on a small **sim server**, and each page shows a mirror of it. Up to 6 players.
+
+- **Selecting locks.** The thing you select is yours until you pick something else or leave: only your keys drive it, only you can drag, copy, delete or teach it. Everyone else sees your name on it in your color and can read its behaviors but not change them. Clicking a thing someone else is using shows it read-only, with "Maya is using this"; the moment they let go, it's yours. The World is never locked: anyone with the ground selected sends keys to World rules.
+- **Programs belong to the world.** Behaviors run on the server, so a coin keeps spinning and a slime keeps patrolling whether or not the kid who taught them is still here. A card shows who taught it. When a player leaves, their programs keep running (they start over from the top).
+- **Brick Talk is real** in a room: the symbols go to the others and appear over the thing you have selected. Words never leave your page.
+- Reset and switching worlds happen for everyone, and the log says who did it. Click your own name chip to rename yourself.
+- `see()` still needs a camera: the server asks the browser of whoever is using that thing to take the picture.
+
+How it works (the plan is in [`docs/multiplayer-plan.md`](docs/multiplayer-plan.md)):
+
+```
+page A  ──intents (select, keys, drags, teach…)──►  sim server: one Room per link        ◄──  page B
+        ◄──20 Hz binary snapshots + events───────   World + Runtime + Stage, unchanged   ───►
+                                                    programs in sandboxes, one per player
+```
+
+- `npm run sim` starts the server (`server/sim/`, port 8787); `npm run dev` proxies `/ws` to it, so `npm run dev:all` is the usual way. `LAG_MS=120 npm run sim` delays every message both ways, to feel what the cloud feels like.
+- The server is the only thing that steps physics. Pages build the world from the server's descriptions (`src/net/entities.js`) and move bodies from delta snapshots (`src/net/codec.js`, 15 bytes per moved body), drawn 100 ms behind and interpolated (`src/net/mirror.js`). Dragging is held on your page and on the server at once, so it feels attached.
+- Programs run in **sandboxes** on the server behind one interface (`src/behavior/sandbox-host.js`): a worker thread per player for local play (`server/sim/sandbox-node.js`), or a V8 isolate with a memory limit and a time limit per slice (`server/sim/sandbox-isolate.js`, `SANDBOX=isolate`) for a server on the internet. Either way `process`, `require`, `fetch` and friends don't exist inside, every command still goes through the Runtime's whitelist and clamps, and a loop that never pauses stops only its own sandbox.
+- `server/sim/protocol.js` validates every message; a page is limited to 60 messages a second, 12 added models and 40 taught behaviors. Rooms close ten minutes after the last player leaves.
+- Cloud: `Dockerfile` and `fly.toml` run the sim server on Fly.io (any host with containers and WebSockets works). The page stays on Vercel with `VITE_SIM_URL=wss://<app>.fly.dev/ws`; set `ORIGINS` on the server to the page's origin. The Claude endpoints stay on Vercel: the sim server never holds an API key.
+- `node tools/room-smoke.mjs` opens two pages in one room in headless Chromium and checks driving, locks, teaching, drags and Reset across them.
+
 ## Brick Talk chat
 
-A collapsible chat window (bottom left) based on the Brick Talk concept: you type in any language, and what gets "sent" is only a row of symbols, never your words. There's no multiplayer, so the other side of the conversation is simulated. Each symbol is a small 3D-rendered brick build on a pedestal in its category color (`public/bricktalk/<id>.webp`, extracted from the Brick Talk artifact).
+A collapsible chat window (bottom left) based on the Brick Talk concept: you type in any language, and what gets sent is only a row of symbols, never your words. In a room the symbols go to the other players; alone, the other side of the conversation is simulated. Each symbol is a small 3D-rendered brick build on a pedestal in its category color (`public/bricktalk/<id>.webp`, extracted from the Brick Talk artifact).
 
 To redesign a symbol, describe its build in `tools/bricktalk/builds.js` and run `node tools/bricktalk/render.mjs <ids> <outdir>` with the dev server up (set `BRICK_URL` if it isn't on :5173). The script renders each build in headless Chrome with three.js, matching the camera, lights and pedestal of the originals, and writes `<id>-review.png`, which compares the old and new versions at chat sizes and shows the new one next to all 64 symbols. Add `--install` to copy the result into `public/bricktalk/`. `go` is in there only as the calibration reference; `play` is the redrawn game controller.
 
@@ -132,15 +158,21 @@ src/world/     world.js       Rapier + Three entities, joints, motors, gravity
                worlds.js      the premade worlds (theme, props, models, pre-taught behaviors)
                props.js       builders for castles, houses, platforms, coins, barns...
                bricks.js      brick geometry/materials
-src/stage.js   current world, behaviors per thing, clone/remove, drags, Reset
-src/ui/app.js  world picker, selecting/dragging, composer, behavior cards, bubbles
+src/stage.js   current world, behaviors per thing, teach/edit/clone/remove, drags, Reset
+src/session.js single player: the Stage and Runtime on this page, behind the session interface
+src/net/       session.js  a room: the same interface, as messages to the sim server
+               mirror.js   the page's copy of the server's world, moved by snapshots
+               codec.js    binary delta snapshots; entities.js  how things cross the wire
+src/ui/app.js  world picker, selecting/dragging, composer, behavior cards, bubbles, players
 src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
                prompt.js      Claude prompt + enum schema
                chat.js        the chat window and in-world bubbles
 tools/bricktalk/ render.mjs   re-render symbol builds (builds.js, render.js)
-server/        /api/generate, /api/bricktalk (Vite middleware)
-test/          compiler / prompt / physics / geometry / stage checks
-tools/         smoke.mjs (headless browser run), model-probe, castle-probe, golf-probe, physics probes
+server/        /api/generate, /api/bricktalk, /api/see (Vite middleware)
+server/sim/    the sim server: index.js (WebSockets), room.js (one world, players, locks),
+               protocol.js, sandbox-node.js (worker threads), sandbox-isolate.js (isolated-vm)
+test/          compiler / prompt / physics / geometry / stage / codec / sandbox / room checks
+tools/         smoke.mjs (headless browser run), room-smoke.mjs (two pages in a room), model-probe, castle-probe, golf-probe, physics probes
 tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouettes and color views);
                overlay.py overlays the silhouettes on the patent drawing to compare
 ```
@@ -151,4 +183,5 @@ tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouette
 - **Pointing at parts of other models.** Today, pointing at another model gives you the whole thing.
 - **Key conflicts** between several behaviors on the same thing. Keys now go only to the selected thing, which settles conflicts between things but makes games with two controllable things harder.
 - **Copies and their code.** Copies run every behavior they inherit, including `forever` and `onStart`; a copy-making loop copies itself until the 40-copy limit. `onClone`/`isClone()` give a way out, but kids won't find it without help.
-- **Multiplayer** was removed for now; it's in git history (commit 38421c2). The Brick Talk chat stays as a single-player demo.
+- **Who may Reset or switch worlds** in a room. Anyone, today, with a note in the log. If that's chaos with real kids, a "may I?" that needs one other player to agree is cheap.
+- **Lag.** Driving from a cloud server feels floaty past about 120 ms. Prediction for the thing you're driving would fix it and is deliberately not built yet.

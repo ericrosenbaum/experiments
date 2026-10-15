@@ -802,6 +802,16 @@ export class World {
     }
   }
 
+  // A mirror never steps, so its shape casts and rays would see where things
+  // were when it was built. A step of no time at all refreshes them without
+  // moving anything.
+  refreshQueries() {
+    const dt = this.physics.timestep;
+    this.physics.timestep = 0;
+    this.physics.step();
+    this.physics.timestep = dt;
+  }
+
   // Ground speed of an entity's main body. A mirror has no velocities, so it
   // remembers how fast snapshots moved it (see src/net/mirror.js).
   speedOf(e) {

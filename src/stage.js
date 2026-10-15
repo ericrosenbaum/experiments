@@ -318,17 +318,21 @@ export class Stage {
 
   // ---- the look of the world -----------------------------------------------
 
-  applyTheme(theme) {
-    const { scene, hemi, sun, gfx } = this.view;
-    scene.fog = theme.fog ? new THREE.Fog(theme.sky, ...theme.fog) : null;
-    hemi.color.set(theme.hemi[0]); hemi.groundColor.set(theme.hemi[1]); hemi.intensity = theme.hemi[2];
-    if (gfx) gfx.setSky(theme); else scene.background = new THREE.Color(theme.sky);
-    sun.color.set(theme.sun[0]); sun.intensity = theme.sun[1];
-    this.world.setGroundLook(theme.ground);
-    if (theme.stars && !this._stars) this._stars = makeSpace();
-    if (this._stars) {
-      if (theme.stars) scene.add(this._stars); else scene.remove(this._stars);
-    }
+  applyTheme(theme) { applyTheme(this.view, this.world, theme); }
+}
+
+// The look of a world: sky, fog, lights, ground, stars. view: {scene, hemi,
+// sun, gfx}; the stars are kept on the view between worlds.
+export function applyTheme(view, world, theme) {
+  const { scene, hemi, sun, gfx } = view;
+  scene.fog = theme.fog ? new THREE.Fog(theme.sky, ...theme.fog) : null;
+  hemi.color.set(theme.hemi[0]); hemi.groundColor.set(theme.hemi[1]); hemi.intensity = theme.hemi[2];
+  if (gfx) gfx.setSky(theme); else scene.background = new THREE.Color(theme.sky);
+  sun.color.set(theme.sun[0]); sun.intensity = theme.sun[1];
+  world.setGroundLook(theme.ground);
+  if (theme.stars && !view._stars) view._stars = makeSpace();
+  if (view._stars) {
+    if (theme.stars) scene.add(view._stars); else scene.remove(view._stars);
   }
 }
 
