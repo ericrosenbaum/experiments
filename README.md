@@ -18,7 +18,7 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
 ## What's on screen
 
 - **Worlds** (picker, top left). Each one has its own look, gravity, props, models and a few behaviors that come already taught:
-  - 🧱 **Playground**: trees, two loose-brick houses, a rainbow tower, a ramp, a ball. Race car, robot, catapult.
+  - 🧱 **Playground**: trees, two loose-brick houses, a rainbow tower, a ramp, a ball. Race car, catapult, and a skyship floating over the ramp (arrows steer it, w/s fly it up and down, space pulls its lever).
   - 🏰 **Castle**: a loose-brick castle on a hill with a catapult aimed at it (space throws; three throws knock bricks loose). A knight, a horse, a dragon, tents, a well, hay.
   - 🚀 **Space**: no gravity (it's a World rule you can switch off). A starfighter that flies with w/s and shoots, a UFO, a rocket that blasts off when clicked, two aliens, floating asteroids, a moon base, stars and a ringed planet.
   - 🍄 **Platform Game**: steps and ledges, a moving platform, spinning coins that vanish when the Hero touches them, patrolling slimes, a surprise block and a goal flag.
@@ -27,7 +27,8 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
   - 🚜 **Farm**: barn, silo, carrots and corn, a pond, a cow pen with two cows that moo, a horse and a tractor.
 
   Each world keeps its own state, so switching away and back finds everything as you left it.
-- **Library** (＋ Add model): 21 models in five groups. People (knight, hero, astronaut, farmer, villager, wizard), vehicles (race car, digger, catapult, tractor, dump truck), characters (robot, slime), animals (dino, dragon, horse, cow) and space (alien, spaceship, UFO, rocket).
+- **Library** (＋ Add model): 24 models in five groups. People (knight, hero, astronaut, farmer, villager, wizard, golfer), vehicles (race car, digger, catapult, tractor, dump truck, skyship), characters (robot, slime), animals (dino, dragon, horse, turtle, cow) and space (alien, spaceship, UFO, rocket).
+- **Skyship**: built to match four photos of a real brick build (tools/model/review.mjs renders a model from any angle to compare). It brought new building elements to `src/world/bricks.js`: round bricks and logs, hollow round containers, bars, ladders, grilles, see-through glass and glass panels, a boat hull with a tapered bow and a sloped chine, turned pieces (`rot`) and flexible hoses. A model with `floats: true` ignores gravity and hovers where it is.
 - **Minifigures**: the people are real minifigs, not stacks of bricks. Their proportions are measured from the minifigure design patent (US D253,711, figs. 1 and 2) and match its front and side silhouettes to within about 0.05 studs. `src/world/minifig.js` builds them from new primitives: a lathed head and neck, a tapered torso, extruded leg profiles, bent tube arms, C-clip hands, and canvas decals for faces and torso prints. On top of those go hats and hair (helmet, cap, straw hat, space helmet, wizard hat, hair, antennae) and things to hold (sword, shield, pitchfork, wand). Physics uses a few hidden boxes; the head turns, the arms swing, and the legs stride when it walks.
 - **Inspector** (right): what's selected, its parts, the composer, examples, and the behaviors it knows.
 - **Camera**: drag the sky or ground to orbit, right-drag to pan, scroll to zoom. 🎥 Follow keeps the selection in view.

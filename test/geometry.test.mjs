@@ -9,11 +9,26 @@ import { overlappingColliders } from './overlap.mjs';
 
 const EPS = 1e-3;
 
+// The faces of a piece that really are flat sides of its box. Round pieces
+// are flat only at their ends; a hull underneath, along its straight sides
+// and at the stern; a ladder or a turned piece doesn't fill its box's faces.
+function flatFaces(br) {
+  const all = ['-x', '+x', '-y', '+y', '-z', '+z'];
+  if (br.rot) return [];
+  switch (br.shape) {
+    case 'round': case 'bar': case 'container': return all.filter((f) => f[1] === (br.axis ?? 'y'));
+    case 'hull': return ['-y', '-x', '+x', '-z'];
+    case 'ladder': return [];
+    default: return all;
+  }
+}
+
 // Boxes of a model at rest, in model space.
 function modelBoxes(def) {
-  const boxes = def.bricks.filter((br) => !br.hidden).map((br) => ({ name: `${br.color} brick`, c: br.at, h: br.size.map((s) => s / 2) }));
+  const box = (br, name, c) => ({ name, c, h: br.size.map((s) => s / 2), faces: flatFaces(br) });
+  const boxes = def.bricks.filter((br) => !br.hidden).map((br) => box(br, `${br.color} ${br.shape ?? 'brick'}`, br.at));
   for (const p of def.parts) {
-    for (const br of (p.bricks ?? []).filter((x) => !x.hidden)) boxes.push({ name: `${p.name} ${br.color} brick`, c: br.at.map((v, k) => v + p.pivot[k]), h: br.size.map((s) => s / 2) });
+    for (const br of (p.bricks ?? []).filter((x) => !x.hidden)) boxes.push(box(br, `${p.name} ${br.color} ${br.shape ?? 'brick'}`, br.at.map((v, k) => v + p.pivot[k])));
   }
   return boxes;
 }
@@ -26,7 +41,8 @@ function coplanarFaces(a, b) {
       if (Math.abs(a.c[k] + s * a.h[k] - (b.c[k] + s * b.h[k])) > EPS) continue;
       const overlap = [0, 1, 2].filter((j) => j !== k).every((j) =>
         Math.min(a.c[j] + a.h[j], b.c[j] + b.h[j]) - Math.max(a.c[j] - a.h[j], b.c[j] - b.h[j]) > EPS);
-      if (overlap) out.push(`${s > 0 ? '+' : '-'}${'xyz'[k]}`);
+      const face = `${s > 0 ? '+' : '-'}${'xyz'[k]}`;
+      if (overlap && a.faces.includes(face) && b.faces.includes(face)) out.push(face);
     }
   }
   return out;

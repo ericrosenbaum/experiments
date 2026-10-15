@@ -59,6 +59,7 @@ export const WORLDS = [
     models: [
       { id: 'racecar', def: 'racecar', x: 0, z: 0 },
       { id: 'catapult', def: 'catapult', x: 9, z: -3, yaw: 25 },
+      { id: 'skyship', def: 'skyship', x: 0, z: 23, yaw: 90, lift: 5 },
     ],
     behaviors: {
       racecar: [
@@ -75,6 +76,11 @@ export const WORLDS = [
           summary: ['While ↑ is held: speed up', 'While ↓ is held: slow down, then back up', 'When space is pressed: stop'],
           code: 'whileKey("ArrowUp", () => speedUp(1));\nwhileKey("ArrowDown", () => slowDown(1));\nonKey(" ", () => stop());',
         },
+      ],
+      skyship: [
+        { text: STEER },
+        { text: 'While I hold w, fly up. While I hold s, fly down.' },
+        { title: 'Pull the Lever', text: 'When I press space, pull the lever and play whoosh.' },
       ],
     },
     select: 'racecar',

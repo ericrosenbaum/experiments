@@ -640,7 +640,125 @@ export const LIBRARY = [
   },
 ];
 
-LIBRARY.push(...PEOPLE);
+// The skyship, built to match a real brick build from four photos: a white
+// boat hull with a rising bow, a black stern deck with a round gray drum, a
+// see-through cabin with a lever on top, four poles carrying a long hose,
+// and a yellow ladder clipped to its right side. It floats: no gravity, so
+// it hovers wherever it is. Bow is +Z; +X is its left side.
+const DECK = 1.3; // top of the hull
+const HOSE_GRAY = '#7d8186'; // flat silver
+// two pairs of poles: the front pair stands further to the left
+const POLES = [[1.2, 2.55], [1.2, 1.55], [-0.5, -1.15], [-0.5, -2.1]];
+// The hose is one long loop through the clamps on top of the poles, crossing
+// itself at the front pair: a loop reaching forward over the bow, a wide
+// loop swinging out to the left and back over the stern, and a short run
+// from the back pair's clamps to the front pair's.
+const HOSE = [
+  // forward from the front pair, out over the bow and back
+  [1.2, 6.45, 2.55], [0.3, 6.5, 4.0], [-0.5, 6.35, 6.0], [-0.3, 5.8, 7.6], [0.7, 5.2, 8.3],
+  [1.6, 4.9, 7.2], [2.0, 5, 5.0], [2.0, 5.9, 3.4], [1.8, 6.45, 1.6],
+  // down past the cabin on the left, round the stern and back along the top
+  [1.8, 6.35, 0.4], [2.6, 5.8, -1.0], [3.8, 5.45, -3.4], [4.3, 5.25, -5.9], [3.8, 5.3, -7.3],
+  [3.0, 5.55, -8.0], [1.9, 6.05, -8.1], [1.0, 6.55, -7.5], [0.2, 6.85, -6.3], [-0.3, 6.95, -3.4],
+  // through the back pair's clamps and over to the front pair's
+  [-0.5, 6.4, -1.6], [-0.1, 6.6, -0.2], [0.7, 6.55, 1.0], [1.2, 6.45, 1.55],
+];
+
+const SKYSHIP = {
+  id: 'skyship',
+  name: 'Skyship',
+  blurb: 'A flying boat with a see-through cabin, a lever to pull and a ladder that swings out. It floats in the air.',
+  category: 'vehicles',
+  examples: ['While I hold w, fly up. While I hold s, fly down.', 'When I press space, pull the lever and play whoosh.', 'When I press l, swing the ladder.', 'Wander slowly.'],
+  color: 'white',
+  motion: 'glide',
+  floats: true,
+  bricks: [
+    // the hull, open on top; its bow rises to a blunt tip. The stern end is
+    // solid and sits on the black deck.
+    b(0, DECK / 2, 3.725, 6, DECK, 12.45, 'white', { shape: 'hull', tip: 3.4, taper: 5.5, lift: 1.2, sheer: 0, wall: 0.7, floor: 0.5, deadrise: 0.35 }),
+    b(0, DECK / 2, -3.3, 6, DECK, 1.6, 'white', { studs: false }),
+    b(0, (DECK + 0.4) / 2, -5.425, 6, DECK - 0.4, 2.65, 'white', { studs: false }),
+    // black stern deck with a yellow plate beside it, the drum on top
+    b(-0.5, 0.2, -7.6, 6, 0.4, 7, 'black'),
+    b(3.0, 0, -8.0, 1, 0.4, 4, 'yellow'),
+    b(0.4, 1.6, -9.4, 3.4, 2.4, 3.4, 'gray', { shape: 'container' }),
+    // the left gunwale: a tan log, a red brick, white at the stern
+    b(2.5, DECK + 0.3, 1.45, 1, 1, 3.9, 'tan', { shape: 'round', axis: 'z' }),
+    b(2.5, DECK + 0.2, -2.25, 1, 0.4, 3.5, 'white', { studs: false }),
+    b(2.5, DECK + 0.625, -2.25, 1, 0.45, 3.5, 'red', { studs: false }),
+    b(2.5, DECK + 0.5, -5.375, 1, 1, 2.75, 'white', { studs: false }),
+    b(1.15, DECK + 0.5, -4.675, 1.7, 1, 4.15, 'white', { studs: false }),
+    // the right gunwale: white bricks, a clear brick, and a gray roller by the cabin
+    b(-2.5, DECK + 0.5, -1.05, 1, 1, 2.9, 'white', { studs: false }),
+    b(-2.5, DECK + 1.1, -1.8, 1, 0.2, 1, 'white', { shape: 'round' }),
+    b(-2.5, DECK + 1.1, -0.8, 1, 0.2, 1, 'white', { shape: 'round' }),
+    b(-2.5, DECK + 0.4, 0.85, 0.9, 0.8, 0.9, 'cyan', { glass: true, studs: false }),
+    b(-2.2, DECK + 0.5, -4.8, 1, 1, 4, 'gray', { shape: 'round', axis: 'z' }),
+    // the bow deck: a long red tile, with a gray clip at the tip
+    b(-0.6, 0.8, 6.2, 2, 0.7, 5, 'white', { studs: false }),
+    b(-0.6, 1.35, 6.65, 2, 0.4, 6, 'red', { studs: false }),
+    b(0.9, 1.45, 9.3, 1, 0.5, 1.6, 'gray', { studs: false }),
+    b(0.9, 1.85, 9.6, 0.5, 0.3, 0.6, 'gray', { studs: false }),
+    b(1.0, 1.15, 8.1, 1, 0.8, 1, 'white', { shape: 'round' }),
+    b(1.0, 1.15, 7.0, 1.2, 0.8, 1.2, 'white', { studs: false }),
+    b(1.6, 1.1, 5.6, 1, 0.6, 1, 'white', { shape: 'round' }),
+    b(1.6, 1.1, 4.6, 1, 0.6, 1, 'white', { shape: 'round' }),
+    b(1.1, 0.6, 7.5, 1.6, 0.2, 4.6, 'white', { studs: false }),
+    b(2.3, DECK + 0.3, 3.75, 0.9, 0.9, 0.9, 'cyan', { glass: true, studs: false }),
+    // along the right side, forward: a white block with a tan tile and a red
+    // knob, then the grille under a gray plate and another red knob
+    b(-2.15, 0.95, 4.9, 1.5, 0.9, 2.6, 'white', { studs: false }),
+    b(-2.2, DECK + 0.3, 5.45, 1, 0.4, 2, 'tan', { studs: false }),
+    b(-2.2, DECK + 0.4, 3.95, 1, 0.6, 1, 'red', { shape: 'round', studs: false }),
+    b(-2.3, 1.05, 2.55, 1, 1.1, 2, 'white', { studs: false }),
+    b(-2.3, 2.2, 2.55, 1, 1.2, 2, 'darkgray', { shape: 'grille' }),
+    b(-2.3, 3.0, 2.55, 1, 0.4, 2, 'gray'),
+    b(-2.3, 3.5, 2.05, 1, 0.6, 1, 'red', { shape: 'round', studs: false }),
+    // a white wall amidships
+    b(-1.45, 0.975, -0.45, 1.1, 0.95, 3.9, 'white', { studs: false }),
+    b(-1.45, 2.05, 0.5, 1.1, 1.2, 2, 'white', { studs: false }),
+    b(-1.45, 2.05, -1.5, 1.1, 1.2, 2, 'white', { studs: false }),
+    b(-1.5, 2.75, -1.3, 1, 0.2, 2, 'white'),
+    // four poles, each with a collar and a hose clamp
+    ...POLES.flatMap(([x, z]) => [
+      b(x, 3.65, z, 0.35, 6.3, 0.35, 'gray', { shape: 'bar' }),
+      b(x, 5.85, z, 0.9, 0.2, 0.9, 'gray', { shape: 'round', studs: false }),
+      b(x, 6.35, z, 0.6, 0.7, 0.6, HOSE_GRAY, { shape: 'round', studs: false }),
+    ]),
+    // fittings where the hose meets the poles
+    b(1.2, 6.25, 3.35, 0.5, 0.5, 1.5, HOSE_GRAY, { shape: 'round', axis: 'z' }),
+    b(-0.5, 6.5, -1.6, 0.5, 0.5, 1.6, HOSE_GRAY, { shape: 'round', axis: 'z' }),
+    // the see-through cabin and what's on its roof
+    b(-0.7, DECK + 1.55, -4.8, 2, 3.1, 4.2, 'cyan', { shape: 'panel', glass: true }),
+    b(-0.7, 4.5, -3.75, 1, 0.2, 1, 'red', { shape: 'round', studs: false }),
+    b(-0.7, 4.5, -4.7, 0.9, 0.2, 0.9, 'cyan', { glass: true, studs: false }),
+    b(-0.7, 4.75, -5.6, 0.9, 0.7, 0.9, 'yellow', { shape: 'round', studs: false }),
+    b(-0.7, 4.5, -6.55, 1, 0.2, 1, 'red', { shape: 'round', studs: false }),
+    // the ladder's clips, outside the right gunwale
+    b(-4.15, DECK + 0.15, 3.0, 0.35, 0.35, 3, 'yellow', { shape: 'bar', axis: 'z' }),
+    b(-3.6, DECK + 0.15, 2.0, 1.2, 0.5, 0.5, 'yellow', { shape: 'round', axis: 'x' }),
+    b(-3.6, DECK + 0.15, 4.0, 1.2, 0.5, 0.5, 'yellow', { shape: 'round', axis: 'x' }),
+  ],
+  hoses: [{ points: HOSE, closed: true, radius: 0.13, color: HOSE_GRAY }],
+  parts: [
+    {
+      // sticks out to the right and up; positive pulls it up
+      name: 'lever', kind: 'hinge', pivot: [-0.7, 5.1, -5.6], axis: [0, 0, 1], sign: -1, limits: [-30, 60], strength: 0.5,
+      bricks: [
+        b(-0.74, 0.32, 0.24, 0.18, 1.69, 0.18, 'black', { shape: 'bar', rot: [0.289, 0.18, 1.11] }),
+        b(-1.49, 0.64, 0.47, 0.3, 0.3, 0.3, 'black', { shape: 'round', studs: false }),
+      ],
+    },
+    {
+      // leans in a little; positive swings it out over the right side
+      name: 'ladder', kind: 'hinge', pivot: [-4.15, DECK + 0.15, 3.0], axis: [0, 0, 1], sign: 1, limits: [0, 90], strength: 1,
+      bricks: [b(0.65, 3.65, 0, 3, 7.4, 0.3, 'yellow', { shape: 'ladder', rot: [0, Math.PI / 2, -0.175], rotOrder: 'ZYX', studs: false })],
+    },
+  ],
+};
+
+LIBRARY.push(SKYSHIP, ...PEOPLE);
 
 export const LIBRARY_BY_ID = Object.fromEntries(LIBRARY.map((d) => [d.id, d]));
 

@@ -5,7 +5,7 @@
 // thingId form one assembly (a house of loose bricks); see actor.js for how
 // programs address models, assemblies, single bricks and the world itself.
 import * as THREE from 'three';
-import { brickMesh, wheelMesh, flowerMesh, material, colorHex, SIZES, BRICK_H } from './bricks.js';
+import { brickMesh, pieceMesh, hoseMesh, wheelMesh, flowerMesh, material, colorHex, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
 import { buildMinifig, buildSeatedMinifig, FIG } from './minifig.js';
@@ -214,15 +214,18 @@ export class World {
       const desc = (round
         ? R.ColliderDesc.roundCuboid(w / 2 - round, h / 2 - round, d / 2 - round, round)
         : R.ColliderDesc.cuboid(w / 2, h / 2, d / 2)).setTranslation(...br.at).setDensity(def.density ?? 1);
+      if (br.rot) desc.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...br.rot, br.rotOrder ?? 'XYZ')));
       if (def.motion === 'glide') desc.setFriction(0).setFrictionCombineRule(R.CoefficientCombineRule.Min);
       else desc.setFriction(0.6);
       this._attachCollider(desc, chassis, e, null, br.color);
       if (br.hidden) continue; // a collider only; something else is drawn there
-      const m = brickMesh(w, h, d, br.color, br.studs !== false);
+      const m = pieceMesh(br);
       m.position.set(...br.at);
-      m.userData.entity = e;
       chassisObj.add(m);
     }
+    // flexible hoses are only for looks
+    for (const hose of def.hoses ?? []) chassisObj.add(hoseMesh(hose));
+    chassisObj.traverse((o) => { o.userData.entity = e; });
     // Minifigures are drawn by minifig.js, in figure space (y = 0 at the feet);
     // the chassis origin sits at the top of the hips.
     const fig = def.figure ? buildMinifig(def.figure) : null;
@@ -277,12 +280,12 @@ export class World {
         for (const br of p.bricks) {
           const [w, h, d] = br.size;
           const desc = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...br.at).setFriction(0.7).setDensity(p.density ?? 0.5);
+          if (br.rot) desc.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...br.rot, br.rotOrder ?? 'XYZ')));
           this._attachCollider(desc, body, e, p.name, br.color);
           if (br.hidden) continue;
-          const m = brickMesh(w, h, d, br.color, br.studs !== false);
+          const m = pieceMesh(br);
           m.position.set(...br.at);
-          m.userData.entity = e;
-          m.userData.part = p.name;
+          m.traverse((o) => { o.userData.entity = e; o.userData.part = p.name; });
           obj.add(m);
         }
       }
@@ -313,6 +316,8 @@ export class World {
       e.parts.set(p.name, part);
       e.bodies.push({ body, object3d: obj, part: p.name });
     }
+    // A model that floats (a skyship) ignores gravity and hovers where it is.
+    if (def.floats) for (const { body } of e.bodies) body.setGravityScale(0, true);
     // Disable contacts between parts of the same model (e.g. arm vs wheel).
     const parts = [...e.parts.values()];
     for (let i = 0; i < parts.length; i++) {
@@ -732,8 +737,9 @@ export class World {
       const k = 0.2; // smoothing toward the target velocity
       const grounded = Math.abs(lv.y) < 1.5;
       // rising flies; with no gravity, gliders hover instead of drifting off
-      const vy = c.rise ? lv.y + (c.rise - lv.y) * 0.3 : this.gravityScale === 0 ? lv.y * 0.9 : lv.y;
-      if (grounded || Math.abs(c.drive) > 0 || c.rise || this.gravityScale === 0) {
+      const hovers = this.gravityScale === 0 || def.floats;
+      const vy = c.rise ? lv.y + (c.rise - lv.y) * 0.3 : hovers ? lv.y * 0.9 : lv.y;
+      if (grounded || Math.abs(c.drive) > 0 || c.rise || hovers) {
         e.chassis.setLinvel({ x: lv.x + (target.x - lv.x) * k, y: vy, z: lv.z + (target.z - lv.z) * k }, true);
       }
       const av = e.chassis.angvel();
