@@ -8,13 +8,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/trace.test.mjs && node test/pad.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs"
+    "test": "node test/codec.test.mjs && node test/room.test.mjs && node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/trace.test.mjs && node test/pad.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
     "@dimforge/rapier3d-compat": "^0.19.3",
     "acorn": "^8.19.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "playwright-core": "^1.64.0",

@@ -108,7 +108,10 @@ export class World {
     this.gravityScale = 1;
     this.onCollision = null;       // (infoA, infoB, started) => void
     this.beforeStep = null;        // (dt) => void
+    this.onEntityAdded = null;     // (entity) => void, for mirroring the world elsewhere
+    this.onEntityRemoved = null;   // (entity) => void
     this.paused = false;
+    this.mirror = false;
     this._buildGround();
   }
 
@@ -170,6 +173,7 @@ export class World {
     this.entities.set(entity.id, entity);
     if (!this.byThing.has(entity.thingId)) this.byThing.set(entity.thingId, new Set());
     this.byThing.get(entity.thingId).add(entity);
+    this.onEntityAdded?.(entity);
     return entity;
   }
 
@@ -661,6 +665,7 @@ export class World {
     const set = this.byThing.get(entity.thingId);
     set?.delete(entity);
     if (set && !set.size) this.byThing.delete(entity.thingId);
+    this.onEntityRemoved?.(entity);
   }
 
   // Remove everything but the ground.
@@ -757,6 +762,12 @@ export class World {
 
   step(frameDt) {
     if (this.paused) { this.sync(); return; }
+    if (this.mirror) { // a copy of a sim server's world: bodies are placed by snapshots, never stepped
+      this.sync();
+      this._drawPens();
+      this._animateFigures(Math.min(frameDt, 0.1));
+      return;
+    }
     this.accum += Math.min(frameDt, 0.1);
     let steps = 0;
     while (this.accum >= this.dt && steps < 4) {
@@ -782,14 +793,21 @@ export class World {
   _animateFigures(dt) {
     for (const e of this.entities.values()) {
       if (!e.figureLegs) continue;
-      const v = e.chassis.linvel();
-      const speed = Math.hypot(v.x, v.z);
+      const speed = this.speedOf(e);
       const moving = Math.min(1, speed / 4);
       e.walk += dt * Math.min(speed, 14) * 1.6;
       const swing = Math.sin(e.walk) * 0.55 * moving;
       e.figureLegs[0].rotation.x = swing;
       e.figureLegs[1].rotation.x = -swing;
     }
+  }
+
+  // Ground speed of an entity's main body. A mirror has no velocities, so it
+  // remembers how fast snapshots moved it (see src/net/mirror.js).
+  speedOf(e) {
+    if (this.mirror) return e.mirrorSpeed ?? 0;
+    const v = e.chassis.linvel();
+    return Math.hypot(v.x, v.z);
   }
 
   _syncOne(body, obj) {

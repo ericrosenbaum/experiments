@@ -7,8 +7,11 @@ import { SIZES, BRICK_H, material, colorHex } from '../world/bricks.js';
 import { matchFilter } from './filter.js';
 import { instrument } from './trace.js';
 import { planPath } from './pathfind.js';
+import { browserSandbox } from './sandbox-host.js';
 
 export { matchFilter };
+
+let programIds = 1;
 
 const DEG = Math.PI / 180;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : 0));
@@ -20,19 +23,33 @@ const MAX_SPAWNED_PER_ACTOR = 60;
 const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
 
 export class Runtime {
-  constructor({ world, audio, ui }) {
+  // sandboxFor(program): which Sandbox a program runs in. The page gives
+  // every program its own worker; the sim server shares one per player.
+  constructor({ world, audio, ui, sandboxFor }) {
     this.world = world;
     this.audio = audio;
     this.ui = ui;
     this.stage = null; // set by the Stage (clone, remove)
     this.programs = new Set();
-    this.heldKeys = new Set();
-    this.keyTarget = null; // only the selected actor hears keys
+    this.sandboxes = new Set();
+    this.sandboxFor = sandboxFor ?? (() => browserSandbox());
+    // Who hears keys: each listener (a player; 'local' on the page) has the
+    // actor it selected and the keys it is holding. Only that actor's programs
+    // hear that player's keys.
+    this.listeners = new Map(); // who -> {actor, held: Set}
     this.contacts = new Map(); // entity -> Map(otherColliderKey -> info)
     world.onCollision = (a, b, started) => this._collision(a, b, started);
     world.beforeStep = (dt) => this._tick(dt);
     this._tickTimer = setInterval(() => this._keyTick(), 33);
     this._watchdog = setInterval(() => this._ping(), 1000);
+  }
+
+  dispose() {
+    clearInterval(this._tickTimer);
+    clearInterval(this._watchdog);
+    this.stopAll();
+    for (const s of [...this.sandboxes]) s.terminate();
+    this.sandboxes.clear();
   }
 
   // ---- program lifecycle ----------------------------------------------------
@@ -58,41 +75,70 @@ export class Runtime {
 
   // ---- input ----------------------------------------------------------------
 
-  setKeyTarget(actor) {
-    if (actor === this.keyTarget) return;
-    for (const k of [...this.heldKeys]) this.keyUp(k); // let go of keys held for the old target
-    this.keyTarget = actor;
+  _listener(who) {
+    let l = this.listeners.get(who);
+    if (!l) this.listeners.set(who, l = { actor: null, held: new Set() });
+    return l;
   }
-  _hearsKeys(p) { return this.keyTarget && p.actor === this.keyTarget; }
+  // The page's own held keys (the key pad reads these).
+  get heldKeys() { return this._listener('local').held; }
+  get keyTarget() { return this._listener('local').actor; }
 
-  keyDown(key) {
-    if (this.heldKeys.has(key)) return;
-    this.heldKeys.add(key);
-    for (const p of this.programs) if (this._hearsKeys(p)) p.send({ type: 'key', key }, key);
+  setKeyTarget(actor, who = 'local') {
+    const l = this._listener(who);
+    if (actor === l.actor) return;
+    for (const k of [...l.held]) this.keyUp(k, who); // let go of keys held for the old target
+    l.actor = actor;
   }
-  keyUp(key) {
-    if (!this.heldKeys.delete(key)) return;
-    for (const p of this.programs) if (this._hearsKeys(p)) p.send({ type: 'keyup', key }, key);
+  // A listener that went away (a player left): let go of everything.
+  dropListener(who) {
+    const l = this.listeners.get(who);
+    if (!l) return;
+    for (const k of [...l.held]) this.keyUp(k, who);
+    this.listeners.delete(who);
+  }
+  _hearsKeys(p, l) { return l.actor && p.actor === l.actor; }
+
+  keyDown(key, who = 'local') {
+    const l = this._listener(who);
+    if (l.held.has(key)) return;
+    l.held.add(key);
+    for (const p of this.programs) if (this._hearsKeys(p, l)) p.send({ type: 'key', key }, key);
+  }
+  keyUp(key, who = 'local') {
+    const l = this._listener(who);
+    if (!l.held.delete(key)) return;
+    for (const p of this.programs) if (this._hearsKeys(p, l)) p.send({ type: 'keyup', key }, key);
   }
   broadcast(name) {
     for (const p of this.programs) p.send({ type: 'message', name });
   }
   _keyTick() {
-    if (!this.heldKeys.size) return;
-    for (const p of this.programs) if (this._hearsKeys(p)) p.send({ type: 'tick' });
+    const ticked = new Set();
+    for (const l of this.listeners.values()) {
+      if (!l.held.size || !l.actor) continue;
+      for (const p of this.programs) if (p.actor === l.actor && !ticked.has(p)) { ticked.add(p); p.send({ type: 'tick' }); }
+    }
   }
-  // Once a second: ask every program to answer. If these checks themselves
+  // Once a second: ask every sandbox to answer. If these checks themselves
   // ran late (a background tab, where browsers slow timers right down, or the
-  // page busy for a while), no program had a fair chance to answer, so give
+  // page busy for a while), no sandbox had a fair chance to answer, so give
   // them all a fresh start instead of calling them stuck.
   _ping() {
     const now = performance.now();
     const late = now - (this._lastCheck ?? now) > 2000;
     this._lastCheck = now;
-    for (const p of this.programs) {
-      if (late) p.lastPong = now;
-      p.ping();
+    for (const s of [...this.sandboxes]) {
+      if (late) s.lastPong = now;
+      if (now - s.lastPong > 3500) { s.terminate('got stuck — a loop never paused. Try adding wait() inside it.'); continue; }
+      s.ping();
     }
+  }
+  _register(sandbox) {
+    if (this.sandboxes.has(sandbox)) return;
+    this.sandboxes.add(sandbox);
+    const prev = sandbox.onDead;
+    sandbox.onDead = (reason) => { this.sandboxes.delete(sandbox); prev?.(reason); };
   }
 
   // ---- physics hooks --------------------------------------------------------
@@ -172,18 +218,19 @@ export class Runtime {
   }
 }
 
-// One running behavior (one worker).
-class Program {
-  constructor(rt, actor, behavior, { isClone = false } = {}) {
+// One running behavior: one program in a sandbox.
+export class Program {
+  constructor(rt, actor, behavior, { isClone = false, owner = null } = {}) {
     this.rt = rt;
+    this.id = programIds++;
     this.actor = actor;
     this.behavior = behavior;
     this.isClone = isClone;
-    this.worker = null;
+    this.owner = owner; // who taught it (a player id on the sim server), for picking a sandbox
+    this.sandbox = null;
     this.keys = new Set();
     this.touchFilters = [];
     this.tasks = [];
-    this.lastPong = performance.now();
     this.touchCooldown = new Map();
     this.spawnTimes = [];
     this.cloneTimes = [];
@@ -193,46 +240,39 @@ class Program {
 
   get label() { return `${this.actor.name} · ${this.behavior.title ?? 'behavior'}`; }
   get world() { return this.rt.world; }
+  get running() { return !!this.sandbox; }
 
   start() {
-    this.worker = new Worker(new URL('./sandbox.worker.js', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (ev) => this._onMessage(ev.data);
-    this.worker.onerror = (ev) => { ev.preventDefault?.(); this._error(ev.message ?? 'worker error', true); };
-    this.worker.postMessage({ type: 'load', code: instrument(this.behavior.code), isClone: this.isClone });
-    this.lastPong = performance.now();
+    this.sandbox = this.rt.sandboxFor(this);
+    this.rt._register(this.sandbox);
+    this.sandbox.attach(this.id, (m) => this._onMessage(m));
+    this.sandbox.load(this.id, instrument(this.behavior.code), this.isClone);
   }
 
   stop(reason) {
-    if (!this.worker) return;
-    try { this.worker.postMessage({ type: 'stop' }); } catch { /* gone */ }
-    this.worker.terminate();
-    this.worker = null;
+    const s = this.sandbox;
+    if (!s) return;
+    this.sandbox = null;
+    s.send(this.id, { type: 'stop' });
+    s.detach(this.id);
+    if (!s.shared) s.terminate();
     for (const t of this.tasks) t.finish?.();
     this.tasks = [];
     this.rt.programs.delete(this);
     this.behavior.running = false;
     if (reason) this.rt.ui.log(`${this.label}: ${reason}`, 'error');
-    this.rt.ui.onProgramsChanged?.();
+    this.rt.ui.onProgramsChanged?.(this);
   }
 
   send(msg, key) {
-    if (!this.worker) return;
+    if (!this.sandbox) return;
     if (key !== undefined && !this.keys.has(key)) return;
     if (msg.type === 'tick' && !this.keys.size) return;
-    this.worker.postMessage(msg);
-  }
-
-  ping() {
-    if (!this.worker) return;
-    if (performance.now() - this.lastPong > 3500) {
-      this.stop('got stuck — a loop never paused. Try adding wait() inside it.');
-      return;
-    }
-    this.worker.postMessage({ type: 'ping', t: performance.now() });
+    this.sandbox.send(this.id, msg);
   }
 
   touched(desc) {
-    if (!this.worker || !this.touchFilters.length) return;
+    if (!this.sandbox || !this.touchFilters.length) return;
     const now = performance.now();
     const k = desc.id;
     if (now - (this.touchCooldown.get(k) ?? 0) < 400) return;
@@ -240,7 +280,7 @@ class Program {
     this.touchFilters.forEach((f, i) => { if (matchFilter(f, desc)) matches.push(i); });
     if (!matches.length) return;
     this.touchCooldown.set(k, now);
-    this.worker.postMessage({ type: 'touch', thing: desc, matches });
+    this.sandbox.send(this.id, { type: 'touch', thing: desc, matches });
   }
 
   _error(message, fatal) {
@@ -254,15 +294,19 @@ class Program {
         this.keys = new Set(m.keys);
         this.touchFilters = m.touchFilters;
         this.behavior.running = true;
-        this.rt.ui.onProgramsChanged?.();
+        this.rt.ui.onProgramsChanged?.(this);
         break;
-      case 'pong': this.lastPong = performance.now(); break;
+      case 'dead': // the sandbox was terminated (stuck, or its owner left)
+        this.sandbox = null;
+        this.stop(m.reason);
+        break;
       case 'ran': this.rt.ui.onScriptRan?.(this.behavior, m.at, m.ok); break;
       case 'trace': {
         const ids = (a) => (Array.isArray(a) ? a.slice(0, 500).filter(Number.isInteger) : []);
         const now = performance.now();
         this.live = new Set(ids(m.live));
         for (const id of [...this.live, ...ids(m.seen)]) this.lastSeen.set(id, now);
+        this.rt.ui.onTrace?.(this, m);
         break;
       }
       case 'error': this._error(m.message, m.fatal); break;
@@ -304,11 +348,11 @@ class Program {
     for (const { body } of a.bodies()) { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); }
   }
 
-  _reply(id, value) { this.worker?.postMessage({ type: 'reply', id, value }); }
+  _reply(id, value) { this.sandbox?.send(this.id, { type: 'reply', id, value }); }
 
   // Run one stack of blocks once (it was clicked): the program fires that
   // script's handler as if its event happened. at: the top block's id.
-  runScript(at) { this.worker?.postMessage({ type: 'run', at }); }
+  runScript(at) { this.sandbox?.send(this.id, { type: 'run', at }); }
 
   // A task runs every physics step until update() returns true.
   _task(update, timeout, onEnd) {
@@ -397,47 +441,16 @@ class Program {
     const s = p.def.sign ?? 1;
     p.joint.setLimits(Math.min(lo * s, hi * s) * DEG, Math.max(lo * s, hi * s) * DEG);
   }
-  _recolorBody(body, c, onlyFrom) {
-    for (let i = 0; i < body.numColliders(); i++) {
-      const info = this.world.colliderInfo.get(body.collider(i).handle);
-      if (info && (onlyFrom == null || info.color === onlyFrom)) info.color = c;
-    }
-  }
   cmd_partColor(name, color) {
     const p = this._part(name);
     const c = this._color(color);
-    p.object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.userData.keepColor) o.material = material(c); });
-    this._recolorBody(p.body, c);
+    applyPartColor(this.world, p, c);
+    this.rt.ui.onColor?.(this.actor, c, p.def.name);
   }
   cmd_color(color) {
-    const a = this.actor;
     const c = this._color(color);
-    if (a.isWorld) {
-      const hex = '#' + colorHex(c).toString(16).padStart(6, '0');
-      const base = new THREE.Color(hex);
-      this.world.setGroundLook({ base: `#${base.clone().multiplyScalar(0.85).getHexString()}`, stud: hex, edge: `#${base.clone().multiplyScalar(0.65).getHexString()}` });
-      return;
-    }
-    const e = a.model;
-    if (e) {
-      const original = colorHex(e.def.color);
-      e.bodies[0].object3d.traverse((o) => {
-        if (o.isMesh && (o.userData.origColor ?? o.material.color.getHex()) === original) {
-          o.userData.origColor = original;
-          o.material = material(c);
-        }
-      });
-      e.color = c;
-      this._recolorBody(e.chassis, c, e.def.color);
-      return;
-    }
-    for (const m of a.members) {
-      for (const { body, object3d } of m.bodies) {
-        object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.material.wireframe) o.material = material(c); });
-        this._recolorBody(body, c);
-      }
-      m.color = c;
-    }
+    applyColor(this.world, this.actor, c);
+    this.rt.ui.onColor?.(this.actor, c, null);
   }
   _color(c) {
     const s = String(c).toLowerCase().replace(/\s+/g, '');
@@ -500,11 +513,12 @@ class Program {
     this.rt.ui.say(this.actor, String(text).slice(0, this.actor.isWorld ? 160 : 80), clamp(seconds, 0.5, 10));
   }
   cmd_broadcast(name) { this.rt.broadcast(String(name).slice(0, 40)); }
-  cmd_penDown() { this.world.penDown(this.actor.key); }
-  cmd_penUp() { this.world.penUp(this.actor.key); }
-  cmd_penColor(color) { this.world.pen(this.actor.key).color = this._color(color); }
-  cmd_penSize(size) { this.world.pen(this.actor.key).size = clamp(size, 1, 10); }
-  cmd_clearDrawing() { this.world.clearDrawing(); }
+  _pen() { return this.rt.ui.onPen?.(this.actor.key, this.world.pen(this.actor.key)); }
+  cmd_penDown() { this.world.penDown(this.actor.key); this._pen(); }
+  cmd_penUp() { this.world.penUp(this.actor.key); this._pen(); }
+  cmd_penColor(color) { this.world.pen(this.actor.key).color = this._color(color); this._pen(); }
+  cmd_penSize(size) { this.world.pen(this.actor.key).size = clamp(size, 1, 10); this._pen(); }
+  cmd_clearDrawing() { this.world.clearDrawing(); this.rt.ui.onPen?.(null, null); }
   cmd_explode(power) {
     const a = this.actor, w = this.world;
     const center = a.bounds().getCenter(new THREE.Vector3());
@@ -517,7 +531,7 @@ class Program {
     // finish this message first: removing stops this very program
     setTimeout(() => this.rt.stage?.removeActor(this.actor), 0);
   }
-  cmd_gravity(amount) { this.world.setGravity(clamp(amount, -2, 3)); }
+  cmd_gravity(amount) { this.world.setGravity(clamp(amount, -2, 3)); this.rt.ui.onGravity?.(this.world.gravityScale); }
   cmd_log(text) { this.rt.ui.log(`${this.label}: ${String(text).slice(0, 200)}`); }
 
   // ---- queries (things that take time, and sensing) -------------------------
@@ -639,7 +653,7 @@ class Program {
     const [lo, hi] = p.def.limits ?? [-180, 180];
     const amp = Math.min(30, (hi - lo) / 3);
     for (let i = 0; i < clamp(times, 1, 10); i++) {
-      if (!this.worker) return false;
+      if (!this.sandbox) return false;
       p.angle = clamp(base + amp, lo, hi);
       await new Promise((r) => setTimeout(r, 180));
       p.angle = clamp(base - amp, lo, hi);
@@ -689,6 +703,11 @@ class Program {
       if (wait > 0) await new Promise((r) => setTimeout(r, wait));
       this._lastSee = performance.now();
       if (!a.alive) return 'none';
+      // The sim server has no eyes of its own: it asks a player's browser to look.
+      if (this.rt.ui.see) {
+        const label = await this.rt.ui.see(a, choices);
+        return choices.includes(label) ? label : 'none';
+      }
       const image = this.rt.ui.snapshot?.(a);
       if (!image) return 'none';
       const show = (label) => this.rt.ui.showSeen?.(a, image, label);
@@ -731,5 +750,51 @@ class Program {
     this.cloneTimes.push(now);
     const copy = this.rt.stage?.cloneActor(src, where, this);
     return copy ? copy.describe() : null;
+  }
+}
+
+// ---- colors, shared with the page's mirror of a sim server's world ---------
+
+function recolorBody(world, body, c, onlyFrom) {
+  for (let i = 0; i < body.numColliders(); i++) {
+    const info = world.colliderInfo.get(body.collider(i).handle);
+    if (info && (onlyFrom == null || info.color === onlyFrom)) info.color = c;
+  }
+}
+
+export function applyPartColor(world, p, c) {
+  p.object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.userData.keepColor) o.material = material(c); });
+  recolorBody(world, p.body, c);
+  p.colorOverride = c;
+}
+
+// Recolor a thing: a model's body, every brick of an assembly, or the
+// World's ground.
+export function applyColor(world, a, c) {
+  if (a.isWorld) {
+    const hex = '#' + colorHex(c).toString(16).padStart(6, '0');
+    const base = new THREE.Color(hex);
+    world.setGroundLook({ base: `#${base.clone().multiplyScalar(0.85).getHexString()}`, stud: hex, edge: `#${base.clone().multiplyScalar(0.65).getHexString()}` });
+    return;
+  }
+  const e = a.model;
+  if (e) {
+    const original = colorHex(e.def.color);
+    e.bodies[0].object3d.traverse((o) => {
+      if (o.isMesh && (o.userData.origColor ?? o.material.color.getHex()) === original) {
+        o.userData.origColor = original;
+        o.material = material(c);
+      }
+    });
+    e.color = c;
+    recolorBody(world, e.chassis, c, e.def.color);
+    return;
+  }
+  for (const m of a.members) {
+    for (const { body, object3d } of m.bodies) {
+      object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.material.wireframe) o.material = material(c); });
+      recolorBody(world, body, c);
+    }
+    m.color = c;
   }
 }

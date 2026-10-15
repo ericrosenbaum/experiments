@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { WORLDS_BY_ID } from './world/worlds.js';
 import { LIBRARY_BY_ID, modelBottom } from './world/library.js';
 import { compileLocal, titleFrom } from './behavior/compiler.js';
+import { syntaxError } from './behavior/generate.js';
 
 const MAX_COPIES = 40;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -18,6 +19,7 @@ export function makeBehavior(b) {
     id: behaviorIds++, enabled: b.enabled ?? true, running: false,
     text: b.text, html: b.html ?? esc(b.text), code: b.code, summary: b.summary ?? [], source: b.source,
     notes: b.notes ?? '',
+    by: b.by ?? null, // who taught it (a player id in a shared room)
     // button labels for the key pad, {key: label}; read from the code when missing
     keys: Array.isArray(b.keys) ? Object.fromEntries(b.keys.map((k) => [k.key, k.label])) : b.keys ?? null,
     title: b.title || titleFrom([(b.summary?.[0] ?? b.text).replace(/^[^:]*:\s*/, '')]),
@@ -89,11 +91,13 @@ export class Stage {
     if (this.worldId) this.saved.set(this.worldId, this.state);
     this.worldId = worldId;
     this.state = this.saved.get(worldId) ?? this._fresh(this.preset);
-    this.applyTheme(this.preset.theme);
-    const { pos, target } = this.preset.camera;
-    this.view.camera.position.set(...pos);
-    this.view.controls.target.set(...target);
-    this.view.controls.update();
+    if (this.view) {
+      this.applyTheme(this.preset.theme);
+      const { pos, target } = this.preset.camera;
+      this.view.camera.position.set(...pos);
+      this.view.controls.target.set(...target);
+      this.view.controls.update();
+    }
     this.reset();
   }
 
@@ -211,6 +215,105 @@ export class Stage {
     this.ui.onActorAdded?.(copy);
     void program;
     return copy;
+  }
+
+  // ---- behaviors: what the inspector (or a player over the wire) can do ----
+
+  programOf(actor, b) { return [...this.runtime.programs].find((p) => p.behavior === b && p.actor === actor) ?? null; }
+
+  // Stop a behavior's program and start it again if it's enabled.
+  restart(actor, b) {
+    for (const p of [...this.runtime.programs]) if (p.behavior === b) p.stop();
+    this.runtime.resetControls(actor);
+    if (actor.isWorld && !b.enabled && /\bgravity\(/.test(b.code)) { this.world.setGravity(1); this.ui.onGravity?.(1); } // switching a gravity rule off
+    if (b.enabled) this.runtime.start(actor, b, { owner: b.by });
+    this.ui.onBehaviorsChanged?.(actor);
+  }
+
+  // A new behavior: the kid's words plus the generated program.
+  teach(actor, b) {
+    if (!actor.alive) return null;
+    const err = syntaxError(b.code);
+    if (err) throw new Error(`That code has a typo: ${err}`);
+    const behavior = makeBehavior({
+      ...b,
+      notes: [b.notes, b.unknown?.length ? `I didn't understand: \u201c${b.unknown.join('\u201d, \u201c')}\u201d` : ''].filter(Boolean).join(' '),
+    });
+    this.behaviorsOf(actor.key).push(behavior);
+    if (behavior.notes) this.ui.log(`${behavior.title}: ${behavior.notes}`);
+    this.runtime.start(actor, behavior, { owner: behavior.by });
+    this.ui.onBehaviorsChanged?.(actor);
+    return behavior;
+  }
+
+  // A request that named an existing behavior and asked to change it: swap in
+  // the new program on the same card, keeping its place in the list.
+  changeBehavior(actor, b, res) {
+    const err = syntaxError(res.code);
+    if (err) throw new Error(`That code has a typo: ${err}`);
+    const fresh = makeBehavior({ ...res, title: res.title || b.title });
+    Object.assign(b, {
+      code: fresh.code, title: fresh.title, summary: fresh.summary, keys: fresh.keys, notes: fresh.notes, source: fresh.source,
+      text: res.text, html: res.html, enabled: true, collapsed: false, draft: null, changedAt: performance.now(),
+    });
+    if (res.by) b.by = res.by;
+    this.ui.log(`Changed \u201c${b.title}\u201d${b.notes ? `: ${b.notes}` : ''}`);
+    this.restart(actor, b);
+  }
+
+  setEnabled(actor, b, on) {
+    b.enabled = !!on;
+    this.restart(actor, b);
+  }
+
+  deleteBehavior(actor, b) {
+    const list = this.behaviorsOf(actor.key);
+    b.enabled = false;
+    this.restart(actor, b);
+    const i = list.indexOf(b);
+    if (i >= 0) list.splice(i, 1);
+    this.ui.onBehaviorsChanged?.(actor);
+  }
+
+  // The code was edited by hand and run.
+  editCode(actor, b, code, by) {
+    if (code === b.code) return;
+    const err = syntaxError(code);
+    if (err) throw new Error(`That code has a typo: ${err}`);
+    b.code = code;
+    b.draft = null;
+    b.keys = null; // the labels may not fit the new code
+    b.source = 'edited';
+    b.enabled = true;
+    if (by) b.by = by;
+    this.restart(actor, b);
+  }
+
+  // ---- moving things by hand ------------------------------------------------
+
+  turn(actor, degrees = 45) {
+    if (!actor?.alive || actor.isWorld) return;
+    const pivot = actor.position;
+    this.world.transform(actor.members, { dyaw: degrees, pivot });
+    if (actor.usesOwnYaw) actor.yaw = (actor.yaw ?? 0) + degrees;
+    this.recordMove(actor.key, new THREE.Vector3(), degrees, pivot);
+  }
+
+  respawn(actor) {
+    const m = actor?.model;
+    if (m) this.world.resetModel(m);
+  }
+
+  // The end of a drag: the thing was held at delta/yaw from where it started;
+  // apply that for real so Reset remembers it.
+  endDrag(actor, delta, dyaw, pivot) {
+    if (!actor.alive) return;
+    this.world.transform(actor.members, { delta, dyaw, pivot });
+    for (const { body } of actor.bodies()) {
+      if (body.isDynamic()) { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); body.wakeUp(); }
+    }
+    if (actor.usesOwnYaw && dyaw) actor.yaw = (actor.yaw ?? 0) + dyaw;
+    this.recordMove(actor.key, delta, dyaw, pivot);
   }
 
   // ---- the look of the world -----------------------------------------------
