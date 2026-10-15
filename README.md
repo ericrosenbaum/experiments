@@ -32,6 +32,10 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
 - **Inspector** (right): what's selected, its parts, the composer, examples, and the behaviors it knows.
 - **Camera**: drag the sky or ground to orbit, right-drag to pan, scroll to zoom. 🎥 Follow keeps the selection in view.
 
+## On a phone or tablet
+
+The same page works on touch screens. In portrait the inspector is a sheet at the bottom with three heights: a peek (just the name of what's selected and its ⋯ menu), half, and full for typing; drag its handle or tap it. The key pad floats above the sheet; Follow, Reset and World rules move into the ☰ menu. On a phone held sideways the inspector is a narrower panel on the right, as on a desktop. One finger orbits the camera, two fingers zoom and pan; tap a thing to select it and drag it to move it; while dragging, slide a second finger sideways to turn it (the wheel's job on a desktop); press and hold a brick of a house or castle to pick just that brick. Errors pop up as toasts, since there is no program log on a small screen. Touch devices start with the plain graphics look.
+
 ## Selecting, moving, keys
 
 - **Click** a model to select it, or any brick of an assembly (a house, the castle, the tower) to select the whole assembly. Props like trees, platforms and coins are things too.

@@ -43,9 +43,12 @@ export class Graphics {
   constructor(container) {
     const asked = location.search.match(/[?&]fx=(low|high)\b/)?.[1];
     if (asked === 'high') store.set(null);
-    this.fancy = asked ? asked === 'high' : store.get() !== 'low';
+    // Phones and tablets start with the plain look: the full one is a lot of
+    // pixels for a small GPU, and it drops to plain on its own anyway.
+    const touch = matchMedia('(pointer: coarse)').matches;
+    this.fancy = asked ? asked === 'high' : store.get() !== 'low' && !touch;
     const renderer = new THREE.WebGLRenderer({ antialias: !this.fancy, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, touch ? 1.5 : 2));
     renderer.setSize(innerWidth, innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;

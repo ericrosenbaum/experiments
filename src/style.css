@@ -26,6 +26,12 @@
   --hover: rgba(0, 0, 0, 0.06);
   --card: #fff;
   --pop-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.12);
+  /* layout: the inspector's width on the right, and the panel on phones (see the media queries at the end) */
+  --side: 368px;
+  --gap: 12px;
+  --top: calc(12px + env(safe-area-inset-top, 0px));
+  --sheet-h: 50vh;
+  --kb: 0px;
   font-family: 'Nunito', system-ui, sans-serif;
   color: var(--ink);
 }
@@ -46,13 +52,16 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
 button { font: inherit; cursor: pointer; color: inherit; }
+.mobile-only { display: none; }
+.sheet-handle { display: none; }
 .hidden { display: none !important; }
 .hint { color: var(--muted); font-size: 12px; font-weight: 500; }
 .grow { flex: 1; }
 
 #viewport { position: fixed; inset: 0; }
-#viewport canvas { display: block; outline: none; }
+#viewport canvas { display: block; outline: none; touch-action: none; }
 #viewport.pointing canvas { cursor: crosshair; }
 
 #loading {
@@ -62,7 +71,7 @@ button { font: inherit; cursor: pointer; color: inherit; }
 
 /* top bar */
 #topbar {
-  position: fixed; top: 12px; left: 12px; right: 392px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; z-index: 10;
+  position: fixed; top: var(--top); left: var(--gap); right: calc(var(--side) + var(--gap) * 2); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; z-index: 10;
   pointer-events: none;
 }
 #topbar > * { pointer-events: auto; }
@@ -93,7 +102,7 @@ button { font: inherit; cursor: pointer; color: inherit; }
 
 /* library */
 #library {
-  position: fixed; top: 64px; right: 392px; width: 300px; max-height: calc(100% - 140px); overflow: auto; background: var(--panel);
+  position: fixed; top: calc(var(--top) + 52px); right: calc(var(--side) + var(--gap) * 2); width: 300px; max-height: calc(100% - 140px); overflow: auto; background: var(--panel);
   border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; z-index: 11;
 }
 .panel-title { font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -108,7 +117,7 @@ button { font: inherit; cursor: pointer; color: inherit; }
 
 /* inspector */
 #inspector {
-  position: fixed; top: 12px; right: 12px; bottom: 12px; width: 368px; background: var(--panel); border-radius: var(--radius);
+  position: fixed; top: var(--top); right: var(--gap); bottom: var(--gap); width: var(--side); background: var(--panel); border-radius: var(--radius);
   box-shadow: var(--shadow); padding: 16px; overflow: auto; z-index: 10;
 }
 #inspector h2 { margin: 0; font-size: 20px; }
@@ -237,8 +246,8 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 
 /* key pad: buttons for the selected thing's keys (src/ui/pad.js) */
 #pad {
-  position: fixed; right: 392px; bottom: 12px; z-index: 10; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
-  justify-content: flex-end; max-width: calc(100% - 404px); padding: 8px 12px 10px; background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+  position: fixed; right: calc(var(--side) + var(--gap) * 2); bottom: var(--gap); z-index: 10; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+  justify-content: flex-end; max-width: calc(100% - var(--side) - var(--gap) * 3); padding: 8px 12px 10px; background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
   user-select: none; -webkit-user-select: none; touch-action: none;
 }
 .pad-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -256,7 +265,7 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 
 /* console */
 #console {
-  position: fixed; left: 12px; bottom: 12px; width: min(560px, calc(100% - 404px)); background: var(--panel); border-radius: var(--radius);
+  position: fixed; left: var(--gap); bottom: var(--gap); width: min(560px, calc(100% - var(--side) - var(--gap) * 3)); background: var(--panel); border-radius: var(--radius);
   box-shadow: var(--shadow); z-index: 10; overflow: hidden;
 }
 .console-head { display: flex; gap: 8px; align-items: center; padding: 6px 12px; font-weight: 800; font-size: 13px; }
@@ -298,13 +307,32 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   max-width: max(260px, min(560px, calc(100vw - 840px))); text-wrap: balance;
 }
 
-@media (max-width: 760px) {
-  #pad { right: 12px; bottom: calc(52% + 12px); }
-  #topbar { right: 12px; }
-  #library { right: 12px; }
-  #inspector { top: auto; left: 12px; right: 12px; width: auto; height: 52%; }
+/* Short, wide screens (a phone on its side): the same layout, narrower on the right. */
+@media (max-height: 520px) and (orientation: landscape) {
+  :root { --side: min(368px, 44vw); --gap: 8px; }
+  #inspector { padding: 10px 12px; }
+  #inspector h2 { font-size: 17px; }
+  .top-menu .menu { max-height: calc(100vh - 60px); overflow: auto; }
+  #pad { padding: 6px 10px 8px; gap: 10px; max-width: calc(100% - var(--side) - 90px); }
   #console { display: none; }
-  .banner { top: 62px; transform: translateX(-50%); max-width: calc(100vw - 24px); }
+  /* the chat folds to a round button in the corner, clear of the key pad */
+  #chat, #console.collapsed ~ #chat { left: var(--gap); bottom: var(--gap); }
+  #chat.collapsed .chat-head { padding: 6px 10px; }
+  #chat.collapsed .chat-head span:first-child { font-size: 0; }
+  #chat.collapsed .chev { display: none; }
+  #chat:not(.collapsed) { width: min(380px, calc(100vw - var(--side) - var(--gap) * 3)); z-index: 15; }
+  #chat-log { max-height: 40vh; }
+  .banner { font-size: 14px; max-width: calc(100vw - var(--side) - 140px); transform: translateX(calc(-50% - var(--side) / 2)); }
+}
+/* Small screens either way: the top bar scrolls sideways instead of wrapping, players are dots. */
+@media (max-width: 760px), (max-height: 520px) {
+  #topbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: -4px; pointer-events: auto; }
+  #topbar::-webkit-scrollbar { display: none; }
+  .world-pick select { max-width: 150px; text-overflow: ellipsis; }
+  .players .player { padding: 0; width: 26px; height: 26px; justify-content: center; font-size: 12px; gap: 0; background: var(--c); color: #fff; }
+  .players .player::before { display: none; }
+  .players .player::after { content: attr(data-initial); }
+  .players .player > span { display: none; }
 }
 
 /* Brick Talk chat */
@@ -355,7 +383,76 @@ button.chip:hover { outline: 2px solid var(--yellow); }
 .sym-bubble::after { content: ''; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
 .sym-bubble.friend { outline: 3px solid var(--yellow); }
 .sym-bubble.fading { opacity: 0; }
-@media (max-width: 760px) { #chat { bottom: calc(52% + 24px); } }
+/* Phones: the inspector is a sheet at the bottom with three heights (peek, half,
+   full; see Sheet in src/ui/app.js), the key pad floats above it, the log
+   becomes toasts, and the library fills the screen. */
+@media (max-width: 760px) and (orientation: portrait) {
+  :root { --gap: 10px; }
+  .mobile-only { display: initial; }
+  .menu .mobile-only { display: flex; }
+  .menu-sep.mobile-only { display: block; }
+  .desktop-only { display: none !important; }
+  #topbar { right: var(--gap); }
+  #btn-follow, #btn-reset, #btn-world { display: none; } /* in the menu instead */
+  .world-pick select { max-width: 124px; }
+  #btn-world-m { font-size: 15px; gap: 12px; }
+
+  #inspector {
+    top: auto; left: 0; right: 0; bottom: var(--kb); width: auto; height: var(--sheet-h); border-radius: 18px 18px 0 0;
+    padding: 0 14px calc(12px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px rgba(40, 30, 10, 0.18);
+    transition: height .22s ease-out; overscroll-behavior: contain;
+  }
+  #inspector.dragging { transition: none; }
+  .sheet-handle {
+    display: flex; position: sticky; top: 0; z-index: 2; width: 100%; height: 26px; margin: 0 0 2px; padding: 0; border: 0; background: var(--panel);
+    align-items: center; justify-content: center; touch-action: none; cursor: grab;
+  }
+  .sheet-handle span { width: 44px; height: 5px; border-radius: 999px; background: var(--line); }
+  body.sheet-peek #inspector { overflow: hidden; }
+  body.sheet-peek #no-selection p, body.sheet-peek .composer-wrap, body.sheet-peek .section-label, body.sheet-peek #behaviors { display: none; }
+  body.sheet-peek .sel-head { margin-bottom: 0; }
+  body.sheet-peek #no-selection h2 { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #inspector h2 { font-size: 18px; }
+  .sel-head { min-height: 36px; margin-bottom: 10px; }
+  .menu button { padding: 11px 12px; font-size: 15px; }
+  .icon-btn { width: 38px; height: 38px; }
+  .tool { height: 34px; }
+  .round { width: 36px; height: 36px; }
+  #composer { font-size: 16px; } /* 16px: iOS doesn't zoom the page on focus */
+  .behavior .fold { width: 34px; height: 34px; }
+  .b-foot button { padding: 8px 10px; }
+  .code-edit { height: 260px; }
+
+  #pad {
+    right: 50%; left: auto; transform: translateX(50%); bottom: calc(var(--sheet-h) + var(--kb) + 8px); max-width: calc(100% - 20px);
+    justify-content: center; gap: 12px; padding: 6px 10px 8px;
+  }
+  body.sheet-full #pad { display: none; }
+  .pad-keys { grid-auto-columns: 46px; grid-auto-rows: 46px; gap: 5px; }
+  .pad-keys.half { grid-auto-columns: 21px; }
+  .pad-keys.space { grid-auto-columns: 140px; }
+  .pad-key { font-size: 18px; border-radius: 11px; }
+
+  #library { top: calc(var(--top) + 52px); left: var(--gap); right: var(--gap); width: auto; max-height: calc(100% - var(--top) - 64px); z-index: 14; }
+  #library:not(.hidden) ~ #pad { display: none; }
+  #console { display: none; }
+  .banner { top: calc(var(--top) + 50px); transform: translateX(-50%); max-width: calc(100vw - 24px); font-size: 15px; }
+  #toasts { top: calc(var(--top) + 50px); }
+  #net-status { bottom: auto; top: calc(var(--top) + 50px); }
+  .bubble { font-size: 14px; max-width: 200px; }
+  .bubble.seen img { width: 130px; }
+  .top-menu .menu { position: fixed; top: calc(var(--top) + 48px); right: var(--gap); }
+
+  #chat, #console.collapsed ~ #chat, #console:not(.collapsed) ~ #chat { left: var(--gap); bottom: calc(var(--sheet-h) + var(--kb) + 8px); max-width: calc(100vw - 20px); }
+  #chat:not(.collapsed) { right: var(--gap); width: auto; z-index: 15; }
+  #chat-log { max-height: 38vh; }
+  #chat-input { font-size: 16px; }
+  body.sheet-full #chat { display: none; }
+}
+@media (pointer: coarse) {
+  .pad-key:hover { border-color: var(--line); } /* no hover on touch: don't leave keys looking pressed */
+  .tb:hover, .console-fab:hover { transform: none; }
+}
 
 /* Scratch-style blocks drawn from a behavior's code (src/ui/blocks.js) */
 .k-event { --c: #ffbf00; --cd: #cc9900; }

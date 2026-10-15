@@ -58,6 +58,7 @@ export class App {
     for (const o of [this.hoverBox, this.selBox, this.ring, this.aim]) o.raycast = () => {};
     this.readOnly = false; // looking at a thing another player is using
     this.marks = new Map(); // player id -> {box, tag}: what other players have selected
+    this.sheet = new Sheet(this); // on phones the inspector is a sheet at the bottom
   }
 
   // session: the LocalSession (single player) or NetSession (a room); view: the lights and camera, for themes
@@ -77,6 +78,7 @@ export class App {
       if (!ok) this.log('🔧 No ANTHROPIC_API_KEY on the server, so a simple offline helper writes the code (it knows a fixed set of phrases). Start the dev server with a key to use Claude.');
     });
     if (this.net) { $('btn-pause').classList.add('hidden'); this.log(`🔗 Joining room “${this.session.room}”…`); }
+    this.sheet.boot();
     this.session.start(location.hash.slice(1) || 'playground');
   }
 
@@ -90,6 +92,7 @@ export class App {
     this.follow = on;
     $('btn-follow').classList.toggle('on', on);
     $('btn-follow').setAttribute('aria-pressed', String(on));
+    $('btn-follow-m').setAttribute('aria-checked', String(on));
   }
 
   // The World button shows how many behaviors the World has.
@@ -170,7 +173,7 @@ export class App {
   // Something this page asked for (a model, a copy) is in the world: pick it up.
   onMade(key) {
     const a = this.world.actor(key);
-    if (a.alive) this.select(a);
+    if (a.alive) { this.select(a); this.sheet.open('half'); }
   }
 
   _wireButtons() {
@@ -211,9 +214,17 @@ export class App {
       this.select(null);
     };
     $('btn-together').onclick = () => this.playTogether();
+    // on phones these three live in the menu instead of the bar
+    $('btn-world-m').onclick = () => $('btn-world').click();
+    $('btn-reset-m').onclick = () => $('btn-reset').click();
+    $('btn-follow-m').onclick = () => $('btn-follow').click();
     $('btn-make').onclick = () => this.make();
     $('btn-point').onclick = () => this.setPointing(!this.pointing);
-    $('btn-more').onclick = (ev) => { ev.stopPropagation(); this.setPop('menu', $('sel-menu').classList.contains('hidden')); };
+    $('btn-more').onclick = (ev) => {
+      ev.stopPropagation();
+      if (this.sheet.state === 'peek') this.sheet.open('half'); // room for the menu below the name
+      this.setPop('menu', $('sel-menu').classList.contains('hidden'));
+    };
     $('btn-parts').onmousedown = (ev) => ev.preventDefault(); // keep the cursor in the composer
     $('btn-parts').onclick = (ev) => { ev.stopPropagation(); this.setPop('parts', $('parts-pop').classList.contains('hidden')); };
     $('sel-menu').onclick = () => this.setPop('menu', false); // every item closes it
@@ -344,11 +355,19 @@ export class App {
     // Capture phase on the container runs before OrbitControls (on the canvas),
     // so grabbing the selected thing drags it instead of turning the camera.
     viewport.addEventListener('pointerdown', (ev) => {
+      // A second finger while dragging turns the thing (there's no wheel on a phone).
+      if (this.drag && ev.pointerId !== this.drag.pointerId) {
+        ev.stopPropagation();
+        this.drag.twist = { id: ev.pointerId, x: ev.clientX };
+        return;
+      }
       down = { x: ev.clientX, y: ev.clientY, alt: ev.altKey };
+      this._pressStart(ev);
       if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld || this.readOnly) return;
       const hit = this._pick(ev);
       if (hit?.entity && this.selected.has(hit.entity)) {
         ev.stopPropagation();
+        this._pressCancel();
         this._startDrag(hit, ev);
       }
     }, true);
@@ -359,7 +378,12 @@ export class App {
       this.drag.yaw += Math.sign(ev.deltaY) * -15;
     }, { capture: true, passive: false });
     addEventListener('pointermove', (ev) => {
-      if (this.drag) { this._moveDrag(ev); return; }
+      if (this.drag) {
+        if (this.drag.twist && ev.pointerId === this.drag.twist.id) { this.drag.yaw += (ev.clientX - this.drag.twist.x) * 0.5; this.drag.twist.x = ev.clientX; return; }
+        if (ev.pointerId === this.drag.pointerId) this._moveDrag(ev);
+        return;
+      }
+      if (down && Math.hypot(ev.clientX - down.x, ev.clientY - down.y) > 8) this._pressCancel();
       if (ev.target !== el) return;
       if (!(this.pointing || ev.altKey) || down) {
         if (this.hoverBox.visible && !this._partHover) this._highlight(null);
@@ -372,12 +396,15 @@ export class App {
       $('point-hint').textContent = hit ? this._describeHit(hit).label : '';
     });
     addEventListener('pointerup', (ev) => {
+      if (this.drag?.twist && ev.pointerId === this.drag.twist.id) { this.drag.twist = null; return; }
       const wasDrag = this.drag;
       if (wasDrag) this._endDrag();
+      const pressed = this._pressCancel();
       if (!down) return;
       const moved = Math.hypot(ev.clientX - down.x, ev.clientY - down.y);
       const alt = down.alt || ev.altKey;
       down = null;
+      if (pressed) return; // the press already picked one brick
       if (moved > 5 || ev.button !== 0 || (ev.target !== el && !wasDrag)) return;
       const hit = this._pick(ev);
       if (this.pointing || alt) {
@@ -386,25 +413,51 @@ export class App {
       }
       this._click(hit);
     });
-    el.addEventListener('dblclick', (ev) => {
-      const hit = this._pick(ev);
-      if (!hit?.entity || hit.entity.kind === 'model') return;
-      const whole = this.world.actorOf(hit.entity);
-      if (whole.members.length > 1) this.select(this.world.actor(hit.entity.id));
-    });
+    el.addEventListener('dblclick', (ev) => this._pickOne(this._pick(ev)));
+  }
+
+  // One brick out of an assembly (a double-click, or a press on a phone).
+  _pickOne(hit) {
+    if (!hit?.entity || hit.entity.kind === 'model') return;
+    const whole = this.world.actorOf(hit.entity);
+    if (whole.members.length > 1) { this.select(this.world.actor(hit.entity.id)); this.sheet.open('half'); }
+  }
+
+  // Pressing and holding on a touch screen picks one brick, like a double-click.
+  _pressStart(ev) {
+    this._pressCancel();
+    if (ev.pointerType !== 'touch' || this.pointing) return;
+    const at = { clientX: ev.clientX, clientY: ev.clientY };
+    this._press = setTimeout(() => {
+      this._press = null;
+      const hit = this._pick(at);
+      if (!hit?.entity || hit.entity.kind === 'model' || this.world.actorOf(hit.entity).members.length < 2) return;
+      this._pressed = true;
+      navigator.vibrate?.(15);
+      this._pickOne(hit);
+    }, 500);
+  }
+  _pressCancel() {
+    clearTimeout(this._press);
+    this._press = null;
+    const was = this._pressed;
+    this._pressed = false;
+    return was;
   }
 
   _click(hit) {
-    if (!hit) { this.select(null); return; }
+    if (!hit) { this.select(null); this.sheet.open('peek'); return; }
     if (hit.ground) {
       const w = this.world.actor('world');
       this.select(w);
+      this.sheet.open('half');
       return;
     }
     const whole = this.world.actorOf(hit.entity);
     const piece = this.world.actor(hit.entity.id);
     // keep a picked-out brick selected when it's the one clicked
     this.select(this.selected === piece ? piece : whole);
+    this.sheet.open('half');
   }
 
   _startDrag(hit, ev) {
@@ -413,7 +466,7 @@ export class App {
     const pivot = a.position;
     this.world.refreshQueries?.(); // a mirror's shape casts only see where things were last stepped
     this.drag = {
-      actor: a, pivot, yaw: 0, delta: new THREE.Vector3(),
+      actor: a, pivot, yaw: 0, delta: new THREE.Vector3(), pointerId: ev.pointerId, twist: null,
       plane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -hit.point.y),
       start: hit.point.clone(),
       base: dragBase(a),
@@ -1020,7 +1073,7 @@ export class App {
     const el = $('players');
     if (!this.net) { el.innerHTML = ''; return; }
     const { players, me } = this.session;
-    el.innerHTML = players.map((p) => `<span class="player ${p.id === me.id ? 'me' : ''}" style="--c:${esc(p.color)}" title="${p.id === me.id ? 'You: click to change your name' : esc(p.name)}">${esc(p.name)}</span>`).join('');
+    el.innerHTML = players.map((p) => `<span class="player ${p.id === me.id ? 'me' : ''}" style="--c:${esc(p.color)}" data-initial="${esc((p.name[0] ?? '?').toUpperCase())}" title="${p.id === me.id ? 'You: click to change your name' : esc(p.name)}"><span>${esc(p.name)}</span></span>`).join('');
     const mine = el.querySelector('.player.me');
     if (mine) mine.onclick = () => { const name = prompt('What should we call you?', me.name); if (name?.trim()) this.session.rename(name); };
     $('btn-together').classList.toggle('on', true);
@@ -1130,7 +1183,9 @@ export class App {
     body.appendChild(line);
     while (body.childNodes.length > 200) body.firstChild.remove();
     body.scrollTop = body.scrollHeight;
-    if (level === 'error' && $('console').classList.contains('collapsed')) this.setConsole(true); // errors open it
+    if (level !== 'error') return;
+    if (this.sheet.active) this.toast(msg.length > 140 ? `${msg.slice(0, 140)}…` : msg); // no log on a phone: errors pop up
+    else if ($('console').classList.contains('collapsed')) this.setConsole(true); // errors open it
   }
 
   _screen(pos) {
@@ -1195,5 +1250,92 @@ export class App {
       b.el.style.display = s ? '' : 'none';
       if (s) { b.el.style.left = `${s.x}px`; b.el.style.top = `${s.y}px`; }
     }
+  }
+}
+
+// On phones the inspector is a sheet at the bottom of the screen with three
+// heights: peek (just the name of what's selected), half, and full (for
+// typing). Drag the handle, or tap it to toggle; the key pad and chat float
+// above whatever height it has. A keyboard lifts it (--kb) on browsers that
+// don't shrink the page for it.
+const SHEET_PEEK = 78;
+class Sheet {
+  constructor(app) {
+    this.app = app;
+    this.state = 'peek';
+    this.media = matchMedia('(max-width: 760px) and (orientation: portrait)'); // the same rule as the stylesheet's
+  }
+  get active() { return this.media.matches; }
+  get el() { return $('inspector'); }
+
+  boot() {
+    const handle = $('sheet-handle');
+    let start = null;
+    handle.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      handle.setPointerCapture(ev.pointerId);
+      start = { y: ev.clientY, h: this.el.offsetHeight, moved: false };
+      this.el.classList.add('dragging');
+    });
+    handle.addEventListener('pointermove', (ev) => {
+      if (!start) return;
+      const h = Math.max(SHEET_PEEK, Math.min(this._px('full'), start.h + (start.y - ev.clientY)));
+      if (Math.abs(ev.clientY - start.y) > 6) start.moved = true;
+      this.el.style.height = `${h}px`;
+      document.documentElement.style.setProperty('--sheet-h', `${h}px`);
+    });
+    const end = () => {
+      if (!start) return;
+      const { moved } = start;
+      const h = this.el.offsetHeight;
+      start = null;
+      this.el.classList.remove('dragging');
+      this.el.style.height = '';
+      if (!moved) { this.open(this.state === 'peek' ? 'half' : this.state === 'half' ? 'full' : 'peek'); return; }
+      // snap to the nearest height
+      const states = ['peek', 'half', 'full'];
+      this.open(states.reduce((best, st) => (Math.abs(this._px(st) - h) < Math.abs(this._px(best) - h) ? st : best), 'half'));
+    };
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+    // typing wants the whole sheet, and the keyboard out of the way
+    $('composer').addEventListener('focus', () => { if (this.active) this.open('full'); });
+    $('composer').addEventListener('blur', () => { if (this.active && this.state === 'full') setTimeout(() => { if (document.activeElement !== $('composer')) this.open('half'); }, 150); });
+    const vv = window.visualViewport;
+    if (vv) {
+      const onKb = () => {
+        const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+        document.documentElement.style.setProperty('--kb', `${this.active && kb > 80 ? kb : 0}px`);
+        this.apply();
+      };
+      vv.addEventListener('resize', onKb);
+      vv.addEventListener('scroll', onKb);
+    }
+    addEventListener('resize', () => this.apply());
+    this.media.addEventListener?.('change', () => this.apply());
+    this.apply();
+  }
+
+  _px(state) {
+    const kb = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--kb')) || 0;
+    const h = innerHeight - kb;
+    return state === 'peek' ? SHEET_PEEK : state === 'half' ? Math.round(h * 0.5) : Math.round(h * 0.92);
+  }
+
+  open(state) {
+    if (!this.active) return;
+    this.state = state;
+    this.apply();
+  }
+
+  apply() {
+    const root = document.documentElement;
+    const on = this.active;
+    document.body.classList.toggle('sheet-peek', on && this.state === 'peek');
+    document.body.classList.toggle('sheet-half', on && this.state === 'half');
+    document.body.classList.toggle('sheet-full', on && this.state === 'full');
+    if (!on) { root.style.removeProperty('--sheet-h'); root.style.setProperty('--kb', '0px'); return; }
+    root.style.setProperty('--sheet-h', `${this._px(this.state)}px`);
+    if (this.state !== 'full') this.el.scrollTop = 0;
   }
 }
