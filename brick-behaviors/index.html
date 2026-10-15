@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#15171c" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <!-- Behavior programs run in workers that inherit this policy: no outside network. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' blob:; worker-src 'self' blob:; connect-src 'self' ws: wss:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:" />
   <title>Brick Behaviors</title>
   <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="./assets/index-BzBDQh1m.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CDCBa7FN.css">
+  <script type="module" crossorigin src="./assets/index-B25sgFqb.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Cd7hLCBF.css">
 </head>
 <body>
   <div id="viewport"></div>
@@ -20,7 +23,9 @@
     <label class="tb world-pick" title="Switch to a different world">
       <select id="world-select" aria-label="World"></select>
     </label>
+    <div id="players" class="players"></div>
     <span class="grow"></span>
+    <button id="btn-together" class="tb icon-tb" title="Play together: start a room and share its link" aria-label="Play together"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 13.6c3 0 5.5 2 5.5 5"/></svg></button>
     <button id="btn-follow" class="tb icon-tb" aria-pressed="false" title="Follow: the camera follows the selected thing (turns off when you pick something else)" aria-label="Follow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h12v10H3zM15 10.5l6-3.5v10l-6-3.5"/></svg></button>
     <button id="btn-library" class="tb icon-tb" title="Add a model from the library" aria-label="Add model" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button id="btn-reset" class="tb icon-tb" title="Reset world: put everything back where it started" aria-label="Reset world"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg></button>
@@ -28,6 +33,10 @@
     <div class="top-menu">
       <button id="btn-top-menu" class="tb icon-tb" title="Menu" aria-label="Menu" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div id="top-menu" class="menu hidden" role="menu">
+        <button id="btn-world-m" class="mobile-only" role="menuitem">🌍<span>World rules</span></button>
+        <button id="btn-reset-m" class="mobile-only" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Reset world</button>
+        <button id="btn-follow-m" class="mobile-only" role="menuitemcheckbox" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h12v10H3zM15 10.5l6-3.5v10l-6-3.5"/></svg>Follow</button>
+        <div class="menu-sep mobile-only"></div>
         <button id="btn-pause" role="menuitem" title="Pause / resume the world"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="ico-pause" d="M9 5v14M15 5v14"/><path class="ico-play" d="M7 5v14l11-7z"/></svg><span>Pause</span></button>
         <button id="btn-export" role="menuitem" title="Save this world, with everything it knows, as a file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>Export world</button>
         <div class="menu-sep"></div>
@@ -43,16 +52,19 @@
   </aside>
 
   <aside id="inspector">
+    <button id="sheet-handle" class="sheet-handle" aria-label="Show more or less of this panel"><span></span></button>
     <div id="no-selection">
-      <h2>Click anything to teach it</h2>
+      <h2><span class="desktop-only">Click</span><span class="mobile-only">Tap</span> anything to teach it</h2>
       <p>A model, a house, a tree, a single brick, or the ground for rules about the whole world. Then describe what it should do in your own words.</p>
       <p>Only the thing you've selected hears the keys you press. Drag it to move it around.</p>
-      <p class="hint">Drag the sky or ground to orbit · Right-drag to pan · Scroll to zoom · Double-click a brick in a house or castle to pick just that brick</p>
+      <p class="hint desktop-only">Drag the sky or ground to orbit · Right-drag to pan · Scroll to zoom · Double-click a brick in a house or castle to pick just that brick</p>
+      <p class="hint mobile-only">One finger orbits, two fingers zoom and pan · Press and hold a brick in a house or castle to pick just that brick · While dragging, slide a second finger to turn it</p>
     </div>
     <div id="selection" class="hidden">
       <div class="sel-head">
         <span id="sel-swatch" class="swatch"></span>
         <h2 id="sel-name"></h2>
+        <span id="sel-lock" class="lock hidden"></span>
         <button id="btn-more" class="icon-btn" title="More" aria-haspopup="menu" aria-expanded="false">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
         </button>
@@ -106,6 +118,8 @@
     <div id="console-body"></div>
   </section>
 
+  <div id="toasts" aria-live="polite"></div>
+  <div id="net-status" class="hidden" role="status"></div>
   <div id="loading">Building the world…</div>
 </body>
 </html>
