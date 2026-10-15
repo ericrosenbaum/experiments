@@ -1,0 +1,27 @@
+name: Publish Brick Behaviors
+
+# Builds the page and publishes it to gh-pages/brick-behaviors/, which is
+# https://ericrosenbaum.github.io/experiments/brick-behaviors/ (the reusable
+# workflow on main does the publishing). Only the static page goes there: the
+# Claude endpoints need a server with an API key, so the offline helper
+# writes the code, and Play together needs the sim server (see the README).
+
+on:
+  push:
+    branches: [claude/brick-behaviors]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-brick-behaviors
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
+    with:
+      name: brick-behaviors
+      build: npm run build
+      dist: dist

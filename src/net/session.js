@@ -9,6 +9,8 @@ import { decodeSnapshot } from './codec.js';
 const DRAG_HZ = 20;
 const ID_KEY = 'brick-behaviors.player';
 const NAME_KEY = 'brick-behaviors.name';
+export const NO_ROOM_KEY = 'brick-behaviors.noroom'; // set when a page gave up on a room and went back to playing alone
+const TRIES_BEFORE_GIVING_UP = 2;
 const store = {
   get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { sessionStorage.setItem(k, v); } catch { /* blocked */ } },
@@ -38,6 +40,8 @@ export class NetSession {
     this.retry = 1000;
     this.drags = null;
     this.closed = false;
+    this.failures = 0;
+    this.everConnected = false;
   }
 
   get preset() { return WORLDS_BY_ID[this.worldId] ?? WORLDS_BY_ID.playground; }
@@ -74,6 +78,16 @@ export class NetSession {
       this.ws = null;
       for (const k of [...this.heldKeys]) this.heldKeys.delete(k);
       if (this.closed || this.full) return;
+      // Never got in at all (no sim server here, as on a static host): go
+      // back to playing alone rather than stare at an empty world.
+      if (!was && !this.everConnected && ++this.failures >= TRIES_BEFORE_GIVING_UP) {
+        this.closed = true;
+        store.set(NO_ROOM_KEY, '1');
+        const u = new URL(location.href);
+        u.searchParams.delete('room');
+        location.replace(u.href);
+        return;
+      }
       this.app.onConnection(was ? 'lost' : 'failed', this.retry);
       setTimeout(() => this._connect(), this.retry);
       this.retry = Math.min(30_000, this.retry * 2);
@@ -89,6 +103,7 @@ export class NetSession {
 
   on_welcome(m) {
     this.connected = true;
+    this.everConnected = true;
     this.me = { id: m.playerId, name: m.name, color: m.color };
     store.set(ID_KEY, m.playerId);
     store.set(NAME_KEY, m.name);

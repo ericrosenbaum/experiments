@@ -12,6 +12,7 @@ import { keyLabels, padGroups, padHtml } from './pad.js';
 import { describeTarget, applyTheme } from '../stage.js';
 import { dragBase, holdDrag } from '../world/drag.js';
 import { worldMessages } from '../behavior/messages.js';
+import { NO_ROOM_KEY } from '../net/session.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -78,6 +79,9 @@ export class App {
       if (!ok) this.log('🔧 No ANTHROPIC_API_KEY on the server, so a simple offline helper writes the code (it knows a fixed set of phrases). Start the dev server with a key to use Claude.');
     });
     if (this.net) { $('btn-pause').classList.add('hidden'); this.log(`🔗 Joining room “${this.session.room}”…`); }
+    try { // back from a room that had no server
+      if (sessionStorage.getItem(NO_ROOM_KEY)) { sessionStorage.removeItem(NO_ROOM_KEY); this.toast("Couldn't reach a room server, so you're playing alone"); this.log('🔗 Playing together needs the sim server (npm run sim). This page has none, so it runs alone.'); }
+    } catch { /* storage blocked */ }
     this.sheet.boot();
     this.session.start(location.hash.slice(1) || 'playground');
   }
