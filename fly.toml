@@ -12,7 +12,7 @@ primary_region = "ewr"
   MAX_ROOMS = "20"
   ROOM_IDLE_MS = "600000"
   # The page's origin(s), comma-separated. Leave unset to allow any.
-  # ORIGINS = "https://brick-behaviors.vercel.app"
+  ORIGINS = "https://brick-behaviors.vercel.app,https://brick-behaviors-eric-rosenbaums-projects.vercel.app"
 
 [http_service]
   internal_port = 8787
