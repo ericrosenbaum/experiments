@@ -92,6 +92,12 @@ const PEOPLE = [
     figure: { torso: 'white', arms: 'white', legs: 'tan', print: 'buttons', face: 'smile', hat: 'cap', hatColor: 'blue', held: { right: 'club' } },
   }),
   minifig({
+    id: 'kelvin', name: 'Kelvin',
+    blurb: 'A moody fellow in a black pinstripe suit and a purple vest, with wild black hair.',
+    examples: ['When I press h, wave the right arm and say "Hmph."', 'Go to the race car.', 'When it bumps into a brick, say "Watch it!" and back up.', 'Forever, turn the head left, wait 1 second, turn the head right.'],
+    figure: { torso: 'black', arms: 'black', hands: '#f1c9a3', legs: 'black', print: 'suit', legPrint: 'tails', face: 'scowl', hat: 'shaggy', hatColor: 'black' },
+  }),
+  minifig({
     id: 'red-player', name: 'Red Player',
     blurb: 'A Red team player in a red jersey and cap, ready for any game you make up.',
     examples: ['When I press space, kick the ball if it is close.', 'When it hears "red scores", jump and say "Goal!"', 'Go to the ball fast.', 'When it bumps into a blue player, play bonk and back up.'],

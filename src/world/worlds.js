@@ -43,7 +43,7 @@ export const WORLDS = [
     id: 'playground',
     name: 'Playground',
     emoji: '🧱',
-    blurb: 'Trees, two brick houses and a rainbow tower to knock over.',
+    blurb: 'Trees, two brick houses, a rainbow tower to knock over, and Kelvin.',
     theme: { ...SKY.day, ground: { base: '#3f9e44', stud: '#4db352', edge: '#2f7f34' } },
     camera: { pos: [-6, 19, -27], target: [0, 1, 3] },
     build(w) {
@@ -61,8 +61,10 @@ export const WORLDS = [
       { id: 'racecar', def: 'racecar', x: 0, z: 0 },
       { id: 'catapult', def: 'catapult', x: 9, z: -3, yaw: 25 },
       { id: 'skyship', def: 'skyship', x: 0, z: 23, yaw: 90, lift: 5 },
+      { id: 'kelvin', def: 'kelvin', x: 5.5, z: 8, yaw: 210 },
     ],
     behaviors: {
+      kelvin: [{ text: STEER }, { title: 'Brooding Hello', text: 'When I press h, wave the right arm and say "Hmph. Hello."' }],
       racecar: [
         {
           title: 'Steer with Arrows',

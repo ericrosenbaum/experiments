@@ -103,7 +103,7 @@ stage.load('playground');
   assert.ok(Math.hypot(hcopy.position.x, hcopy.position.z - 30) < 6, 'the house copy goes where it was asked');
   const above = stage.cloneActor(w.actor('ball'), 'above');
   assert.ok(above.position.y > w.actor('ball').position.y + 1.5, 'clone "above" stacks it on top');
-  assert.deepEqual(overlappingColliders(w), [], 'copies never start inside anything');
+  assert.deepEqual(overlappingColliders(w).map(([a, b, d]) => `${a.entity.id} x ${b.entity.id} by ${d.toFixed(2)}`), [], 'copies never start inside anything');
   console.log('ok: clone copies models, houses and balls with their behaviors, beside, at a place, or above');
 
   // removing a copy forgets it; removing an original is undone by Reset

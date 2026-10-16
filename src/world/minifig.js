@@ -8,7 +8,8 @@
 //   extruded     the legs (their side profile, with the foot sticking out)
 //   tube         the arms (bent forward at the elbow)
 //   cClip        the hands
-//   decal        faces and torso prints, drawn on a canvas
+//   wavyLathe    shaggy hair (a lathe whose profile changes around the axis)
+//   decal        faces, torso prints and leg prints, drawn on a canvas
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { material, colorHex } from './bricks.js';
@@ -66,6 +67,56 @@ export function shell(r, h, round, open = 0, thickness = 0.06, segments = 40) {
   const pts = [new THREE.Vector2(r - thickness, 0), new THREE.Vector2(r, 0), ...outer, new THREE.Vector2(0, h)];
   const gap = (open * Math.PI) / 180;
   const g = new THREE.LatheGeometry(pts, segments, gap / 2, Math.PI * 2 - gap);
+  return g;
+}
+
+// A lathe whose profile may change around the axis: profile(phi) gives the
+// [r, y] points for that angle (the same number for every angle), bottom to
+// top. phi = 0 is the front (+z), positive toward the figure's left (+x).
+export function wavyLathe(profile, segments = 64) {
+  const cols = [];
+  for (let i = 0; i <= segments; i++) cols.push(profile((i / segments) * Math.PI * 2));
+  const rows = cols[0].length;
+  const pos = [], uv = [], idx = [];
+  cols.forEach((pts, i) => {
+    const phi = (i / segments) * Math.PI * 2;
+    pts.forEach(([r, y], j) => { pos.push(r * Math.sin(phi), y, r * Math.cos(phi)); uv.push(i / segments, j / (rows - 1)); });
+  });
+  for (let i = 0; i < segments; i++) {
+    for (let j = 0; j < rows - 1; j++) {
+      const a = i * rows + j, b = (i + 1) * rows + j;
+      idx.push(a, a + 1, b, b, a + 1, b + 1);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setIndex(idx);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.computeVertexNormals();
+  const n = g.attributes.normal; // the first and last columns coincide: share their normals so there's no seam
+  for (let j = 0; j < rows; j++) {
+    const a = j, b = segments * rows + j;
+    const v = new THREE.Vector3(n.getX(a) + n.getX(b), n.getY(a) + n.getY(b), n.getZ(a) + n.getZ(b)).normalize();
+    n.setXYZ(a, v.x, v.y, v.z); n.setXYZ(b, v.x, v.y, v.z);
+  }
+  return g;
+}
+
+const smoothstep = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+// A thin surface that follows a side profile ([z, y] points, bottom to top),
+// `width` across x: a decal that can wrap a curved front. uv v runs along it.
+function strip(profile, width) {
+  const pos = [], uv = [], idx = [], d = [0];
+  for (let i = 1; i < profile.length; i++) d.push(d[i - 1] + Math.hypot(profile[i][0] - profile[i - 1][0], profile[i][1] - profile[i - 1][1]));
+  const len = d[d.length - 1];
+  profile.forEach(([z, y], i) => { for (const s of [-1, 1]) { pos.push((s * width) / 2, y, z); uv.push((s + 1) / 2, d[i] / len); } });
+  for (let i = 0; i < profile.length - 1; i++) { const a = 2 * i; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  const g = new THREE.BufferGeometry();
+  g.setIndex(idx);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.computeVertexNormals();
   return g;
 }
 
@@ -154,16 +205,47 @@ const FACES = {
     g.strokeStyle = '#111'; g.lineWidth = w * 0.012; g.lineCap = 'round';
     g.beginPath(); g.arc(w * 0.5, h * 0.6, w * 0.05, Math.PI * 0.25, Math.PI * 0.75); g.stroke();
   },
+  scowl(g, w, h) { // heavy brows (his left one arched higher), a pencil mustache, a frown, a soul patch and rusty stubble
+    g.fillStyle = '#111';
+    for (const x of [0.415, 0.585]) { g.beginPath(); g.ellipse(w * x, h * 0.544, w * 0.026, h * 0.066, 0, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = '#fff';
+    for (const x of [0.4, 0.57]) { g.beginPath(); g.arc(w * x, h * 0.51, w * 0.0085, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = '#111'; // brows: thick at the nose, tapering outward, outer ends higher
+    g.beginPath(); g.moveTo(w * 0.31, h * 0.425); g.lineTo(w * 0.455, h * 0.468); g.lineTo(w * 0.455, h * 0.534); g.lineTo(w * 0.31, h * 0.462); g.fill();
+    g.beginPath(); g.moveTo(w * 0.545, h * 0.446); g.lineTo(w * 0.545, h * 0.512); g.lineTo(w * 0.675, h * 0.42); g.lineTo(w * 0.675, h * 0.382); g.fill();
+    g.strokeStyle = '#111'; g.lineCap = 'round';
+    g.lineWidth = w * 0.0115; // a pencil mustache: two thin strokes from under the nose, drooping, hooked down at the ends
+    g.beginPath(); g.moveTo(w * 0.5, h * 0.68); g.quadraticCurveTo(w * 0.45, h * 0.69, w * 0.405, h * 0.718); g.moveTo(w * 0.5, h * 0.68); g.quadraticCurveTo(w * 0.55, h * 0.69, w * 0.595, h * 0.718); g.stroke();
+    g.lineWidth = w * 0.016;
+    g.beginPath(); g.moveTo(w * 0.408, h * 0.714); g.lineTo(w * 0.4, h * 0.742); g.moveTo(w * 0.592, h * 0.714); g.lineTo(w * 0.6, h * 0.742); g.stroke();
+    g.lineWidth = w * 0.012; // a thin frown
+    g.beginPath(); g.moveTo(w * 0.435, h * 0.826); g.quadraticCurveTo(w * 0.5, h * 0.794, w * 0.565, h * 0.826); g.stroke();
+    g.fillStyle = '#111'; // soul patch
+    g.beginPath(); g.moveTo(w * 0.477, h * 0.862); g.lineTo(w * 0.523, h * 0.862); g.lineTo(w * 0.5, h * 0.92); g.fill();
+    g.fillStyle = '#8f3f2add'; // rusty stubble: a beard shadow along each jaw, under the mouth and over the chin
+    const frac = (v) => v - Math.floor(v);
+    const dot = (x, y) => { g.beginPath(); g.arc(w * x, h * y, w * 0.006, 0, Math.PI * 2); g.fill(); };
+    for (let i = 0; i < 24; i++) { // a low-discrepancy scatter, so the dots don't line up
+      const a = frac(i * 0.7548776662 + 0.11), b = frac(i * 0.5698402910 + 0.29);
+      const t = 0.7 + 0.27 * b, u = 0.16 + (0.13 + 0.13 * b) * a; // the cheek widens toward the chin
+      dot(u, t); dot(1 - u + 0.01 * (a - 0.5), t + 0.01 * (b - 0.5));
+    }
+    for (let i = 0; i < 12; i++) dot(0.36 + 0.28 * frac(i * 0.7548776662 + 0.5), 0.93 + 0.065 * frac(i * 0.5698402910 + 0.7));
+    for (const [x, y] of [[0.43, 0.86], [0.455, 0.885], [0.57, 0.86], [0.545, 0.885]]) dot(x, y);
+  },
 };
 
-// The face wraps around the front of the head.
+// The face wraps around the front of the head, covering this much of its height (bottom to top).
+const FACE_SPAN = { scowl: [0.02, 0.92] };
 function face(kind) {
   const map = canvasTexture(512, 256, FACES[kind] ?? FACES.smile);
   if (!map) return null;
+  const [lo, hi] = FACE_SPAN[kind] ?? [0.07, 0.87];
   const arc = (150 * Math.PI) / 180;
-  const g = new THREE.CylinderGeometry(FIG.headR + 0.004, FIG.headR + 0.004, FIG.headH * 0.8, 40, 1, true, -arc / 2, arc);
+  const g = new THREE.CylinderGeometry(FIG.headR + 0.004, FIG.headR + 0.004, FIG.headH * (hi - lo), 40, 1, true, -arc / 2, arc);
   const m = new THREE.Mesh(g, decalMaterial(map));
-  m.position.y = FIG.headY + FIG.headH * 0.47;
+  m.name = 'face';
+  m.position.y = FIG.headY + FIG.headH * ((lo + hi) / 2);
   return m;
 }
 
@@ -201,7 +283,73 @@ const PRINTS = {
     g.fillStyle = '#f2f3f2'; g.beginPath(); g.arc(w * 0.66, h * 0.4, w * 0.075, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#1b1d20'; g.beginPath(); g.arc(w * 0.66, h * 0.4, w * 0.028, 0, Math.PI * 2); g.fill();
   },
+  suit(g, w, h) { // an open jacket, lapels drawn in light lines, over a narrow purple vest with six ring buttons; a white collar at the neck
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = '#ffffff2e'; g.lineWidth = w * 0.007; // faint drape lines down the jacket
+    for (const [x0, x1] of [[0.1, 0.13], [0.18, 0.21], [0.26, 0.3], [0.9, 0.87], [0.82, 0.79], [0.74, 0.7]]) { g.beginPath(); g.moveTo(w * x0, h * 0.12); g.quadraticCurveTo(w * ((x0 + x1) / 2 + (x0 < 0.5 ? 0.02 : -0.02)), h * 0.55, w * x1, h * 0.98); g.stroke(); }
+    g.fillStyle = '#f2f2ee'; g.beginPath(); g.moveTo(w * 0.456, 0); g.lineTo(w * 0.544, 0); g.lineTo(w * 0.5, h * 0.135); g.fill(); // shirt
+    const vestEdge = [[0.415, 0.04], [0.395, 0.257], [0.37, 0.624], [0.355, 0.882], [0.35, 0.95]]; // his right edge; mirrored for the left
+    const X = (m, u) => w * (0.5 + m * (u - 0.5));
+    g.fillStyle = '#6b43a8'; // vest, with a V neck around the shirt
+    g.beginPath(); g.moveTo(X(1, 0.415), h * 0.04); g.lineTo(w * 0.456, h * 0.02); g.lineTo(w * 0.5, h * 0.135); g.lineTo(w * 0.544, h * 0.02);
+    for (const [u, y] of vestEdge) g.lineTo(X(-1, u), h * y);
+    for (const [u, y] of [...vestEdge].reverse()) g.lineTo(X(1, u), h * y);
+    g.fill();
+    g.strokeStyle = '#b4aec8'; g.lineWidth = w * 0.011; // the jacket's edges and lapels
+    for (const m of [1, -1]) {
+      g.beginPath(); vestEdge.forEach(([u, y], k) => (k ? g.lineTo : g.moveTo).call(g, X(m, u), h * y)); g.stroke(); // front edge, along the vest
+      g.beginPath(); g.moveTo(X(m, 0.26), h * 0.055); g.quadraticCurveTo(X(m, 0.3), h * 0.5, X(m, 0.348), h * 0.882); g.stroke(); // lapel fold
+      g.beginPath(); g.moveTo(X(m, 0.26), h * 0.055); g.lineTo(X(m, 0.415), h * 0.04); g.stroke(); // collar
+    }
+    for (let i = 0; i < 6; i++) { // ring buttons down the vest
+      const y = h * (0.251 + i * 0.107);
+      g.fillStyle = '#8a63c4'; g.beginPath(); g.arc(w * 0.5, y, w * 0.028, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#2a1548'; g.lineWidth = w * 0.009; g.beginPath(); g.arc(w * 0.5, y, w * 0.028, 0, Math.PI * 2); g.stroke();
+    }
+  },
 };
+
+// Leg prints draw on the front of one leg (from the foot up over the rounded
+// hip joint) and on the hips. `side` is 1 for the figure's left leg, -1 for its right.
+const LEG_PRINTS = {
+  tails: { // a suit jacket's tails: its front edge comes down and curves out to a hem at mid-thigh, beside a side seam
+    leg(g, w, h, side) {
+      const X = (ox) => w * (side < 0 ? ox : 1 - ox); // ox: 0 at the leg's outer edge, 1 at the inner
+      g.strokeStyle = '#b4b4b4'; g.lineWidth = Math.max(1.5, w * 0.03); g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(X(0.67), 0); g.lineTo(X(0.67), h * 0.25); g.quadraticCurveTo(X(0.5), h * 0.42, X(0.21), h * 0.5); g.lineTo(X(0), h * 0.52); g.stroke();
+      g.beginPath(); g.moveTo(X(0.21), 0); g.lineTo(X(0.21), h * 0.5); g.stroke();
+    },
+    hips(g, w, h) {
+      g.strokeStyle = '#b4b4b4'; g.lineWidth = Math.max(1.5, w * 0.013); g.lineCap = 'round';
+      for (const u of [0.5 - 0.426, 0.5 - 0.191, 0.5 + 0.191, 0.5 + 0.426]) { g.beginPath(); g.moveTo(w * u, 0); g.lineTo(w * u, h); g.stroke(); }
+    },
+  },
+};
+
+// The print on one leg, in that leg's frame (it swings with it): a strip up
+// the flat front and over the rounded top of the thigh.
+function legPrint(kind, side) {
+  const map = kind && canvasTexture(128, 256, (g, w, h) => LEG_PRINTS[kind].leg(g, w, h, side));
+  if (!map) return null;
+  const { legH, footH, thighFront: tf, legW } = FIG;
+  const z = tf + 0.034, r = 0.354; // just outside the leg's bevelled surface
+  const profile = [[z, footH + 0.02], [z, legH - 0.32]];
+  for (let i = 1; i <= 6; i++) { const a = (i / 6) * (Math.PI / 2); profile.push([tf - 0.32 + r * Math.cos(a), legH - 0.32 + r * Math.sin(a)]); }
+  const m = new THREE.Mesh(strip(profile, legW - 0.1), decalMaterial(map));
+  m.name = 'legprint';
+  m.position.y = -(legH - 0.3);
+  return m;
+}
+
+// The same print's part on the hips, on their front face.
+function hipPrint(kind) {
+  const map = kind && canvasTexture(256, 64, LEG_PRINTS[kind].hips);
+  if (!map) return null;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(FIG.torsoBottomW - 0.06, FIG.hipH - 0.04), decalMaterial(map));
+  m.name = 'hipprint';
+  m.position.set(0, FIG.hipY + FIG.hipH / 2, (FIG.torsoD - 0.24) / 2 - 0.12 + 0.004);
+  return m;
+}
 
 function torsoPrint(kind) {
   const map = kind && canvasTexture(256, 256, PRINTS[kind]);
@@ -212,6 +360,7 @@ function torsoPrint(kind) {
   const p = g.attributes.position, uv = g.attributes.uv;
   for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) + b / 2) / b, p.getY(i) / h);
   const m = new THREE.Mesh(g, decalMaterial(map));
+  m.name = 'print';
   m.position.set(0, FIG.torsoY, d / 2 + 0.004);
   return m;
 }
@@ -228,6 +377,52 @@ const HATS = {
     top.position.y = FIG.headY + FIG.headH * 0.82;
     g.add(back, top);
     return g;
+  },
+  shaggy(color = 'black') { // long tousled hair, parted at the top left: a lock to his right brow, a long strand sweeping across his left temple, down past the ears
+    const r = FIG.headR + 0.09;
+    const { headY: y0, headH } = FIG;
+    const shoulderY = y0 + headH * 0.84, top = y0 + headH + 0.32;
+    // where the hair ends, around the head (degrees from the front, positive toward his left), as a fraction of the head's height
+    const edge = [[-180, -0.08], [-120, 0.04], [-90, 0.14], [-65, 0.22], [-47, 0.47], [-35, 0.58], [-25, 0.6], [-8, 0.62], [10, 0.64], [24, 0.47], [38, 0.37], [50, 0.45], [62, 0.3], [75, 0.15], [90, 0.14], [120, 0.04], [180, -0.08]];
+    const hairline = (deg) => {
+      let i = 1;
+      while (edge[i][0] < deg) i++;
+      const [a0, h0] = edge[i - 1], [a1, h1] = edge[i];
+      return h0 + ((deg - a0) / (a1 - a0)) * (h1 - h0);
+    };
+    const g = wavyLathe((phi) => {
+      const deg = ((phi * 180) / Math.PI + 180) % 360 - 180;
+      const wavy = 0.04 * Math.abs(Math.sin(phi * 5)) * smoothstep(50, 80, Math.abs(deg)); // ragged ends at the sides and back
+      const bottom = y0 + headH * hairline(deg) - wavy;
+      const bulge = 0.04 * (0.5 + 0.5 * Math.sin(7 * phi + 2));
+      const pts = [[r, bottom], [r + bulge * 0.5, (bottom + shoulderY) / 2], [r + bulge, shoulderY]];
+      for (let i = 1; i <= 8; i++) {
+        const a = (i / 8) * (Math.PI / 2);
+        pts.push([(r + bulge) * Math.cos(a), shoulderY + (top - shoulderY) * Math.sin(a)]);
+      }
+      return pts;
+    });
+    const hair = new THREE.Group();
+    hair.add(mesh(g, color, { material: doubleSided(color) }));
+    // locks: flat tufts on the crown, swept from the part toward his left, plus the strand that lies across his left temple
+    const DEG = Math.PI / 180, up = new THREE.Vector3(0, 1, 0);
+    const locks = [ // [around, elevation, length, out, lean x, lean y, lean z]
+      [-40, 55, 0.5, 0.5, -0.5, 0.45, 0.1], [-10, 78, 0.6, 0.3, 0.8, 0.25, 0.1], [20, 70, 0.65, 0.3, 0.8, 0, 0.1], [45, 58, 0.65, 0.3, 0.7, -0.3, 0], [70, 40, 0.65, 0.35, 0.4, -0.6, -0.2],
+      [-12, 12, 1.05, 0.15, 0.85, -0.6, 0.15], [-75, 20, 0.6, 0.8, -0.3, 0.1, 0.2],
+      [150, 50, 0.6, 0.35, 0.5, 0, -0.7], [-150, 45, 0.6, 0.35, -0.2, 0.1, -0.8], [-115, 62, 0.55, 0.35, 0.3, 0.1, -0.7],
+    ];
+    for (const [phi, el, len, out, lx, ly, lz] of locks) {
+      const a = phi * DEG, e = el * DEG;
+      const radial = new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e));
+      const at = new THREE.Vector3(r * radial.x, shoulderY + (top - shoulderY) * radial.y, r * radial.z);
+      const dir = radial.clone().multiplyScalar(out).add(new THREE.Vector3(lx, ly, lz)).normalize();
+      const tuft = mesh(new THREE.ConeGeometry(0.3, len, 14), color);
+      tuft.scale.z = 0.45;
+      tuft.quaternion.setFromUnitVectors(up, dir);
+      tuft.position.copy(at).add(dir.multiplyScalar(len / 2 - 0.26));
+      hair.add(tuft);
+    }
+    return hair;
   },
   cap(color = 'red') { // a ball cap with a brim
     const g = new THREE.Group();
@@ -367,7 +562,7 @@ const HELD = {
 
 // ---- the figure ---------------------------------------------------------------------
 
-// spec: {torso, arms, hands, hips, legs, head, face, print, hat, hatColor, held: {left, right}}
+// spec: {torso, arms, hands, hips, legs, head, face, print, legPrint, hat, hatColor, held: {left, right}}
 // Returns groups in figure space: body (legs, hips, torso, neck), head, leftArm, rightArm, legs: [left, right].
 export function buildMinifig(spec = {}) {
   const c = {
@@ -391,6 +586,8 @@ export function buildMinifig(spec = {}) {
     const m = mesh(legGeo, c.legs);
     m.position.y = -(legH - 0.3);
     leg.add(m);
+    const lp = legPrint(c.legPrint, side);
+    if (lp) leg.add(lp);
     body.add(leg);
     legs.push(leg);
   }
@@ -399,6 +596,8 @@ export function buildMinifig(spec = {}) {
   const hips = mesh(new THREE.BoxGeometry(FIG.torsoBottomW, FIG.hipH, FIG.torsoD - 0.24), c.hips);
   hips.position.set(0, FIG.hipY + FIG.hipH / 2, -0.12);
   body.add(hips);
+  const hp = hipPrint(c.legPrint);
+  if (hp) body.add(hp);
 
   // torso, and whatever is printed on it
   const torso = mesh(taperedBox(FIG.torsoBottomW, FIG.torsoTopW, FIG.torsoH, FIG.torsoD), c.torso);
@@ -415,6 +614,7 @@ export function buildMinifig(spec = {}) {
   // head: rounded cylinder, stud on top, a face, maybe a hat
   const head = new THREE.Group();
   const skull = mesh(roundedCylinder(FIG.headR, FIG.headH, 0.2, 0.15), c.head);
+  skull.name = 'skull';
   skull.position.y = FIG.headY;
   const stud = mesh(new THREE.CylinderGeometry(FIG.studR, FIG.studR, FIG.studH + 0.05, 24), c.head);
   stud.position.y = FIG.headY + FIG.headH + FIG.studH / 2 - 0.025;
@@ -425,6 +625,7 @@ export function buildMinifig(spec = {}) {
   if (c.hat && HATS[c.hat]) {
     // Hats don't cast shadows: a brim's soft shadow edge stripes the curved face under it.
     const hat = HATS[c.hat](c.hatColor);
+    hat.name = 'hat';
     hat.traverse((o) => { o.castShadow = false; });
     head.add(hat);
   }
