@@ -186,22 +186,22 @@ export const OBJECTS = [
     build: (w, { x, z, yaw, id, name }) => Props.fence(w, id, x, z, 12, { yaw: yaw + 90, name, dynamic: true }),
   },
   {
-    id: 'ramp', tags: 'jump', name: 'Ramp', color: 'gray', category: 'buildings', bounds: { min: [-4, 0, -5], max: [4, 2.5, 6.5] },
+    id: 'ramp', tags: 'jump', name: 'Ramp', color: 'gray', category: 'buildings', bounds: { min: [-4, 0, -6.5], max: [4, 2.5, 5] },
     blurb: 'A ramp to jump a car or roll a ball off. It stays where you put it.',
     examples: ['When the car touches it, play whoosh.'],
     build: (w, { x, z, yaw, id, name }) => w.addStatic({
-      kind: 'ramp', name, color: 'gray', x, z, yaw: yaw + 180, thingId: id, // the low end toward you
+      kind: 'ramp', name, color: 'gray', x, z, yaw, thingId: id, // the low end in front, toward you
       boxes: [box(0, 1.15, 0, 8, 0.4, 10, 'gray', { rot: [0.24, 0, 0], studs: false }), box(0, 1.25, -5.7, 8, 2.5, 1.6, 'darkgray', { studs: false })],
     }),
   },
   {
-    id: 'big-ramp', tags: 'jump', name: 'Big Ramp', color: 'orange', category: 'buildings', bounds: { min: [-5, 0, -8.3], max: [5, 4.6, 9.8] },
+    id: 'big-ramp', tags: 'jump', name: 'Big Ramp', color: 'orange', category: 'buildings', bounds: { min: [-5, 0, -9.8], max: [5, 4.6, 8.3] },
     blurb: 'A long, steep ramp for big jumps.',
     examples: ['When the car touches it, play whoosh.'],
     build: (w, { x, z, yaw, id, name }) => {
       const len = 16, height = 4.4, a = Math.atan2(height, len), slab = Math.hypot(len, height);
       w.addStatic({
-        kind: 'ramp', name, color: 'orange', x, z, yaw: yaw + 180, thingId: id,
+        kind: 'ramp', name, color: 'orange', x, z, yaw, thingId: id,
         boxes: [
           box(0, height / 2 - 0.25, 0, 10, 0.5, slab, 'orange', { rot: [a, 0, 0], studs: false }),
           box(0, (height - 0.5) / 2, -len / 2 - 0.9, 10, height - 0.5, 1.6, 'darkgray', { studs: false }),

@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { LIBRARY, LIBRARY_BY_ID, CATEGORIES, modelBottom } from '../world/library.js';
 import { OBJECTS } from '../world/objects.js';
+import { Thumbnails } from './thumbs.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, findNamedBehaviors, probeClaude } from '../behavior/generate.js';
@@ -185,7 +186,7 @@ export class App {
   // search box that stay at the top of the panel.
   _buildLibrary() {
     const list = $('library-list'), cats = $('library-cats'), search = $('library-search');
-    const sections = [];
+    const sections = [], thumbs = [];
     for (const [cat, title] of CATEGORIES) {
       const defs = [...LIBRARY, ...OBJECTS].filter((d) => d.category === cat);
       if (!defs.length) continue;
@@ -194,16 +195,21 @@ export class App {
       h.id = `lib-${cat}`;
       h.textContent = title;
       list.appendChild(h);
+      const grid = document.createElement('div');
+      grid.className = 'lib-grid';
+      list.appendChild(grid);
+      // a tile: its picture (its color until the picture is ready), and its name on hover
       const cards = defs.map((def) => {
         const b = document.createElement('button');
         b.className = 'lib-card';
-        const parts = def.parts ? `<br><small>Parts: ${esc(def.parts.map((p) => p.name).join(', ') || 'none')}</small>` : '';
-        const taught = def.behaviors?.length ? `<br><small>Comes knowing: ${esc(def.behaviors.map((x) => x.title).join(', '))}</small>` : '';
-        b.innerHTML = `<span class="swatch" style="background:${css(def.color)}"></span><span><b>${esc(def.name)}</b><small>${esc(def.blurb)}</small>${parts}${taught}</span>`;
+        const taught = def.behaviors?.length ? ` Comes knowing: ${def.behaviors.map((x) => x.title).join(', ')}.` : '';
+        b.setAttribute('aria-label', `${def.name}. ${def.blurb}${taught}`);
+        b.innerHTML = `<span class="lib-thumb"><span class="swatch" style="background:${css(def.color)}"></span></span><span class="lib-name">${esc(def.name)}</span>${taught ? '<span class="lib-taught" aria-hidden="true">★</span>' : ''}`;
         b.dataset.find = `${def.name} ${def.id.replace(/-/g, ' ')} ${title} ${def.tags ?? ''}`.toLowerCase();
         b.dataset.more = def.blurb.toLowerCase();
         b.onclick = () => { this.addModel(def.id); this.setLibrary(false); };
-        list.appendChild(b);
+        grid.appendChild(b);
+        thumbs.push([def, b]);
         return b;
       });
       const link = document.createElement('button');
@@ -214,8 +220,20 @@ export class App {
         h.scrollIntoView({ block: 'start', behavior: 'smooth' });
       };
       cats.appendChild(link);
-      sections.push({ h, cards, link });
+      sections.push({ h, grid, cards, link });
     }
+    // the pictures, drawn in the background once the world has loaded
+    setTimeout(() => {
+      try {
+        const byDef = new Map(thumbs);
+        new Thumbnails().all(thumbs.map(([def]) => def), (def, url) => {
+          const img = new Image();
+          img.alt = '';
+          img.src = url;
+          byDef.get(def).querySelector('.lib-thumb').replaceChildren(img);
+        });
+      } catch (err) { console.warn(`no library pictures: ${err.message}`); } // no WebGL to spare: the colors stay
+    }, 1500);
     // every word typed has to appear in a card's name, section or keywords;
     // if nothing matches that way, its description will do
     const filter = () => {
@@ -224,10 +242,11 @@ export class App {
       const named = all.filter((c) => words.every((w) => c.dataset.find.includes(w)));
       const show = new Set(named.length ? named : all.filter((c) => words.every((w) => `${c.dataset.find} ${c.dataset.more}`.includes(w))));
       let any = false;
-      for (const { h, cards, link } of sections) {
+      for (const { h, grid, cards, link } of sections) {
         let shown = 0;
         for (const c of cards) { const ok = show.has(c); c.classList.toggle('hidden', !ok); shown += ok; }
         h.classList.toggle('hidden', !shown);
+        grid.classList.toggle('hidden', !shown);
         link.classList.toggle('empty', !shown);
         any ||= shown > 0;
       }
