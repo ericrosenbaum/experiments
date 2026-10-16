@@ -810,12 +810,17 @@ export class World {
 
   // A mirror never steps, so its shape casts and rays would see where things
   // were when it was built. A step of no time at all refreshes them without
-  // moving anything.
+  // moving anything. But the solver still runs, and with no time to fix a
+  // joint's error in it asks for enormous speeds (a race car's rider would be
+  // thrown far away on the next real step), so every speed is put back after.
   refreshQueries() {
+    const saved = [];
+    this.physics.forEachRigidBody((b) => { if (b.isDynamic()) saved.push([b, b.linvel(), b.angvel()]); });
     const dt = this.physics.timestep;
     this.physics.timestep = 0;
     this.physics.step();
     this.physics.timestep = dt;
+    for (const [b, v, w] of saved) { b.setLinvel(v, false); b.setAngvel(w, false); }
   }
 
   // Ground speed of an entity's main body. A mirror has no velocities, so it

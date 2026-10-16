@@ -95,4 +95,21 @@ for (const id of Object.keys(LIBRARY_BY_ID)) {
   assert.equal(planPath(pw, new THREE.Vector3(-60, 0, 0), new THREE.Vector3(-40, 0, 0), opts), null, 'a walled-in goal has no path');
   console.log('ok: goTo plans around a wall, goes straight when clear, and knows when there is no way');
 }
+
+// Refreshing queries (done at the start of every drag) leaves speeds alone:
+// a zero-length step used to fling a driving race car's rider.
+{
+  const car = w.addModel(LIBRARY_BY_ID.racecar, { x: 60, z: 60, yaw: 0 });
+  run(w, 0.5);
+  car.control.drive = 8;
+  car.control.steer = 0.5;
+  run(w, 0.5);
+  const speed = (b) => { const v = b.linvel(); return Math.hypot(v.x, v.y, v.z); };
+  const before = speed(car.rider.body);
+  w.refreshQueries();
+  assert.ok(Math.abs(speed(car.rider.body) - before) < 0.01, `rider speed ${before.toFixed(1)} -> ${speed(car.rider.body).toFixed(1)} after refreshQueries`);
+  car.control.drive = 0;
+  car.control.steer = 0;
+  console.log('ok: refreshing queries leaves a driving race car\'s rider alone');
+}
 console.log('physics: all checks passed');
