@@ -91,6 +91,10 @@ function findParts(phrase, model) {
   if (exact.length) return exact;
   if (/\barms\b/.test(t)) return names.filter((n) => n.includes('arm'));
   if (/\bwheels\b/.test(t)) return names.filter((n) => n.includes('wheel'));
+  for (const w of t.match(/\b[a-z]{3,}s\b/g) ?? []) { // a plural for several parts: "rollers", "paddles"
+    const all = names.filter((n) => n.split(' ').includes(w.slice(0, -1)));
+    if (all.length > 1) return all;
+  }
   for (const n of names) {
     const last = n.split(' ').pop();
     if (new RegExp(`\\b${last}\\b`).test(t) && !['wheel'].includes(last)) return [n];
@@ -313,6 +317,26 @@ const ACTIONS = [
     const thing = flower ? 'flower' : 'brick';
     const label = `${m[1]} ${count > 1 ? count + ' ' : 'a '}${color ?? ''} ${thing}${count > 1 ? 's' : ''}`.replace(/\s+/g, ' ');
     return { code: count > 1 ? [`for (let i = 0; i < ${count}; i++) { ${c} await wait(0.25); }`] : [c], label };
+  },
+
+  // sliding parts: launch a spring pad, raise or lower a lift, press a button
+  (p, ctx) => {
+    const sliders = (ctx.model?.parts ?? []).filter((x) => x.kind === 'slider');
+    if (!sliders.length) return null;
+    const named = findParts(p, ctx.model).map((n) => sliders.find((s) => s.name === n)).filter(Boolean);
+    // launching needs no part named; raising, lowering or pressing one does
+    const verb = (p.match(/^(launch|bounce|boing|spring|pop|raise|lift|lower|press|slide)\b/) || [])[1];
+    if (!verb || (!named.length && !/^(launch|bounce|boing|spring|pop)$/.test(verb))) return null;
+    const s = named[0] ?? sliders[0];
+    const pr = `part(${q(s.name)})`;
+    const [lo, hi] = s.limits;
+    const amount = Number((p.match(/\b(\d+(?:\.\d+)?)\s*studs?\b/) || [])[1]);
+    if (verb === 'lower' || /\bdown\b/.test(p)) return { code: [`await ${pr}.slideTo(${lo});`], label: `lower the ${s.name}` };
+    const to = Number.isFinite(amount) ? amount : hi;
+    if (s.spring || verb !== 'raise' && verb !== 'lift' && verb !== 'slide') {
+      return { code: [`await ${pr}.slideTo(${to});`, 'play("boing");', `await ${pr}.slideTo(0);`], label: `launch the ${s.name}` };
+    }
+    return { code: [`await ${pr}.slideTo(${to});`], label: `raise the ${s.name}` };
   },
 
   // catapult-ish: fling / swing / launch with a part

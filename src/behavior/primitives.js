@@ -53,7 +53,8 @@ export const PRIMITIVES = [
 
   // parts (identified by name or pointing)
   ['part(name).spin(speed)', 'Spin a part continuously (degrees per second, negative = other way). part(name).spin(0) stops it.', 'action'],
-  ['await part(name).turnTo(degrees)', 'Swing a hinged part (arm, head, tail, bucket...) to an angle. 0 is its starting pose.', 'wait'],
+  ['await part(name).turnTo(degrees)', 'Swing a hinged part (arm, head, tail, bucket...) to an angle. 0 is its starting pose. A free-swinging part (a see-saw, a pendulum) is pushed there, then let go.', 'wait'],
+  ['await part(name).slideTo(distance)', 'Slide a sliding part (a spring pad, a lift, a button) along its track, in studs. 0 is its starting place. A fast slide throws whatever is riding on it.', 'wait'],
   ['await part(name).wiggle(times)', 'Wiggle a part back and forth, like a wave or a wag.', 'wait'],
   ['part(name).color(color)', 'Change a part\'s color.', 'action'],
   ['color(color)', 'Change this thing\'s color (a model\'s body, every brick of an assembly, or the World\'s ground).', 'action'],
@@ -99,7 +100,7 @@ export const HOST_COMMANDS = new Set([
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).
 export const HOST_QUERIES = new Set([
-  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone', 'see',
+  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partSlideTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone', 'see',
 ]);
 
 export function primitivesReference() {

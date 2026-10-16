@@ -22,6 +22,8 @@ const RIDER_BOXES = [
 // How sudden a change in a model's speed in one physics step throws its rider
 // out (studs a second): driving, steering and bumps stay well under this.
 const RIDER_JOLT = 9;
+// A spinning hinge's limits (radians): see hingeLimits.
+const SPIN_LIMIT = Math.PI * 0.999;
 const toWorldPoint = (local, q, x, y, z) => local.clone().applyQuaternion(q).add(new THREE.Vector3(x, y, z));
 
 // Pen lines: matte, colored per vertex, drawn from both sides.
@@ -270,7 +272,7 @@ export class World {
     for (const p of def.parts) {
       const anchorLocal = p.kind === 'wheel' ? p.at : p.pivot;
       const wp = toWorld(anchorLocal);
-      const body = this.physics.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(wp.x, wp.y, wp.z).setRotation(q).setCanSleep(false).setAngularDamping(p.kind === 'wheel' ? 0.2 : 2));
+      const body = this.physics.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(wp.x, wp.y, wp.z).setRotation(q).setCanSleep(false).setAngularDamping(p.damping ?? (p.kind === 'wheel' ? 0.2 : 2)));
       const obj = new THREE.Group();
       if (p.kind === 'wheel') {
         const desc = R.ColliderDesc.ball(p.radius).setFriction(1.6).setDensity(0.6);
@@ -281,7 +283,12 @@ export class World {
       } else {
         for (const br of p.bricks) {
           const [w, h, d] = br.size;
-          const desc = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...br.at).setFriction(0.7).setDensity(p.density ?? 0.5);
+          // round pieces (rollers, turntables) are cylinders, so they roll smoothly
+          const round = br.shape === 'round' && !br.rot;
+          const [rw, rh, rd] = br.axis === 'x' ? [h, w, d] : br.axis === 'z' ? [w, d, h] : [w, h, d];
+          const desc = (round ? R.ColliderDesc.cylinder(rh / 2, Math.min(rw, rd) / 2) : R.ColliderDesc.cuboid(w / 2, h / 2, d / 2))
+            .setTranslation(...br.at).setFriction(p.friction ?? 0.7).setDensity(br.density ?? p.density ?? 0.5);
+          if (round && br.axis) desc.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...(br.axis === 'x' ? [0, 0, Math.PI / 2] : [Math.PI / 2, 0, 0]))));
           if (br.rot) desc.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...br.rot, br.rotOrder ?? 'XYZ')));
           this._attachCollider(desc, body, e, p.name, br.color);
           if (br.hidden) continue;
@@ -302,19 +309,21 @@ export class World {
       }
       this.scene.add(obj);
       const axis = p.kind === 'wheel' ? { x: 1, y: 0, z: 0 } : { x: p.axis[0], y: p.axis[1], z: p.axis[2] };
-      const jd = R.JointData.revolute(
-        { x: anchorLocal[0], y: anchorLocal[1], z: anchorLocal[2] }, { x: 0, y: 0, z: 0 }, axis);
+      const anchor = { x: anchorLocal[0], y: anchorLocal[1], z: anchorLocal[2] };
+      const jd = p.kind === 'slider' ? R.JointData.prismatic(anchor, { x: 0, y: 0, z: 0 }, axis) : R.JointData.revolute(anchor, { x: 0, y: 0, z: 0 }, axis);
       const joint = this.physics.createImpulseJoint(jd, chassis, body, true);
       joint.setContactsEnabled(false);
-      if (p.kind === 'hinge') {
-        const [lo, hi] = p.limits ?? [-180, 180];
-        const s = p.sign ?? 1;
-        joint.setLimits(Math.min(lo * s, hi * s) * DEG, Math.max(lo * s, hi * s) * DEG);
+      if (p.kind === 'slider') {
+        const [lo, hi] = p.limits;
+        joint.setLimits(lo, hi);
+        joint.configureMotorPosition(0, 400 * (p.strength ?? 1), 40 * (p.strength ?? 1));
+      } else if (p.kind === 'hinge') {
+        this.hingeLimits(p, joint);
         joint.configureMotorPosition(0, 400 * (p.strength ?? 1), 40 * (p.strength ?? 1));
       } else {
         joint.configureMotorVelocity(0, 4);
       }
-      const part = { def: p, body, joint, object3d: obj, angle: 0, spin: 0, colorOverride: null };
+      const part = { def: p, body, joint, object3d: obj, angle: 0, spin: 0, slide: 0, hold: false, colorOverride: null };
       e.parts.set(p.name, part);
       e.bodies.push({ body, object3d: obj, part: p.name });
     }
@@ -780,14 +789,33 @@ export class World {
       const av = e.chassis.angvel();
       e.chassis.setAngvel({ x: 0, y: av.y + (c.steer * DEG - av.y) * 0.3, z: 0 }, true);
     }
+    const carried = new Set();
     for (const p of e.parts.values()) {
+      const str = p.def.strength ?? 1;
+      if (p.def.kind === 'slider') {
+        // Ease the target along the track at the part's speed: a fast one
+        // (a spring pad) throws whatever is riding on it when it stops.
+        p.cmdSlide ??= 0;
+        const step = (p.def.speed ?? 6) * dt;
+        p.cmdSlide += Math.max(-step, Math.min(step, p.slide - p.cmdSlide));
+        p.joint.configureMotorPosition(p.cmdSlide, 400 * str, 40 * str);
+        continue;
+      }
       if (p.def.kind !== 'hinge') continue;
       const s = p.def.sign ?? 1;
-      const str = p.def.strength ?? 1;
+      if (p.def.free && !p.spin && !p.hold) {
+        // A free hinge (a see-saw, a pendulum) swings however it's pushed,
+        // with a little friction; the motor takes over from where it is.
+        p.joint.configureMotorVelocity(0, p.def.drag ?? 0.5);
+        p.cmdAngle = this.partPose(e, p);
+        p.angle = p.cmdAngle;
+        continue;
+      }
       if (p.spin) {
         // spinning a hinge: open its limits and drive by velocity
-        p.joint.setLimits(-1e6, 1e6);
+        this.hingeLimits(p.def, p.joint, true);
         p.joint.configureMotorVelocity(p.spin * DEG * s, 20 * str);
+        if (p.def.carry) this._carry(e, p, carried);
       } else {
         // Ease the motor target toward the requested angle at the part's
         // swing speed, so motions are smooth and throws have a sane speed.
@@ -797,6 +825,50 @@ export class World {
         p.joint.configureMotorPosition(p.cmdAngle * DEG * s, 600 * str, 50 * str);
       }
     }
+  }
+
+  // Set a hinge's limits (kid-facing degrees in def.limits), or open them
+  // for spinning. A hinge that goes all the way round gets none at all:
+  // Rapier's limits misbehave near ±180° (wider than that they lock the
+  // joint; even at ±180° a heavy model can jam a spinning part at half a turn).
+  hingeLimits(def, joint, spinning = false) {
+    const [lo, hi] = def.limits ?? [-180, 180];
+    if (hi - lo >= 360) return;
+    if (spinning) { joint.setLimits(-SPIN_LIMIT, SPIN_LIMIT); return; }
+    const s = def.sign ?? 1;
+    joint.setLimits(Math.min(lo * s, hi * s) * DEG, Math.max(lo * s, hi * s) * DEG);
+  }
+
+  // A spinning roller (carry: its radius) moves what's on it along at its
+  // surface speed, like a belt. Rapier alone would just spin a ball sitting
+  // between two rollers in place. Each thing is nudged once per step.
+  _carry(e, p, carried) {
+    const f = e.forward(), speed = p.spin * DEG * p.def.carry;
+    for (let i = 0; i < p.body.numColliders(); i++) {
+      this.physics.contactPairsWith(p.body.collider(i), (other) => {
+        const body = other.parent();
+        if (!body?.isDynamic() || carried.has(body.handle) || this.colliderInfo.get(other.handle)?.entity === e) return;
+        carried.add(body.handle);
+        const v = body.linvel(), along = v.x * f.x + v.z * f.z, k = (speed - along) * 0.15;
+        body.setLinvel({ x: v.x + f.x * k, y: v.y, z: v.z + f.z * k }, true);
+      });
+    }
+  }
+
+  // Where a part is now, the way programs say it: a hinge's angle in degrees
+  // (positive up/forward/left) or how far a slider is along its track.
+  partPose(e, p) {
+    const c = e.chassis.rotation(), cq = new THREE.Quaternion(c.x, c.y, c.z, c.w);
+    const axis = new THREE.Vector3(...p.def.axis);
+    if (p.def.kind === 'slider') {
+      const t = p.body.translation(), o = e.chassis.translation();
+      const rest = new THREE.Vector3(...p.def.pivot).applyQuaternion(cq).add(new THREE.Vector3(o.x, o.y, o.z));
+      return new THREE.Vector3(t.x, t.y, t.z).sub(rest).dot(axis.applyQuaternion(cq));
+    }
+    const r = p.body.rotation();
+    const rel = cq.invert().multiply(new THREE.Quaternion(r.x, r.y, r.z, r.w));
+    const a = 2 * Math.atan2(rel.x * axis.x + rel.y * axis.y + rel.z * axis.z, rel.w) / DEG;
+    return ((a + 540) % 360 - 180) * (p.def.sign ?? 1);
   }
 
   // ---- stepping -------------------------------------------------------------
@@ -915,12 +987,8 @@ export class World {
       p.body.setRotation(q, true);
       p.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       p.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-      p.angle = 0; p.spin = 0; p.cmdAngle = 0;
-      if (p.def.kind === 'hinge') {
-        const [lo, hi] = p.def.limits ?? [-180, 180];
-        const s = p.def.sign ?? 1;
-        p.joint.setLimits(Math.min(lo * s, hi * s) * DEG, Math.max(lo * s, hi * s) * DEG);
-      }
+      p.angle = 0; p.spin = 0; p.cmdAngle = 0; p.slide = 0; p.cmdSlide = 0; p.hold = false;
+      if (p.def.kind === 'hinge') this.hingeLimits(p.def, p.joint);
     }
   }
 

@@ -6,12 +6,16 @@
 import * as P from './props.js';
 import { RAINBOW } from './props.js';
 import { SCOREBOARD, ballBehavior, KICK, goalFor } from './games.js';
+import { MACHINES, dominoes } from './machines.js';
 
 const RAINBOW_UP = [...RAINBOW].reverse(); // purple at the bottom, red on top
 import { BRICK_H as B } from './bricks.js';
 
 const ARROWS = 'When I press the up arrow, drive forward fast. When I press the down arrow, drive backward fast. While I hold left, turn left very fast. While I hold right, turn right very fast.';
 const STEER = ARROWS;
+
+const TOY = Object.fromEntries(MACHINES.map((d) => [d.id, d.behaviors]));
+const hears = (message, title, does, code) => ({ title, text: `When it hears "${message}", ${does}.`, summary: [`When it hears "${message}": ${does}`], code: `onMessage("${message}", async () => {\n${code.replace(/^/gm, '  ')}\n});` });
 
 const SKY = {
   day: { sky: 0x9fd3f5, fog: [90, 190], hemi: [0xdff1ff, 0x5d7a3a, 1.4], sun: [0xfff4dd, 2.4] },
@@ -87,6 +91,55 @@ export const WORLDS = [
       ],
     },
     select: 'racecar',
+  },
+
+  {
+    id: 'machines',
+    name: 'Machine Shop',
+    emoji: '⚙️',
+    blurb: 'A chain reaction ready to go, and mechanical toys to build your own: see-saws, springs, spinners, rollers, a lift, a button and a bell.',
+    theme: { ...SKY.day, ground: { base: '#8a8f96', stud: '#9aa0a8', edge: '#6e737a' } },
+    camera: { pos: [-12, 30, -42], target: [-9, 0, 4] },
+    build(w) {
+      // The chain: the pendulum knocks a ball into the dominoes, the last
+      // domino lands on the button, the button tells everyone "go", the
+      // see-saw flings its ball onto the conveyor, the conveyor carries it
+      // into the bell, and the bell tells everyone "ding".
+      w.addBall({ x: 14, y: 1.25, z: -13.4, color: 'red', name: 'Red Ball', thingId: 'red-ball' });
+      dominoes(w, 'dominoes', 14, -7, { count: 10 });
+      w.addBall({ x: 0, y: 5.2, z: -17.2, color: 'blue', name: 'Blue Ball', thingId: 'blue-ball' });
+      w.addBall({ x: -14, y: 3.5, z: -10, color: 'yellow', name: 'Yellow Ball', thingId: 'yellow-ball' });
+      P.tree(w, 'tree-1', 30, 18);
+      P.tree(w, 'tree-2', -34, 24);
+      P.tree(w, 'tree-3', 32, -24);
+    },
+    models: [
+      { id: 'pendulum', def: 'pendulum', x: 14, z: -16 },
+      { id: 'button', def: 'button', x: 14, z: 12 },
+      { id: 'seesaw', def: 'seesaw', x: 0, z: -12 },
+      { id: 'conveyor', def: 'conveyor', x: 0, z: 1.5 },
+      { id: 'bell', def: 'bell', x: 0, z: 13.5 },
+      { id: 'spring-pad', def: 'spring-pad', x: -14, z: -10 },
+      { id: 'windmill', def: 'windmill', x: -16, z: 20, yaw: 200 },
+      { id: 'turntable', def: 'turntable', x: -16, z: 6 },
+      { id: 'paddle-wheel', def: 'paddle-wheel', x: -7, z: 26 },
+      { id: 'flipper', def: 'flipper', x: -7, z: -20 },
+      { id: 'lift', def: 'lift', x: 14, z: 24, yaw: 180 },
+    ],
+    behaviors: {
+      pendulum: TOY.pendulum,
+      button: TOY.button,
+      seesaw: [...TOY.seesaw, hears('go', 'Fling on Go', 'slam the back end up', 'play("whoosh");\npart("plank").turnTo(-25);')],
+      conveyor: TOY.conveyor,
+      bell: TOY.bell,
+      'spring-pad': [...TOY['spring-pad'], hears('ding', 'Cheer on Ding', 'launch, and say "Hooray!"', 'say("Hooray!");\nplay("boing");\nawait part("pad").slideTo(3);\nawait part("pad").slideTo(0);')],
+      windmill: [...TOY.windmill, hears('ding', 'Whirl on Ding', 'spin the sails fast for 3 seconds', 'part("sails").spin(540);\nawait wait(3);\npart("sails").spin(90);')],
+      turntable: [...TOY.turntable, hears('go', 'Turn on Go', 'spin the table for 4 seconds', 'part("table").spin(120);\nawait wait(4);\npart("table").spin(0);')],
+      'paddle-wheel': TOY['paddle-wheel'],
+      flipper: TOY.flipper,
+      lift: TOY.lift,
+    },
+    select: 'pendulum',
   },
 
   {

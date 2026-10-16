@@ -20,7 +20,7 @@ const MAX_SPEED = 50; // studs a second, for drive, speedUp, move and goTo
 const TURN_RATE = 360; // degrees a second for turn() and face(); they ease in at the end
 const MAX_SPAWNED_PER_ACTOR = 60;
 // What the World can't do, and how to say so.
-const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'show']);
+const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partSlideTo', 'partWiggle', 'look', 'show']);
 
 export class Runtime {
   // sandboxFor(program): which Sandbox a program runs in. The page gives
@@ -385,6 +385,16 @@ export class Program {
     for (const [k, p] of e.parts) if (n.split(' ').some((w) => w.length > 2 && k.includes(w))) return p;
     throw new Error(`${e.name} has no part called "${name}". Parts: ${[...e.parts.keys()].join(', ')}`);
   }
+  // One part, or every part a plural names: "arms", "both arms", "rollers", "paddles".
+  _parts(name) {
+    const e = this.actor.model;
+    const n = String(name).toLowerCase().trim().replace(/^(both|all( of)?( the)?|the) /, '');
+    if (!e?.parts.has(n) && n.endsWith('s')) {
+      const all = [...(e?.parts.values() ?? [])].filter((p) => p.def.name.includes(n.slice(0, -1)));
+      if (all.length > 1) return all;
+    }
+    return [this._part(name)];
+  }
 
   get control() { return this.actor.control; }
 
@@ -430,17 +440,19 @@ export class Program {
       this.control.drive = clamp(speed / 30, -MAX_SPEED, MAX_SPEED);
       return;
     }
-    const p = this._part(name);
-    if (p.def.kind !== 'hinge') return;
-    p.spin = clamp(speed, -1080, 1080);
-    if (!p.spin) this._settleHinge(p);
+    for (const p of this._parts(name)) {
+      if (p.def.kind !== 'hinge') continue;
+      p.spin = clamp(speed, -1080, 1080);
+      if (!p.spin) this._settleHinge(p);
+    }
   }
   _settleHinge(p) {
-    // after spinning, come back to the nearest pose inside the limits
+    // after spinning, come back to the nearest pose inside the limits (a
+    // free hinge, like a spinner, just coasts to a stop where it is)
     const [lo, hi] = p.def.limits ?? [-180, 180];
     p.angle = clamp(0, lo, hi);
-    const s = p.def.sign ?? 1;
-    p.joint.setLimits(Math.min(lo * s, hi * s) * DEG, Math.max(lo * s, hi * s) * DEG);
+    p.hold = false;
+    this.world.hingeLimits(p.def, p.joint);
   }
   cmd_partColor(name, color) {
     const p = this._part(name);
@@ -638,26 +650,40 @@ export class Program {
   }
 
   q_partTurnTo(name, degrees) {
-    const n = String(name).toLowerCase();
-    const targets = n.includes('arms') || n.includes('wings') || n === 'both arms'
-      ? [...(this.actor.model?.parts.values() ?? [])].filter((p) => p.def.name.includes(n.includes('wings') ? 'wing' : 'arm'))
-      : [this._part(name)];
+    const targets = this._parts(name).filter((p) => p.def.kind === 'hinge');
     let wait = 0.2;
     for (const p of targets) {
-      if (p.def.kind !== 'hinge') continue;
       const [lo, hi] = p.def.limits ?? [-180, 180];
       const ang = clamp(degrees, lo, hi);
-      wait = Math.max(wait, Math.abs(ang - p.angle) / 240 + 0.15);
+      wait = Math.max(wait, Math.abs(ang - p.angle) / (p.def.speed ?? 240) + 0.15);
       if (p.spin) { p.spin = 0; this._settleHinge(p); }
       p.angle = ang;
+      p.hold = true; // a free hinge is held there until it arrives, then let go
     }
-    return new Promise((r) => setTimeout(() => r(true), Math.min(1.5, wait) * 1000));
+    return new Promise((r) => setTimeout(() => {
+      for (const p of targets) if (p.angle === clamp(degrees, ...(p.def.limits ?? [-180, 180]))) p.hold = false;
+      r(true);
+    }, Math.min(1.5, wait) * 1000));
+  }
+
+  // Move a sliding part (a spring pad, a lift, a button) along its track.
+  q_partSlideTo(name, distance) {
+    const targets = this._parts(name).filter((p) => p.def.kind === 'slider');
+    if (!targets.length) throw new Error(`"${name}" doesn't slide. Use turnTo for parts that swing.`);
+    let wait = 0.1;
+    for (const p of targets) {
+      const d = clamp(distance, ...p.def.limits);
+      wait = Math.max(wait, Math.abs(d - p.slide) / (p.def.speed ?? 6) + 0.1);
+      p.slide = d;
+    }
+    return new Promise((r) => setTimeout(() => r(true), Math.min(4, wait) * 1000));
   }
 
   async q_partWiggle(name, times) {
     const p = this._part(name);
     if (p.def.kind !== 'hinge') return false;
     const base = p.angle;
+    p.hold = true;
     const [lo, hi] = p.def.limits ?? [-180, 180];
     const amp = Math.min(30, (hi - lo) / 3);
     for (let i = 0; i < clamp(times, 1, 10); i++) {
@@ -668,6 +694,7 @@ export class Program {
       await new Promise((r) => setTimeout(r, 180));
     }
     p.angle = base;
+    p.hold = false;
     return true;
   }
 

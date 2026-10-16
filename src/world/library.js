@@ -18,6 +18,7 @@
 import { BRICK_H as B, PLATE_H as P } from './bricks.js';
 import { FIG } from './minifig.js';
 import { RUN, kick } from './games.js';
+import { MACHINES } from './machines.js';
 
 const b = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h, d], color, ...extra });
 
@@ -779,13 +780,13 @@ const SKYSHIP = {
   ],
 };
 
-LIBRARY.push(SKYSHIP, ...PEOPLE);
+LIBRARY.push(SKYSHIP, ...PEOPLE, ...MACHINES);
 
 export const LIBRARY_BY_ID = Object.fromEntries(LIBRARY.map((d) => [d.id, d]));
 
 // Models first, then the things in objects.js.
 export const CATEGORIES = [
-  ['people', 'People'], ['vehicles', 'Vehicles'], ['characters', 'Characters'], ['animals', 'Animals'], ['space', 'Space'],
+  ['people', 'People'], ['vehicles', 'Vehicles'], ['characters', 'Characters'], ['animals', 'Animals'], ['space', 'Space'], ['machines', 'Machines'],
   ['balls', 'Balls'], ['game', 'Game Pieces'], ['buildings', 'Buildings & Props'], ['bricks', 'Bricks'],
 ];
 

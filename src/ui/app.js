@@ -385,7 +385,7 @@ export class App {
     for (const p of model?.def.parts ?? []) {
       const b = document.createElement('button');
       b.className = 'chip part';
-      b.innerHTML = `<span class="ico">${p.kind === 'wheel' ? '◎' : '↻'}</span>${esc(p.name)}`;
+      b.innerHTML = `<span class="ico">${p.kind === 'wheel' ? '◎' : p.kind === 'slider' ? '⇕' : '↻'}</span>${esc(p.name)}`;
       b.onmousedown = (ev) => ev.preventDefault();
       b.onclick = () => this.insertChip({ type: 'part', name: p.name });
       b.onmouseenter = () => this._highlight(model.parts.get(p.name)?.object3d);

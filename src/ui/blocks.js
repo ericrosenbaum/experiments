@@ -64,6 +64,7 @@ const SPECS = {
 const PART_SPECS = {
   spin: ['parts', 'spin {p} at speed {0}'],
   turnTo: ['parts', 'swing {p} to {0} degrees'],
+  slideTo: ['parts', 'slide {p} to {0}'],
   wiggle: ['parts', 'wiggle {p}[ {0} times]'],
   color: ['parts', 'color {p} {0:color}'],
 };

@@ -31,17 +31,27 @@ for (const id of Object.keys(LIBRARY_BY_ID)) {
   const turned = e.heading() - h0;
   assert.ok(turned > 45, `${id} should turn left with positive steer, turned ${turned.toFixed(1)}`);
   e.control.steer = 0;
-  // hinges follow their target angle
+  // hinges follow their target angle (a free one while held, as turnTo does)
   for (const p of e.parts.values()) {
+    if (p.def.kind === 'slider') {
+      p.slide = p.def.limits[1];
+      run(w, 3);
+      assert.ok(Math.abs(w.partPose(e, p) - p.slide) < 0.2, `${id} ${p.def.name} should slide to ${p.slide}, got ${w.partPose(e, p).toFixed(2)}`);
+      p.slide = 0;
+      run(w, 3);
+      continue;
+    }
     if (p.def.kind !== 'hinge') continue;
     const target = Math.min(p.def.limits[1], 60);
     p.angle = target;
+    p.hold = true;
     run(w, 1);
     const rel = new THREE.Quaternion().copy(e.quaternion).invert().multiply(new THREE.Quaternion().copy(p.body.rotation()));
     const axis = new THREE.Vector3(...p.def.axis);
     const got = 2 * Math.atan2(new THREE.Vector3(rel.x, rel.y, rel.z).dot(axis), rel.w) * 180 / Math.PI * (p.def.sign ?? 1);
     assert.ok(Math.abs(got - target) < 12, `${id} ${p.def.name} should reach ${target}°, got ${got.toFixed(1)}°`);
     p.angle = 0;
+    p.hold = false;
   }
   console.log(`ok: ${id} upright, drives ${dz.toFixed(1)} studs in 2s, turns ${turned.toFixed(0)}°/s, hinges track`);
   w.remove(e);

@@ -71,6 +71,8 @@ export const RESPONSE_SCHEMA = {
 export function buildUserMessage({ text, model, things = [], otherBehaviors = [], named = [], messages = [] }) {
   const parts = (model.parts ?? []).map((p) => {
     if (p.kind === 'wheel') return `- "${p.name}" (wheel, ${p.side} side)`;
+    if (p.kind === 'slider') return `- "${p.name}" (slides; slideTo range ${p.limits[0]}..${p.limits[1]} studs, 0 = resting place${p.about ? `; ${p.about}` : ''})`;
+    if (p.free) return `- "${p.name}" (swings freely; turnTo range ${p.limits?.[0] ?? -180}..${p.limits?.[1] ?? 180} degrees pushes it there and lets go; spin() spins it${p.about ? `; ${p.about}` : ''})`;
     return `- "${p.name}" (hinge; turnTo range ${p.limits?.[0] ?? -180}..${p.limits?.[1] ?? 180} degrees, 0 = resting pose, positive = up/forward/left)`;
   }).join('\n');
   const thingList = things.slice(0, 40).map((t) => `- ${t.name} (id "${t.id}", kind ${t.kind}${t.type ? `, a ${t.type}` : ''}, color ${t.color}, ${t.distance} studs away)`).join('\n');

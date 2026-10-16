@@ -128,6 +128,7 @@ function makeProgram(id) {
     part: (name) => ({
       spin: (speed = 180) => cmd('partSpin', String(name), Number(speed)),
       turnTo: (degrees = 45) => query('partTurnTo', String(name), Number(degrees)),
+      slideTo: (distance = 1) => query('partSlideTo', String(name), Number(distance)),
       wiggle: (times = 3) => query('partWiggle', String(name), Number(times)),
       color: (color) => cmd('partColor', String(name), String(color)),
     }),

@@ -8,6 +8,7 @@
 import { BRICK_H as B, PLATE_H as P } from './bricks.js';
 import * as Props from './props.js';
 import { SCOREBOARD, ballBehavior, goalFor } from './games.js';
+import { MACHINE_OBJECTS } from './machines.js';
 
 const DEG = Math.PI / 180;
 const box = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h, d], color, ...extra });
@@ -244,6 +245,7 @@ export const OBJECTS = [
   brick(4, 4, 'lime'),
   brick(4, 8, 'gray', { h: P }),
   brick(8, 8, 'white', { h: P, name: '8x8 Plate' }),
+  ...MACHINE_OBJECTS,
 ];
 
 export const OBJECTS_BY_ID = Object.fromEntries(OBJECTS.map((o) => [o.id, o]));
