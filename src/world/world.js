@@ -598,7 +598,9 @@ export class World {
   // knocked over, but a program can still drive it around (it's kinematic).
   // dynamic: it's one rigid piece instead, which can be knocked over.
   // fixed: hands can't drag or turn it (a playing field), though programs can.
-  // sensor: things pass through it but it still feels touches (coins).
+  // sensor: things pass through it but it still feels touches (coins). A box
+  // can be a sensor on its own ({sensor: true}): then the prop feels touches
+  // only there, like a goal that notices the ball inside it, not on its posts.
   addStatic(opts) {
     const { kind, name, color, x, y = 0, z, yaw = 0, quat, boxes, thingId, id, sensor = false, dynamic = false, density = 0.6, sleeping = true, fixed = false } = opts;
     const R = this.R;
@@ -612,9 +614,12 @@ export class World {
     const obj = new THREE.Group();
     for (const bx of boxes) {
       const [w, h, d] = bx.size;
-      const cd = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...bx.at).setFriction(0.8).setSensor(sensor).setDensity(density);
+      const feel = !sensor && bx.sensor;
+      const cd = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...bx.at).setFriction(0.8).setSensor(sensor || !!bx.sensor).setDensity(feel ? 0 : density);
       if (bx.rot) cd.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...bx.rot)));
-      this._attachCollider(cd, body, e, null, bx.color);
+      const col = this._attachCollider(cd, body, e, null, bx.color);
+      if (feel) { this.colliderInfo.get(col.handle).sensor = true; e.feels = true; }
+      if (bx.hidden) continue; // a collider only (an invisible sensor)
       // shaped or see-through pieces (round bricks, glass) are drawn like a model's
       const m = bx.shape || bx.glass ? pieceMesh({ ...bx, rot: undefined }) : brickMesh(w, h, d, bx.color, bx.studs !== false);
       m.position.set(...bx.at);

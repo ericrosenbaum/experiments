@@ -151,6 +151,7 @@ export class Runtime {
       if (!started) { map.delete(key); continue; }
       map.set(key, other);
       if (!this.programs.size) continue;
+      if (self.entity.feels && !self.sensor) continue; // it feels touches only in its sensor boxes
       const desc = { ...other.entity.describe(), color: other.color };
       for (const p of this.programs) {
         if (p.actor.has(self.entity) && !p.actor.has(other.entity)) p.touched(desc);

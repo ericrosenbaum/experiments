@@ -186,8 +186,9 @@ export function dummy(world, id, x, z) {
   });
 }
 
-// A straight fence along +x (turn it with yaw).
-export function fence(world, id, x, z, length, { yaw = 0, color = 'brown', name = 'Fence' } = {}) {
+// A straight fence along +x (turn it with yaw). dynamic: it can be knocked
+// over (it gets a plank along its foot to stand on).
+export function fence(world, id, x, z, length, { yaw = 0, color = 'brown', name = 'Fence', dynamic = false } = {}) {
   const posts = Math.max(2, Math.round(length / 3) + 1);
   const boxes = [];
   for (let i = 0; i < posts; i++) boxes.push(box(-length / 2 + (i * length) / (posts - 1), 0.9, 0, 0.4, 1.8, 0.4, color, { studs: false }));
@@ -197,7 +198,9 @@ export function fence(world, id, x, z, length, { yaw = 0, color = 'brown', name 
       boxes.push(box((a + b) / 2, yy, 0, b - a, 0.25, 0.2, color, { studs: false }));
     }
   }
-  world.addStatic({ kind: 'fence', name, color, x, z, yaw, thingId: id, boxes });
+  if (dynamic) for (const b of boxes) b.at[1] += 0.2;
+  if (dynamic) boxes.push(box(0, 0.1, 0, length + 0.4, 0.2, 1, color, { studs: false }));
+  world.addStatic({ kind: 'fence', name, color, x, z, yaw, thingId: id, boxes, dynamic });
 }
 
 // Hay bales: three on the ground and one on top (loose).

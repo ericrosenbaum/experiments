@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { WORLDS_BY_ID } from './world/worlds.js';
 import { LIBRARY_BY_ID, modelBottom } from './world/library.js';
+import { OBJECTS_BY_ID } from './world/objects.js';
 import { compileLocal, titleFrom } from './behavior/compiler.js';
 import { syntaxError } from './behavior/generate.js';
 import { applyColor } from './behavior/runtime.js';
@@ -15,6 +16,14 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const V = (a) => new THREE.Vector3(...a);
 
 let behaviorIds = 1;
+// A behavior that comes already taught (a premade world's, or a library
+// thing's): ready-made code, or a sentence for the offline compiler.
+function premade(b, def) {
+  if (b.code) return makeBehavior({ ...b, source: 'premade' });
+  const r = compileLocal(b.text, def ?? { parts: [] });
+  return makeBehavior({ text: b.text, ...r, title: b.title ?? r.title, keys: b.keys, source: 'premade' });
+}
+
 export function makeBehavior(b) {
   return {
     id: behaviorIds++, enabled: b.enabled ?? true, running: false,
@@ -77,12 +86,8 @@ export class Stage {
   _fresh(preset) {
     const behaviors = new Map();
     for (const [key, list] of Object.entries(preset.behaviors ?? {})) {
-      behaviors.set(key, list.map((b) => {
-        if (b.code) return makeBehavior({ ...b, source: 'premade' });
-        const m = preset.models.find((x) => x.id === key);
-        const r = compileLocal(b.text, m ? LIBRARY_BY_ID[m.def] : { parts: [] });
-        return makeBehavior({ text: b.text, ...r, title: b.title ?? r.title, keys: b.keys, source: 'premade' });
-      }));
+      const m = preset.models.find((x) => x.id === key);
+      behaviors.set(key, list.map((b) => premade(b, m ? LIBRARY_BY_ID[m.def] : null)));
     }
     return { behaviors, added: [], moves: [], deleted: new Set() };
   }
@@ -104,6 +109,11 @@ export class Stage {
 
   // pose.color paints a premade model (a team's blue race car).
   _addModel(defId, pose, key, name) {
+    const obj = OBJECTS_BY_ID[defId]; // a ball, a goal, a house... (objects.js)
+    if (obj) {
+      obj.build(this.world, { x: pose.x, z: pose.z, yaw: pose.yaw ?? 0, id: key, name: name ?? obj.name });
+      return this.world.actor(key);
+    }
     const def = LIBRARY_BY_ID[defId];
     const y = pose.lift ? -modelBottom(def) + 0.05 + pose.lift : undefined;
     const e = this.world.addModel(def, { x: pose.x, y, z: pose.z, yaw: pose.yaw ?? 0, id: key, name });
@@ -136,14 +146,26 @@ export class Stage {
   // ---- what kids do with things --------------------------------------------
 
   addModel(defId, pose) {
-    const def = LIBRARY_BY_ID[defId];
-    pose = { ...pose, ...this.world.findClearSpot(def, pose) }; // never start inside something
-    const n = [...this.world.entities.values()].filter((e) => e.def?.id === defId).length;
+    const obj = OBJECTS_BY_ID[defId];
+    const def = obj ?? LIBRARY_BY_ID[defId];
+    pose = { ...pose, ...(obj ? this.world.findClearBox(obj.bounds, pose) : this.world.findClearSpot(def, pose)) }; // never start inside something
+    const n = obj ? this.state.added.filter((a) => a.defId === defId && this.world.actor(a.key).alive).length : [...this.world.entities.values()].filter((e) => e.def?.id === defId).length;
     const key = `m${++this.serial}`;
     const name = n ? `${def.name} ${n + 1}` : def.name;
     this.state.added.push({ key, defId, pose, name });
     this._addModel(defId, pose, key, name);
-    return this.world.actor(key);
+    const actor = this.world.actor(key);
+    // some things come already taught: a goal knows when the ball is in, a scoreboard keeps score
+    if (def.behaviors?.length) {
+      const list = this.behaviorsOf(key);
+      for (const b of def.behaviors) {
+        const behavior = premade(b, obj ? null : def);
+        list.push(behavior);
+        this.runtime.start(actor, behavior);
+      }
+      this.ui.onBehaviorsChanged?.(actor);
+    }
+    return actor;
   }
 
   // A drag or a turn: remember it so Reset puts the thing back here.

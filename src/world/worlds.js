@@ -5,6 +5,7 @@
 // for the offline compiler ({text}) or ready-made {text, summary, code}.
 import * as P from './props.js';
 import { RAINBOW } from './props.js';
+import { SCOREBOARD, ballBehavior, KICK, goalFor } from './games.js';
 
 const RAINBOW_UP = [...RAINBOW].reverse(); // purple at the bottom, red on top
 import { BRICK_H as B } from './bricks.js';
@@ -23,135 +24,6 @@ const COIN = {
   summary: ['Always: spin', 'When the Hero touches it: play coin and disappear'],
   code: 'onStart(() => steer(180)); // spin\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
 };
-
-// Calvinball: every rule of the game is one of these behaviors, so changing
-// the game is changing a behavior. Things talk with messages: a net tells
-// everyone "red scores" or "blue scores"; the scoreboard and the ball listen.
-const SCOREBOARD = {
-  title: 'Keep Score',
-  keys: { r: 'new game' },
-  text: 'Keep the score on the screen: a point for Red when it hears "red scores", a point for Blue when it hears "blue scores". The first to 5 wins. R starts a new game.',
-  summary: [
-    'At the start: show the score, 0 - 0',
-    'When it hears "red scores" or "blue scores": add a point, cheer, and show the new score',
-    'When a team gets to 5: show who won and tell everyone "game over"',
-    'When R is pressed: tell everyone "new game", and start again at 0 - 0',
-  ],
-  code: `// The scoreboard keeps the score. Anything can score a point by telling
-// everyone "red scores" or "blue scores".
-const winningScore = 5;
-let red = 0;
-let blue = 0;
-let over = false;
-
-function showScore() {
-  show("RED  vs  BLUE\\n" + red + " - " + blue);
-}
-
-async function point(team) {
-  play("yay");
-  if (red >= winningScore || blue >= winningScore) {
-    over = true;
-    play("tada");
-    show(team + " WINS!\\n" + red + " - " + blue);
-    broadcast("game over");
-    return;
-  }
-  show(team + " SCORES!\\n" + red + " - " + blue);
-  await wait(2);
-  if (!over) showScore();
-}
-
-onMessage("red scores", () => {
-  if (over) return;
-  red = red + 1;
-  point("RED");
-});
-onMessage("blue scores", () => {
-  if (over) return;
-  blue = blue + 1;
-  point("BLUE");
-});
-
-onMessage("new game", () => {
-  red = 0;
-  blue = 0;
-  over = false;
-  play("referee");
-  showScore();
-});
-onKey("r", () => broadcast("new game"));
-
-onStart(showScore);`,
-};
-
-const BALL = {
-  title: 'Kick and Kickoff',
-  keys: { r: 'back to the middle' },
-  text: 'When it hears "kick", fly away from whoever is closest. After a goal, wait 2 seconds and go back to the middle. R puts it back in the middle.',
-  summary: [
-    'When it hears "kick": fly away from the closest player or car',
-    'When it hears "red scores" or "blue scores": wait 2 seconds, then back to the middle',
-    'When it hears "new game", or R is pressed: back to the middle',
-  ],
-  code: `// The ball. A kick sends it flying away from the kicker; after a goal it
-// goes back to the middle for the kickoff.
-const kickPower = 8;
-
-onMessage("kick", async () => {
-  const kicker = await nearest("model");
-  if (!kicker || kicker.distance > 6) return;
-  play("hit");
-  // away from the kicker: split it into a forward/back push and a left/right push
-  const away = (kicker.direction + 180) / 57.3; // 57.3 turns degrees into the angle units sin and cos use
-  shove(Math.cos(away) * kickPower, "forward", "backward");
-  shove(Math.sin(away) * kickPower, "left", "right");
-  push("up", 2);
-});
-function shove(amount, plus, minus) {
-  if (Math.abs(amount) >= 0.5) push(amount > 0 ? plus : minus, Math.abs(amount));
-}
-
-async function kickoff() {
-  await wait(2);
-  await teleport(place(0, 0));
-}
-onMessage("red scores", kickoff);
-onMessage("blue scores", kickoff);
-onMessage("new game", () => teleport(place(0, 0)));
-onKey("r", () => teleport(place(0, 0)));`,
-};
-
-// Space kicks: if the ball is close, tell it "kick" (it works out which way to fly).
-const KICK = {
-  title: 'Kick',
-  keys: { ' ': 'kick' },
-  text: 'When I press space, swing the right arm, and if the ball is close, tell everyone "kick".',
-  summary: ['When space is pressed: swing the right arm, and if the ball is close, tell everyone "kick"'],
-  code: `onKey(" ", async () => {
-  const ball = await nearest(thing("ball"));
-  if (ball && ball.distance < 5) broadcast("kick");
-  await part("right arm").turnTo(100);
-  await part("right arm").turnTo(0);
-});`,
-};
-
-// A goal's net: when the ball rolls in, the other team scores.
-const goalFor = (team, net) => ({
-  title: `Goal for ${team === 'red' ? 'Red' : 'Blue'}`,
-  text: `When the ball rolls into the ${net} net, tell everyone "${team} scores".`,
-  summary: [`When the Ball rolls in: tell everyone "${team} scores" (once, then wait 3 seconds)`],
-  code: `// The ball is in ${net === 'red' ? "Red's" : "Blue's"} goal, so ${team === 'red' ? 'Red' : 'Blue'} gets a point.
-let ready = true;
-onTouch(thing("ball"), async () => {
-  if (!ready) return;
-  ready = false;
-  play("referee");
-  broadcast("${team} scores");
-  await wait(3);
-  ready = true;
-});`,
-});
 
 export const WORLDS = [
   {
@@ -797,7 +669,7 @@ onMessage("in the hole", () => {
     behaviors: {
       world: [{ title: 'How to Play', text: 'At the start, say "Calvinball! Pick a player: arrows run, space kicks. Score in the other goal. Then change the rules!" for 10 seconds.' }],
       scoreboard: [SCOREBOARD],
-      ball: [BALL],
+      ball: [ballBehavior()],
       'red-net': [goalFor('blue', 'red')],
       'blue-net': [goalFor('red', 'blue')],
       ...Object.fromEntries(['red-1', 'red-2', 'blue-1', 'blue-2'].map((id) => [id, [{ title: 'Run with Arrows', text: STEER }, KICK]])),

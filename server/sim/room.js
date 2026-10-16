@@ -9,6 +9,7 @@ import { Runtime } from '../../src/behavior/runtime.js';
 import { Stage } from '../../src/stage.js';
 import { WORLDS_BY_ID } from '../../src/world/worlds.js';
 import { LIBRARY_BY_ID } from '../../src/world/library.js';
+import { OBJECTS_BY_ID } from '../../src/world/objects.js';
 import { describeEntity, describeBehavior } from '../../src/net/entities.js';
 import { quantize, sameQuant, encodeSnapshot } from '../../src/net/codec.js';
 import { dragBase, holdDrag } from '../../src/world/drag.js';
@@ -268,7 +269,7 @@ export class Room {
     this.events.log(`🗑 ${player.name} removed ${a.name}`);
   }
   on_addModel(player, m) {
-    if (!LIBRARY_BY_ID[m.defId]) return;
+    if (!LIBRARY_BY_ID[m.defId] && !OBJECTS_BY_ID[m.defId]) return;
     if (player.added >= MAX_ADDED_PER_PLAYER) throw new Error(`That's ${MAX_ADDED_PER_PLAYER} models from you already. Delete some first.`);
     player.added++;
     const a = this.stage.addModel(m.defId, m.pose);

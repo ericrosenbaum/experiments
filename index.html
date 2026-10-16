@@ -45,9 +45,14 @@
   </header>
 
   <aside id="library" class="hidden">
-    <div class="panel-title">Model library <button class="x" data-close="library">✕</button></div>
+    <div id="library-head">
+      <div class="panel-title">Library <button class="x" data-close="library">✕</button></div>
+      <input id="library-search" type="search" placeholder="Search: ball, goal, 2x4…" aria-label="Search the library" autocomplete="off" spellcheck="false">
+      <nav id="library-cats" aria-label="Library sections"></nav>
+    </div>
     <div id="library-list"></div>
-    <p class="hint">Building isn't part of this prototype — pick a premade creation, then teach it what to do.</p>
+    <p id="library-none" class="hint hidden">Nothing called that. Try "ball", "brick" or "house".</p>
+    <p class="hint">Building isn't part of this prototype — pick a premade creation or a thing, then teach it what to do.</p>
   </aside>
 
   <aside id="inspector">

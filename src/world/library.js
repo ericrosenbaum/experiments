@@ -17,6 +17,7 @@
 
 import { BRICK_H as B, PLATE_H as P } from './bricks.js';
 import { FIG } from './minifig.js';
+import { RUN, kick } from './games.js';
 
 const b = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h, d], color, ...extra });
 
@@ -24,13 +25,13 @@ const b = (x, y, z, w, h, d, color, extra = {}) => ({ at: [x, y, z], size: [w, h
 // by minifig.js from `figure` (colors, face, torso print, hat, held things).
 // Parts: a turning head and two arms that swing forward from the shoulder.
 // Chassis origin is the top of the hips (figure space y = FIG.torsoY).
-function minifig({ id, name, blurb, category = 'people', examples, figure, arms = ['left arm', 'right arm'] }) {
+function minifig({ id, name, blurb, category = 'people', examples, figure, arms = ['left arm', 'right arm'], behaviors }) {
   const O = FIG.torsoY;
   const hide = { hidden: true };
   const [sx, sy] = FIG.shoulder;
   const armBox = (side) => [b(side * 0.25, -0.95, 0.05, 0.55, 1.9, 0.6, figure.torso ?? 'red', hide)];
   return {
-    id, name, blurb, category, examples, figure,
+    id, name, blurb, category, examples, figure, behaviors,
     color: figure.torso ?? 'red',
     motion: 'glide',
     bricks: [
@@ -94,12 +95,14 @@ const PEOPLE = [
     id: 'red-player', name: 'Red Player',
     blurb: 'A Red team player in a red jersey and cap, ready for any game you make up.',
     examples: ['When I press space, kick the ball if it is close.', 'When it hears "red scores", jump and say "Goal!"', 'Go to the ball fast.', 'When it bumps into a blue player, play bonk and back up.'],
+    behaviors: [RUN, kick('"ball"')], // ready to play: arrows run, space kicks the nearest ball
     figure: { torso: 'red', arms: 'red', legs: 'white', print: 'jersey', face: 'smile', hat: 'cap', hatColor: 'red' },
   }),
   minifig({
     id: 'blue-player', name: 'Blue Player',
     blurb: 'A Blue team player in a blue jersey and cap, ready for any game you make up.',
     examples: ['When I press space, kick the ball if it is close.', 'When it hears "blue scores", jump and say "Goal!"', 'Go to the ball fast.', 'When it bumps into a red player, play bonk and back up.'],
+    behaviors: [RUN, kick('"ball"')], // ready to play: arrows run, space kicks the nearest ball
     figure: { torso: 'blue', arms: 'blue', legs: 'white', print: 'jersey', face: 'freckles', hat: 'cap', hatColor: 'blue' },
   }),
   minifig({
@@ -774,8 +777,10 @@ LIBRARY.push(SKYSHIP, ...PEOPLE);
 
 export const LIBRARY_BY_ID = Object.fromEntries(LIBRARY.map((d) => [d.id, d]));
 
+// Models first, then the things in objects.js.
 export const CATEGORIES = [
   ['people', 'People'], ['vehicles', 'Vehicles'], ['characters', 'Characters'], ['animals', 'Animals'], ['space', 'Space'],
+  ['balls', 'Balls'], ['game', 'Game Pieces'], ['buildings', 'Buildings & Props'], ['bricks', 'Bricks'],
 ];
 
 // Local-space bounding box of a model at rest: { min: [x,y,z], max: [x,y,z] }.

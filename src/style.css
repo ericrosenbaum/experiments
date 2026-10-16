@@ -107,7 +107,16 @@ button { font: inherit; cursor: pointer; color: inherit; }
 }
 .panel-title { font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .x { border: 0; background: none; font-size: 16px; }
-.lib-cat { font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 2px 6px; }
+/* the title, search and section links stay at the top while the list scrolls */
+#library { padding-top: 0; }
+#library-head { position: sticky; top: 0; z-index: 1; background: var(--panel); padding: 12px 0 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+#library-search { width: 100%; font: inherit; padding: 7px 10px; border: 2px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); }
+#library-search:focus { outline: none; border-color: var(--yellow); }
+#library-cats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+#library-cats button { font-weight: 700; font-size: 12px; line-height: 1; font-family: inherit; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+#library-cats button:hover { border-color: var(--yellow); }
+#library-cats button.empty { opacity: .4; }
+.lib-cat { font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 2px 6px; scroll-margin-top: var(--lib-head, 120px); }
 .lib-cat:first-child { margin-top: 0; }
 .lib-card { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; border: 2px solid var(--line); margin-bottom: 8px; background: none; width: 100%; text-align: left; }
 .lib-card:hover { border-color: var(--yellow); }

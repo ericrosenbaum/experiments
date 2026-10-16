@@ -3,6 +3,7 @@
 // sentence composer with pointing, behavior cards, speech bubbles, the log.
 import * as THREE from 'three';
 import { LIBRARY, LIBRARY_BY_ID, CATEGORIES, modelBottom } from '../world/library.js';
+import { OBJECTS } from '../world/objects.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, findNamedBehaviors, probeClaude } from '../behavior/generate.js';
@@ -88,6 +89,7 @@ export class App {
 
   setLibrary(open) {
     $('library').classList.toggle('hidden', !open);
+    if (open && matchMedia('(pointer: fine)').matches) $('library-search').focus({ preventScroll: true }); // not on a phone: no keyboard popping up
     $('btn-library').classList.toggle('on', open);
     $('btn-library').setAttribute('aria-expanded', String(open));
   }
@@ -148,21 +150,63 @@ export class App {
     sel.onchange = () => { this.loadWorld(sel.value); sel.blur(); };
   }
 
+  // Models and things (objects.js) by section, with section links and a
+  // search box that stay at the top of the panel.
   _buildLibrary() {
-    const list = $('library-list');
+    const list = $('library-list'), cats = $('library-cats'), search = $('library-search');
+    const sections = [];
     for (const [cat, title] of CATEGORIES) {
+      const defs = [...LIBRARY, ...OBJECTS].filter((d) => d.category === cat);
+      if (!defs.length) continue;
       const h = document.createElement('div');
       h.className = 'lib-cat';
+      h.id = `lib-${cat}`;
       h.textContent = title;
       list.appendChild(h);
-      for (const def of LIBRARY.filter((d) => d.category === cat)) {
+      const cards = defs.map((def) => {
         const b = document.createElement('button');
         b.className = 'lib-card';
-        b.innerHTML = `<span class="swatch" style="background:${css(def.color)}"></span><span><b>${esc(def.name)}</b><small>${esc(def.blurb)}</small><br><small>Parts: ${esc(def.parts.map((p) => p.name).join(', ') || 'none')}</small></span>`;
+        const parts = def.parts ? `<br><small>Parts: ${esc(def.parts.map((p) => p.name).join(', ') || 'none')}</small>` : '';
+        const taught = def.behaviors?.length ? `<br><small>Comes knowing: ${esc(def.behaviors.map((x) => x.title).join(', '))}</small>` : '';
+        b.innerHTML = `<span class="swatch" style="background:${css(def.color)}"></span><span><b>${esc(def.name)}</b><small>${esc(def.blurb)}</small>${parts}${taught}</span>`;
+        b.dataset.find = `${def.name} ${def.id.replace(/-/g, ' ')} ${title} ${def.tags ?? ''}`.toLowerCase();
+        b.dataset.more = def.blurb.toLowerCase();
         b.onclick = () => { this.addModel(def.id); this.setLibrary(false); };
         list.appendChild(b);
-      }
+        return b;
+      });
+      const link = document.createElement('button');
+      link.textContent = title;
+      link.onclick = () => {
+        if (search.value) { search.value = ''; filter(); }
+        list.parentElement.style.setProperty('--lib-head', `${$('library-head').offsetHeight + 4}px`);
+        h.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      };
+      cats.appendChild(link);
+      sections.push({ h, cards, link });
     }
+    // every word typed has to appear in a card's name, section or keywords;
+    // if nothing matches that way, its description will do
+    const filter = () => {
+      const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+      const all = sections.flatMap((s) => s.cards);
+      const named = all.filter((c) => words.every((w) => c.dataset.find.includes(w)));
+      const show = new Set(named.length ? named : all.filter((c) => words.every((w) => `${c.dataset.find} ${c.dataset.more}`.includes(w))));
+      let any = false;
+      for (const { h, cards, link } of sections) {
+        let shown = 0;
+        for (const c of cards) { const ok = show.has(c); c.classList.toggle('hidden', !ok); shown += ok; }
+        h.classList.toggle('hidden', !shown);
+        link.classList.toggle('empty', !shown);
+        any ||= shown > 0;
+      }
+      $('library-none').classList.toggle('hidden', any);
+    };
+    search.oninput = filter;
+    search.onkeydown = (ev) => {
+      if (ev.key === 'Enter') { ev.preventDefault(); list.querySelector('.lib-card:not(.hidden)')?.click(); } // add the first match
+      if (ev.key === 'Escape' && search.value) { ev.stopPropagation(); search.value = ''; filter(); }
+    };
   }
 
   addModel(defId) {
