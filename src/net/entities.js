@@ -24,6 +24,7 @@ export function describeEntity(e, bids) {
     bodies: e.bodies.map(({ body }) => pose(body)),
     bids,
     parts: Object.keys(parts).length ? parts : undefined,
+    screen: e.screen ? e.screen.text : undefined,
     sleeping: chassis ? chassis.body.isSleeping() : false,
     owner: e.owner?.key ?? undefined,
   };
@@ -43,6 +44,7 @@ export function buildEntity(world, d) {
   if (d.owner) e.owner = world.actor(d.owner);
   if (d.kind === 'model' && d.color && def && d.color !== def.color) applyColor(world, world.actor(e.thingId), d.color);
   for (const [name, c] of Object.entries(d.parts ?? {})) { const p = e.parts.get(name); if (p) applyPartColor(world, p, c); }
+  if (d.screen != null) world.showText(e, d.screen);
   return e;
 }
 

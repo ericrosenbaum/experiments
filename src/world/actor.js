@@ -48,6 +48,7 @@ export class Actor {
 
   get alive() { return this.key === 'world' || this.members.length > 0; }
   get isWorld() { return this.key === 'world'; }
+  get fixed() { return this.members.some((e) => e.fixed); } // stays where it is when grabbed (see addStatic)
 
   has(entity) {
     if (this.key === 'world') return false;

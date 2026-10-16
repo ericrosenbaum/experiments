@@ -55,6 +55,10 @@ export class Mirror {
     if (part) { const p = a.model?.parts.get(part); if (p) applyPartColor(this.world, p, color); } else applyColor(this.world, a, color);
   }
 
+  show(key, text) {
+    for (const e of this.world.actor(key).members) this.world.showText(e, text);
+  }
+
   pen(m) {
     if (!m.key) { this.world.clearDrawing(); return; }
     const p = this.world.pen(m.key);

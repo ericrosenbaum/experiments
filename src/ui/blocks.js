@@ -42,6 +42,7 @@ const SPECS = {
   teleport: ['motion', 'teleport to {0:target}'],
   color: ['looks', 'change color to {0:color}'],
   say: ['looks', 'say {0}[ for {1} seconds]'],
+  show: ['looks', 'show {0} on my screen'],
   play: ['sound', 'play sound {0:pick}'],
   broadcast: ['event', 'tell everyone {0:msg}'],
   spawn: ['world', 'make a brick[ {0:opts}]'],

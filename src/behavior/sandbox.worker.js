@@ -135,6 +135,7 @@ function makeProgram(id) {
     spawn: (options = {}) => cmd('spawn', options && typeof options === 'object' ? options : { color: String(options) }),
     play: (sound) => cmd('play', String(sound)),
     say: (text, seconds = 2) => cmd('say', String(text), Number(seconds)),
+    show: (text = '') => cmd('show', String(text)),
     broadcast: (name) => cmd('broadcast', String(name)),
     clone: (what = null, where = null) => query('clone', ref(what), ref(where)),
     explode: (power = 5) => cmd('explode', Number(power)),

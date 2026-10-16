@@ -5,7 +5,7 @@
 // thingId form one assembly (a house of loose bricks); see actor.js for how
 // programs address models, assemblies, single bricks and the world itself.
 import * as THREE from 'three';
-import { brickMesh, pieceMesh, hoseMesh, wheelMesh, flowerMesh, material, colorHex, SIZES, BRICK_H } from './bricks.js';
+import { brickMesh, pieceMesh, hoseMesh, wheelMesh, flowerMesh, screenFaces, material, colorHex, SIZES, BRICK_H } from './bricks.js';
 import { modelBottom, modelBounds } from './library.js';
 import { Actor } from './actor.js';
 import { buildMinifig, buildSeatedMinifig, FIG } from './minifig.js';
@@ -69,6 +69,8 @@ export class Entity {
     this.control = { drive: 0, steer: 0, rise: 0 };
     this.owner = props.owner ?? null; // for spawned bricks: the actor that made them
     this.recipe = null;              // how to build it again (for clone)
+    this.screen = null;              // {text, draw} for a thing with a screen (a scoreboard)
+    this.fixed = false;              // can't be dragged or turned by hand (a playing field)
     this.spawnPose = null;
   }
   get position() {
@@ -373,7 +375,7 @@ export class World {
 
   // A loose, dynamic brick. Bricks that share a thingId make one assembly.
   addBrick(opts) {
-    const { size = '2x4', dims, color = 'red', x, y, z, yaw = 0, quat, kind = 'brick', name, thingId, id, owner, sleeping = false, linvel, angvel, studs } = opts;
+    const { size = '2x4', dims, color = 'red', x, y, z, yaw = 0, quat, kind = 'brick', name, thingId, id, owner, sleeping = false, linvel, angvel, studs, density } = opts;
     const R = this.R;
     const [w, h, d] = dims ?? SIZES[size] ?? SIZES['2x4'];
     const e = new Entity({ kind, name: name ?? `${color} brick`, color, thingId, owner, id: id ?? (thingId ? this._memberId(thingId) : undefined) });
@@ -382,7 +384,7 @@ export class World {
     if (linvel) desc.setLinvel(linvel.x, linvel.y, linvel.z);
     if (angvel) desc.setAngvel(angvel);
     const body = this.physics.createRigidBody(desc);
-    this._attachCollider(R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setFriction(0.8).setDensity(0.6), body, e, null, color);
+    this._attachCollider(R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setFriction(0.8).setDensity(density ?? 0.6), body, e, null, color);
     const m = brickMesh(w, h, d, color, studs !== false);
     m.userData.entity = e;
     const obj = new THREE.Group();
@@ -391,7 +393,7 @@ export class World {
     e.chassis = body;
     e.bodies.push({ body, object3d: obj, part: null });
     e.size = [w, h, d];
-    e.recipe = { type: 'brick', opts: { dims: [w, h, d], color, kind, name: e.name, studs } };
+    e.recipe = { type: 'brick', opts: { dims: [w, h, d], color, kind, name: e.name, studs, ...(density != null && { density }) } };
     this._syncOne(body, obj);
     return this._register(e);
   }
@@ -594,30 +596,58 @@ export class World {
 
   // A prop built from boxes: [{at, size, color, rot?}]. It doesn't fall or get
   // knocked over, but a program can still drive it around (it's kinematic).
+  // dynamic: it's one rigid piece instead, which can be knocked over.
+  // fixed: hands can't drag or turn it (a playing field), though programs can.
   // sensor: things pass through it but it still feels touches (coins).
   addStatic(opts) {
-    const { kind, name, color, x, y = 0, z, yaw = 0, quat, boxes, thingId, id, sensor = false } = opts;
+    const { kind, name, color, x, y = 0, z, yaw = 0, quat, boxes, thingId, id, sensor = false, dynamic = false, density = 0.6, sleeping = true, fixed = false } = opts;
     const R = this.R;
     const e = new Entity({ kind, name, color, thingId, id: id ?? thingId });
-    const body = this.physics.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(x, y, z).setRotation(quat ?? yawQuat(yaw)));
+    // dynamic: one rigid piece that stands (asleep) until something knocks it
+    // over, like a lamp post or a bench, instead of a kinematic prop
+    const bodyDesc = dynamic
+      ? R.RigidBodyDesc.dynamic().setSleeping(sleeping).setAngularDamping(0.3)
+      : R.RigidBodyDesc.kinematicPositionBased();
+    const body = this.physics.createRigidBody(bodyDesc.setTranslation(x, y, z).setRotation(quat ?? yawQuat(yaw)));
     const obj = new THREE.Group();
     for (const bx of boxes) {
       const [w, h, d] = bx.size;
-      const cd = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...bx.at).setFriction(0.8).setSensor(sensor);
+      const cd = R.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(...bx.at).setFriction(0.8).setSensor(sensor).setDensity(density);
       if (bx.rot) cd.setRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(...bx.rot)));
       this._attachCollider(cd, body, e, null, bx.color);
-      const m = brickMesh(w, h, d, bx.color, bx.studs !== false);
+      // shaped or see-through pieces (round bricks, glass) are drawn like a model's
+      const m = bx.shape || bx.glass ? pieceMesh({ ...bx, rot: undefined }) : brickMesh(w, h, d, bx.color, bx.studs !== false);
       m.position.set(...bx.at);
       if (bx.rot) m.rotation.set(...bx.rot);
-      m.userData.entity = e;
+      m.traverse((o) => { o.userData.entity = e; });
       obj.add(m);
+      // a screen (a scoreboard's) shows whatever its programs show() on it
+      if (bx.screen) {
+        const faces = screenFaces(w, h, d, bx.screen);
+        if (faces) {
+          faces.group.position.set(...bx.at);
+          if (bx.rot) faces.group.rotation.set(...bx.rot);
+          faces.group.traverse((o) => { o.userData.entity = e; });
+          obj.add(faces.group);
+        }
+        e.screen = { text: '', draw: faces?.draw ?? null };
+        this.showText(e, bx.screen.text ?? '');
+      }
     }
     this.scene.add(obj);
     e.chassis = body;
     e.bodies.push({ body, object3d: obj, part: null });
-    e.recipe = { type: 'static', opts: { kind, name, color, boxes, sensor } };
+    e.fixed = fixed;
+    e.recipe = { type: 'static', opts: { kind, name, color, boxes, sensor, ...(dynamic && { dynamic, density }), ...(fixed && { fixed }) } };
     this._syncOne(body, obj);
     return this._register(e);
+  }
+
+  // Put text on an entity's screen (see addStatic).
+  showText(e, text) {
+    if (!e.screen) return;
+    e.screen.text = String(text);
+    e.screen.draw?.(e.screen.text);
   }
 
   // damping slows its roll (a golf ball rolls to a stop on the green); bounce is restitution.
@@ -651,7 +681,7 @@ export class World {
       case 'model': return this.addModel(def, { x, y, z, yaw, id, thingId, name });
       case 'brick': return this.addBrick({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name, sleeping });
       case 'flower': return this.addFlower({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
-      case 'static': return this.addStatic({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
+      case 'static': return this.addStatic({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name, sleeping: sleeping ?? true });
       case 'ball': return this.addBall({ ...recipe.opts, x, y, z, quat, id, thingId, name: name ?? recipe.opts.name });
       default: return null;
     }

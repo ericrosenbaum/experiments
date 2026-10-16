@@ -224,7 +224,7 @@ export class Room {
 
   on_dragStart(player, m) {
     const a = this._actor(player, m.key);
-    if (!a || a.isWorld) return;
+    if (!a || a.isWorld || a.fixed) return; // a fixed thing (a playing field) can't be dragged
     this._endDrag(player, null);
     this.drags.set(player.id, { actor: a, pivot: a.position, base: dragBase(a), delta: new THREE.Vector3(), yaw: 0 });
   }
@@ -487,6 +487,7 @@ class RoomEvents {
   }
   log(text, level = 'info') { this.room.broadcast({ type: 'log', text: String(text).slice(0, 400), level }); }
   say(actor, text, seconds) { this.room.broadcast({ type: 'say', key: actor.key, text, seconds }); }
+  onShow(actor, text) { this.room.broadcast({ type: 'show', key: actor.key, text }); }
   onProgramsChanged(program) { if (program) this.room.pending.dirty.add(program.actor.key); }
   onBehaviorsChanged(actor) { this.room.pending.dirty.add(actor.key); }
   onScriptRan(b, at, ok) { this.room.broadcast({ type: 'ran', id: b.id, at, ok }); }

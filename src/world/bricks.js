@@ -274,3 +274,69 @@ export const SIZES = {
   '2x4': [2, BRICK_H, 4], '2x3': [2, BRICK_H, 3], '4x4': [4, BRICK_H, 4], '1x6': [1, BRICK_H, 6],
   '2x6': [2, BRICK_H, 6],
 };
+
+// A screen across the front and back faces of a w x h x d box, like a
+// scoreboard's: text lit up on a dark panel, drawn on a canvas. draw(text)
+// redraws it. Each line ("\n" starts a new one) is as big as will fit, and a
+// color word ("RED", "blue") lights up in its own color. Headless (tests,
+// the sim server) there's nothing to draw, so this returns null.
+export function screenFaces(w, h, d, { ink = '#ffe9a8', back = '#121418' } = {}) {
+  if (typeof document === 'undefined') return null;
+  const pw = w * 0.96, ph = h * 0.92, px = Math.min(96, 2048 / pw);
+  const c = document.createElement('canvas');
+  c.width = Math.round(pw * px); c.height = Math.round(ph * px);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); // lit from inside, so the light doesn't dim it
+  const group = new THREE.Group();
+  for (const side of [1, -1]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), mat);
+    m.position.z = side * (d / 2 + 0.01);
+    m.rotation.y = side > 0 ? 0 : Math.PI;
+    m.userData.keepColor = true; // color() paints the board, not the picture on it
+    group.add(m);
+  }
+  const g = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const inkFor = (word) => {
+    const k = word.toLowerCase().replace(/[^a-z]/g, '');
+    return k in COLORS && k !== 'black' ? `#${new THREE.Color(COLORS[k]).lerp(new THREE.Color(0xffffff), 0.15).getHexString()}` : ink;
+  };
+  const draw = (text) => {
+    g.fillStyle = back; g.fillRect(0, 0, W, H);
+    // a faint grid of dots, like the lamps of a real scoreboard
+    g.fillStyle = '#ffffff0d';
+    const step = H / 24;
+    for (let y = step / 2; y < H; y += step) for (let x = step / 2; x < W; x += step) { g.beginPath(); g.arc(x, y, step * 0.28, 0, Math.PI * 2); g.fill(); }
+    const lines = String(text).split('\n').slice(0, 4);
+    const font = (s) => `800 ${s}px "Arial Black", system-ui, sans-serif`;
+    const sizes = lines.map((line) => {
+      let s = (H * 0.86) / lines.length * (lines.length > 1 ? 0.92 : 0.8);
+      g.font = font(s);
+      const wide = g.measureText(line).width;
+      if (wide > W * 0.92) s *= (W * 0.92) / wide;
+      return s;
+    });
+    const total = sizes.reduce((a, s) => a + s * 1.08, 0);
+    let y = (H - total) / 2;
+    g.textBaseline = 'middle';
+    lines.forEach((line, i) => {
+      const s = sizes[i];
+      g.font = font(s);
+      const words = line.split(/(\s+)/);
+      let x = (W - g.measureText(line).width) / 2;
+      y += s * 0.54;
+      for (const word of words) {
+        g.fillStyle = inkFor(word);
+        g.shadowColor = g.fillStyle; g.shadowBlur = s * 0.12;
+        g.fillText(word, x, y);
+        x += g.measureText(word).width;
+      }
+      g.shadowBlur = 0;
+      y += s * 0.54;
+    });
+    tex.needsUpdate = true;
+  };
+  return { group, draw };
+}

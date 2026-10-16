@@ -24,6 +24,135 @@ const COIN = {
   code: 'onStart(() => steer(180)); // spin\nonTouch(thing("hero"), async () => {\n  play("coin");\n  remove();\n});',
 };
 
+// Calvinball: every rule of the game is one of these behaviors, so changing
+// the game is changing a behavior. Things talk with messages: a net tells
+// everyone "red scores" or "blue scores"; the scoreboard and the ball listen.
+const SCOREBOARD = {
+  title: 'Keep Score',
+  keys: { r: 'new game' },
+  text: 'Keep the score on the screen: a point for Red when it hears "red scores", a point for Blue when it hears "blue scores". The first to 5 wins. R starts a new game.',
+  summary: [
+    'At the start: show the score, 0 - 0',
+    'When it hears "red scores" or "blue scores": add a point, cheer, and show the new score',
+    'When a team gets to 5: show who won and tell everyone "game over"',
+    'When R is pressed: tell everyone "new game", and start again at 0 - 0',
+  ],
+  code: `// The scoreboard keeps the score. Anything can score a point by telling
+// everyone "red scores" or "blue scores".
+const winningScore = 5;
+let red = 0;
+let blue = 0;
+let over = false;
+
+function showScore() {
+  show("RED  vs  BLUE\\n" + red + " - " + blue);
+}
+
+async function point(team) {
+  play("yay");
+  if (red >= winningScore || blue >= winningScore) {
+    over = true;
+    play("tada");
+    show(team + " WINS!\\n" + red + " - " + blue);
+    broadcast("game over");
+    return;
+  }
+  show(team + " SCORES!\\n" + red + " - " + blue);
+  await wait(2);
+  if (!over) showScore();
+}
+
+onMessage("red scores", () => {
+  if (over) return;
+  red = red + 1;
+  point("RED");
+});
+onMessage("blue scores", () => {
+  if (over) return;
+  blue = blue + 1;
+  point("BLUE");
+});
+
+onMessage("new game", () => {
+  red = 0;
+  blue = 0;
+  over = false;
+  play("referee");
+  showScore();
+});
+onKey("r", () => broadcast("new game"));
+
+onStart(showScore);`,
+};
+
+const BALL = {
+  title: 'Kick and Kickoff',
+  keys: { r: 'back to the middle' },
+  text: 'When it hears "kick", fly away from whoever is closest. After a goal, wait 2 seconds and go back to the middle. R puts it back in the middle.',
+  summary: [
+    'When it hears "kick": fly away from the closest player or car',
+    'When it hears "red scores" or "blue scores": wait 2 seconds, then back to the middle',
+    'When it hears "new game", or R is pressed: back to the middle',
+  ],
+  code: `// The ball. A kick sends it flying away from the kicker; after a goal it
+// goes back to the middle for the kickoff.
+const kickPower = 8;
+
+onMessage("kick", async () => {
+  const kicker = await nearest("model");
+  if (!kicker || kicker.distance > 6) return;
+  play("hit");
+  // away from the kicker: split it into a forward/back push and a left/right push
+  const away = (kicker.direction + 180) / 57.3; // 57.3 turns degrees into the angle units sin and cos use
+  shove(Math.cos(away) * kickPower, "forward", "backward");
+  shove(Math.sin(away) * kickPower, "left", "right");
+  push("up", 2);
+});
+function shove(amount, plus, minus) {
+  if (Math.abs(amount) >= 0.5) push(amount > 0 ? plus : minus, Math.abs(amount));
+}
+
+async function kickoff() {
+  await wait(2);
+  await teleport(place(0, 0));
+}
+onMessage("red scores", kickoff);
+onMessage("blue scores", kickoff);
+onMessage("new game", () => teleport(place(0, 0)));
+onKey("r", () => teleport(place(0, 0)));`,
+};
+
+// Space kicks: if the ball is close, tell it "kick" (it works out which way to fly).
+const KICK = {
+  title: 'Kick',
+  keys: { ' ': 'kick' },
+  text: 'When I press space, swing the right arm, and if the ball is close, tell everyone "kick".',
+  summary: ['When space is pressed: swing the right arm, and if the ball is close, tell everyone "kick"'],
+  code: `onKey(" ", async () => {
+  const ball = await nearest(thing("ball"));
+  if (ball && ball.distance < 5) broadcast("kick");
+  await part("right arm").turnTo(100);
+  await part("right arm").turnTo(0);
+});`,
+};
+
+// A goal's net: when the ball rolls in, the other team scores.
+const goalFor = (team, net) => ({
+  title: `Goal for ${team === 'red' ? 'Red' : 'Blue'}`,
+  text: `When the ball rolls into the ${net} net, tell everyone "${team} scores".`,
+  summary: [`When the Ball rolls in: tell everyone "${team} scores" (once, then wait 3 seconds)`],
+  code: `// The ball is in ${net === 'red' ? "Red's" : "Blue's"} goal, so ${team === 'red' ? 'Red' : 'Blue'} gets a point.
+let ready = true;
+onTouch(thing("ball"), async () => {
+  if (!ready) return;
+  ready = false;
+  play("referee");
+  broadcast("${team} scores");
+  await wait(3);
+  ready = true;
+});`,
+});
+
 export const WORLDS = [
   {
     id: 'blank',
@@ -620,6 +749,61 @@ onMessage("in the hole", () => {
       }],
     },
     select: 'golfer',
+  },
+
+  {
+    id: 'calvinball',
+    name: 'Calvinball',
+    emoji: '🏟️',
+    blurb: 'Red against Blue: two goals, a ball, cars and a scoreboard. Pick a player: arrows run, space kicks. Every rule is a behavior, so change any of them and make up your own game.',
+    theme: { ...SKY.day, fog: [150, 300], ground: { base: '#3f9e44', stud: '#4db352', edge: '#2f7f34' } }, // a big field: push the fog back
+    camera: { pos: [18, 56, 84], target: [18, 0, -6] }, // a little right of the middle: the inspector covers the right of the view
+    build(w) {
+      // Red's half and goal are on the left (x < 0), Blue's on the right.
+      const hx = P.FIELD.length / 2, hz = P.FIELD.width / 2;
+      P.field(w, 'field');
+      P.fieldWalls(w, 'walls');
+      P.goal(w, 'red-goal', -hx, -1, { color: 'red' });
+      P.goal(w, 'blue-goal', hx, 1, { color: 'blue' });
+      P.goalNet(w, 'red-net', -hx, -1, { color: 'red' });
+      P.goalNet(w, 'blue-net', hx, 1, { color: 'blue' });
+      P.scoreboard(w, 'scoreboard', 0, -hz - 12);
+      w.addBall({ radius: 1.5, color: 'white', x: 0, y: 1.62, z: 0, name: 'Ball', thingId: 'ball' });
+      // along the far side: benches, water and spare bricks for each team
+      for (const [s, color] of [[-1, 'red'], [1, 'blue']]) {
+        const team = color === 'red' ? 'Red' : 'Blue';
+        P.bench(w, `${color}-bench`, s * 14, -hz - 3.5, { color });
+        P.cooler(w, `${color}-cooler`, s * 20.5, -hz - 3.5, { color: s < 0 ? 'orange' : 'cyan', name: `${team} Water Cooler` });
+        [[28, -hz - 4, '2x4', color, 0], [31.5, -hz - 5, '2x2', color, 30], [27.5, -hz - 8, '2x2', 'white', 60]].forEach(([x, z, size, c, yaw], i) =>
+          w.addBrick({ size, color: c, x: s * x, y: B / 2, z, yaw, sleeping: true, thingId: `${color}-brick-${i + 1}` }));
+      }
+      // training cones on each half (loose bricks, so they topple)
+      [-26, -20, -14].forEach((x, i) => P.cone(w, `cone-${i + 1}`, x, -15, { y: 0.04 }));
+      [14, 20, 26].forEach((x, i) => P.cone(w, `cone-${i + 4}`, x, 15, { y: 0.04 }));
+      [[-1, -1, 'red'], [-1, 1, 'red'], [1, -1, 'blue'], [1, 1, 'blue']].forEach(([sx, sz, color], i) =>
+        P.flagPole(w, `corner-flag-${i + 1}`, sx * (hx + 2.5), sz * (hz + 2.5), { color, name: 'Corner Flag', height: 3, dynamic: true }));
+      [[-54, -38], [54, -38], [-54, 38], [54, 38]].forEach(([x, z], i) => P.lightTower(w, `light-${i + 1}`, x, z));
+      const trees = [[-66, -16], [-66, 14], [66, -16], [66, 14], [-40, -52], [40, -52], [-14, -56], [16, -56], [-64, 46], [64, 46]];
+      trees.forEach(([x, z], i) => P.tree(w, `tree-${i + 1}`, x, z, { scale: i % 3 === 0 ? 1.25 : 1, loose: true })); // loose bricks: smashable
+    },
+    models: [
+      { id: 'red-1', def: 'red-player', x: -14, z: -9, yaw: 90, name: 'Red Player 1' },
+      { id: 'red-2', def: 'red-player', x: -14, z: 9, yaw: 90, name: 'Red Player 2' },
+      { id: 'blue-1', def: 'blue-player', x: 14, z: -9, yaw: -90, name: 'Blue Player 1' },
+      { id: 'blue-2', def: 'blue-player', x: 14, z: 9, yaw: -90, name: 'Blue Player 2' },
+      { id: 'red-car', def: 'racecar', x: -26, z: 0, yaw: 90, name: 'Red Car' },
+      { id: 'blue-car', def: 'racecar', x: 26, z: 0, yaw: -90, name: 'Blue Car', color: 'blue' },
+    ],
+    behaviors: {
+      world: [{ title: 'How to Play', text: 'At the start, say "Calvinball! Pick a player: arrows run, space kicks. Score in the other goal. Then change the rules!" for 10 seconds.' }],
+      scoreboard: [SCOREBOARD],
+      ball: [BALL],
+      'red-net': [goalFor('blue', 'red')],
+      'blue-net': [goalFor('red', 'blue')],
+      ...Object.fromEntries(['red-1', 'red-2', 'blue-1', 'blue-2'].map((id) => [id, [{ title: 'Run with Arrows', text: STEER }, KICK]])),
+      ...Object.fromEntries(['red-car', 'blue-car'].map((id) => [id, [{ title: 'Drive with Arrows', text: ARROWS }, { title: 'Honk', text: 'When I press space, play honk.' }]])),
+    },
+    select: 'red-1',
   },
 
   {

@@ -12,7 +12,7 @@
     "dev:all": "node tools/dev-all.mjs",
     "smoke": "node tools/smoke.mjs",
     "smoke:room": "node tools/room-smoke.mjs",
-    "test": "node test/codec.test.mjs && node test/sandbox.test.mjs && node test/room.test.mjs && node test/room-isolate.test.mjs && node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/trace.test.mjs && node test/pad.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs"
+    "test": "node test/codec.test.mjs && node test/sandbox.test.mjs && node test/room.test.mjs && node test/room-isolate.test.mjs && node test/compiler.test.mjs && node test/prompt.test.mjs && node test/blocks.test.mjs && node test/trace.test.mjs && node test/pad.test.mjs && node test/physics.test.mjs && node test/geometry.test.mjs && node test/stage.test.mjs && node test/calvinball.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

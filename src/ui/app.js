@@ -208,7 +208,7 @@ export class App {
     };
     $('btn-turn').onclick = () => {
       const a = this.selected;
-      if (!a?.alive || a.isWorld || this.readOnly) return;
+      if (!a?.alive || a.isWorld || a.fixed || this.readOnly) return;
       this.session.turn(a);
     };
     $('btn-remove').onclick = () => {
@@ -282,6 +282,7 @@ export class App {
     $('btn-whole').classList.toggle('hidden', kind !== 'piece');
     $('btn-whole').querySelector('span').textContent = whole ? `Back to the whole ${whole.name}` : '';
     for (const id of ['btn-copy', 'btn-turn', 'btn-remove']) $(id).classList.toggle('hidden', actor.isWorld);
+    $('btn-turn').classList.toggle('hidden', actor.isWorld || actor.fixed); // a fixed thing (a playing field) stays put
     $('btn-more').classList.toggle('hidden', actor.isWorld); // the World has nothing to copy, turn or delete
 
     const parts = $('sel-parts');
@@ -367,7 +368,7 @@ export class App {
       }
       down = { x: ev.clientX, y: ev.clientY, alt: ev.altKey };
       this._pressStart(ev);
-      if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld || this.readOnly) return;
+      if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld || this.selected.fixed || this.readOnly) return;
       const hit = this._pick(ev);
       if (hit?.entity && this.selected.has(hit.entity)) {
         ev.stopPropagation();

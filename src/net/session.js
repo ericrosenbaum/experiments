@@ -165,6 +165,7 @@ export class NetSession {
   on_say(m) { const a = this.world.actor(m.key); if (a.alive) this.app.say(a, m.text, m.seconds); }
   on_sound(m) { this.app.audio.play(m.name, m.pos ? { x: m.pos[0], y: m.pos[1], z: m.pos[2] } : null); }
   on_color(m) { this.mirror.color(m.key, m.color, m.part); }
+  on_show(m) { this.mirror.show(m.key, m.text); }
   on_pen(m) { this.mirror.pen(m); }
   on_gravity(m) { this.world.setGravity(m.scale); }
   on_ran(m) {

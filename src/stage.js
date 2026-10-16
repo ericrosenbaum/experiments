@@ -8,6 +8,7 @@ import { WORLDS_BY_ID } from './world/worlds.js';
 import { LIBRARY_BY_ID, modelBottom } from './world/library.js';
 import { compileLocal, titleFrom } from './behavior/compiler.js';
 import { syntaxError } from './behavior/generate.js';
+import { applyColor } from './behavior/runtime.js';
 
 const MAX_COPIES = 40;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -101,10 +102,13 @@ export class Stage {
     this.reset();
   }
 
+  // pose.color paints a premade model (a team's blue race car).
   _addModel(defId, pose, key, name) {
     const def = LIBRARY_BY_ID[defId];
     const y = pose.lift ? -modelBottom(def) + 0.05 + pose.lift : undefined;
-    return this.world.addModel(def, { x: pose.x, y, z: pose.z, yaw: pose.yaw ?? 0, id: key, name });
+    const e = this.world.addModel(def, { x: pose.x, y, z: pose.z, yaw: pose.yaw ?? 0, id: key, name });
+    if (pose.color && pose.color !== def.color) applyColor(this.world, this.world.actor(key), pose.color);
+    return e;
   }
 
   // Put everything back where it started; behaviors keep running.
@@ -196,6 +200,7 @@ export class Stage {
     if (m) {
       const p = m.position.add(delta);
       world.addModel(m.def, { x: p.x, y: p.y, z: p.z, yaw: m.heading(), id: key, name });
+      if (m.color !== m.def.color) applyColor(world, world.actor(key), m.color);
     } else {
       for (const e of members) {
         const p = e.position.add(delta);
@@ -292,7 +297,7 @@ export class Stage {
   // ---- moving things by hand ------------------------------------------------
 
   turn(actor, degrees = 45) {
-    if (!actor?.alive || actor.isWorld) return;
+    if (!actor?.alive || actor.isWorld || actor.fixed) return;
     const pivot = actor.position;
     this.world.transform(actor.members, { dyaw: degrees, pivot });
     if (actor.usesOwnYaw) actor.yaw = (actor.yaw ?? 0) + degrees;

@@ -20,7 +20,7 @@ const MAX_SPEED = 50; // studs a second, for drive, speedUp, move and goTo
 const TURN_RATE = 360; // degrees a second for turn() and face(); they ease in at the end
 const MAX_SPAWNED_PER_ACTOR = 60;
 // What the World can't do, and how to say so.
-const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look']);
+const NOT_FOR_WORLD = new Set(['drive', 'speedUp', 'slowDown', 'steer', 'rise', 'jump', 'push', 'partSpin', 'partColor', 'explode', 'see', 'penDown', 'penUp', 'penColor', 'penSize', 'remove', 'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partWiggle', 'look', 'show']);
 
 export class Runtime {
   // sandboxFor(program): which Sandbox a program runs in. The page gives
@@ -512,6 +512,13 @@ export class Program {
     // the World's banner has room for a sentence or two; bubbles stay short
     this.rt.ui.say(this.actor, String(text).slice(0, this.actor.isWorld ? 160 : 80), clamp(seconds, 0.5, 10));
   }
+  cmd_show(text) {
+    const screens = this.actor.members.filter((e) => e.screen);
+    if (!screens.length) throw new Error(`${this.actor.name} has no screen to show things on (say() puts words in a bubble)`);
+    const t = String(text).slice(0, 80);
+    for (const e of screens) this.world.showText(e, t);
+    this.rt.ui.onShow?.(this.actor, t);
+  }
   cmd_broadcast(name) { this.rt.broadcast(String(name).slice(0, 40)); }
   _pen() { return this.rt.ui.onPen?.(this.actor.key, this.world.pen(this.actor.key)); }
   cmd_penDown() { this.world.penDown(this.actor.key); this._pen(); }
@@ -780,19 +787,22 @@ export function applyColor(world, a, c) {
   const e = a.model;
   if (e) {
     const original = colorHex(e.def.color);
-    e.bodies[0].object3d.traverse((o) => {
-      if (o.isMesh && (o.userData.origColor ?? o.material.color.getHex()) === original) {
-        o.userData.origColor = original;
-        o.material = material(c);
-      }
-    });
+    for (const { object3d, part } of e.bodies) { // the chassis, and a rider (whose helmet matches the car)
+      if (part) continue;
+      object3d.traverse((o) => {
+        if (o.isMesh && o.material?.color && (o.userData.origColor ?? o.material.color.getHex()) === original) {
+          o.userData.origColor = original;
+          o.material = material(c);
+        }
+      });
+    }
     e.color = c;
     recolorBody(world, e.chassis, c, e.def.color);
     return;
   }
   for (const m of a.members) {
     for (const { body, object3d } of m.bodies) {
-      object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.material.wireframe) o.material = material(c); });
+      object3d.traverse((o) => { if (o.isMesh && o.material?.color && !o.material.wireframe && !o.userData.keepColor) o.material = material(c); });
       recolorBody(world, body, c);
     }
     m.color = c;

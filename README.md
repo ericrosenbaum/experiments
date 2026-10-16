@@ -13,7 +13,7 @@ npm test                             # compiler, prompt, physics, geometry, stag
 npm run dev:all                      # the page plus the sim server, for playing together (below)
 ```
 
-Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to start in that world.
+Add `#castle`, `#space`, `#platformer`, `#village`, `#farm` or `#calvinball` to the URL to start in that world.
 
 ## What's on screen
 
@@ -25,9 +25,10 @@ Add `#castle`, `#space`, `#platformer`, `#village` or `#farm` to the URL to star
   - 🏘️ **Village**: houses along the roads, a fountain, market stalls, a bell tower. A dump truck, Mayor Bot.
   - ⛳ **Minigolf**: a playable three-hole course: a straight hole, a dogleg, and one guarded by a spinning gate. The golf ball is the player: ← → aim it (an arrow on the ground shows where), hold space to charge a putt and let go to hit, ↑ taps, R goes back to the tee. Each cup is a real hole in the green with a sensor that tells the ball "in the hole"; the ball counts strokes and moves itself to the next tee. All of it is ordinary behaviors you can read and change.
   - 🚜 **Farm**: barn, silo, carrots and corn, a pond, a cow pen with two cows that moo, a horse and a tractor.
+  - 🏟️ **Calvinball**: a game for Red against Blue that you're meant to change. The field is a big one (82 × 52 studs), split into a red half and a blue half, with a center circle and a low wall of heavy loose bricks around it. There's a brick goal 18 studs wide at each end, two players and a race car per team, a ball on the center spot, and a big scoreboard. Pick a player: the arrows run and space kicks. Every rule is a behavior you can open and rewrite. Each goal's net tells everyone "red scores" or "blue scores". The scoreboard counts the points and `show()`s them on its screen (first to 5 wins, R starts a new game). The ball flies away from whoever kicks it and goes back to the middle after a goal. Cones, benches, water coolers, spare bricks, corner flags, stadium lights and trees fill out the field. Only the field itself is fixed (a prop built with `fixed: true`: you can select it and teach it, but not drag or turn it, so it can't be picked up by accident). Everything else can be knocked over. The walls, trees and cones break into bricks, while the lights, flags, benches, coolers, goals and scoreboard topple as whole pieces (a prop built with `dynamic: true`). The goals are heavy enough that the ball can't move them but a car can, and a toppled scoreboard keeps showing the score. Reset stands everything back up. In a room, each kid grabs a player.
 
   Each world keeps its own state, so switching away and back finds everything as you left it.
-- **Library** (＋ Add model): 24 models in five groups. People (knight, hero, astronaut, farmer, villager, wizard, golfer), vehicles (race car, digger, catapult, tractor, dump truck, skyship), characters (robot, slime), animals (dino, dragon, horse, turtle, cow) and space (alien, spaceship, UFO, rocket).
+- **Library** (＋ Add model): 26 models in five groups. People (knight, hero, astronaut, farmer, villager, wizard, golfer, a Red player and a Blue player), vehicles (race car, digger, catapult, tractor, dump truck, skyship), characters (robot, slime), animals (dino, dragon, horse, turtle, cow) and space (alien, spaceship, UFO, rocket).
 - **Skyship**: built to match four photos of a real brick build (tools/model/review.mjs renders a model from any angle to compare). It brought new building elements to `src/world/bricks.js`: round bricks and logs, hollow round containers, bars, ladders, grilles, see-through glass and glass panels, a boat hull with a tapered bow and a sloped chine, turned pieces (`rot`) and flexible hoses. A model with `floats: true` ignores gravity and hovers where it is.
 - **Minifigures**: the people are real minifigs, not stacks of bricks. Their proportions are measured from the minifigure design patent (US D253,711, figs. 1 and 2) and match its front and side silhouettes to within about 0.05 studs. `src/world/minifig.js` builds them from new primitives: a lathed head and neck, a tapered torso, extruded leg profiles, bent tube arms, C-clip hands, and canvas decals for faces and torso prints. On top of those go hats and hair (helmet, cap, straw hat, space helmet, wizard hat, hair, antennae) and things to hold (sword, shield, pitchfork, wand). Physics uses a few hidden boxes; the head turns, the arms swing, and the legs stride when it walks.
 - **Inspector** (right): what's selected, its parts, the composer, examples, and the behaviors it knows.
@@ -82,7 +83,7 @@ Every program belongs to one **actor** (`src/world/actor.js`): a model, an assem
 - **copies**: `await clone(what, where)` copies a thing with all its behaviors (`what`: null for itself, `thing("id")` or a kind; `where`: `place(x, z)`, `"front"`, `"back"`, `"left"`, `"right"`, `"above"`, or nothing for a clear spot beside it). Copies run their behaviors too, plus `onClone`; `isClone()` tells them apart. At most 40 copies and 3 per second. `remove()` takes a thing out of the world.
 - **world rules**: `gravity(amount)` (1 normal, 0 floating, negative falls up), only from the World.
 - **parts**: `part(name).spin()`, `part(name).turnTo(deg)`, `part(name).wiggle()`, `part(name).color()`
-- **world**: `spawn({color, size, at, launch, from})`, `play(sound)`, `say(text)`, `broadcast(name)`, `color()`
+- **world**: `spawn({color, size, at, launch, from})`, `play(sound)`, `say(text)`, `show(text)` (writes on a thing's screen, like the Calvinball scoreboard's, until the next `show`; color words light up in their color), `broadcast(name)`, `color()`
 - **sensing**: `look(dist)` (raycast straight ahead), `nearest(filter)`, `touching(filter)`, `position()`, `is(thing, filter)`
 - **references**: `thing(id)`, `place(x, z)`. Filters can be a color, a kind (`"tree"`, `"brick"`, `"model"`…), `{color, kind}`, or a thing reference.
 

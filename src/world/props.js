@@ -210,9 +210,9 @@ export function hay(world, id, x, z, { yaw = 0, name = 'Hay Bales' } = {}) {
   add(-1.025, B * 1.5, 0); add(1.025, B * 1.5, 0);
 }
 
-export function flagPole(world, id, x, z, { color = 'red', name = 'Flag', kind = 'flag', height = 6, y = 0 } = {}) {
+export function flagPole(world, id, x, z, { color = 'red', name = 'Flag', kind = 'flag', height = 6, y = 0, dynamic = false } = {}) {
   world.addStatic({
-    kind, name, color, x, y, z, thingId: id,
+    kind, name, color, x, y, z, thingId: id, dynamic,
     boxes: [
       box(0, 0.2, 0, 1.6, P, 1.6, 'gray'),
       box(0, P + height / 2, 0, 0.3, height, 0.3, 'white', { studs: false }),
@@ -613,4 +613,153 @@ export function bigRex(world, id, x, z, { yaw = 0, name = 'Big Rex', color = 'li
       ...spikes, ...teeth,
     ],
   });
+}
+
+// ---- Calvinball: a playing field to make your own game on ----------------------
+// The field runs along x: the left half (x < 0) is one team's, the right half
+// the other's, each with a goal at its end. Only the field itself is fixed;
+// everything around it can be knocked over (and Reset stands it up again).
+
+export const FIELD = { length: 82, width: 52, mouth: 9 }; // mouth: half the width of a goal
+
+// The field: two colored halves with white lines (halfway line, center
+// circle, sidelines and a box in front of each goal) and the floor inside
+// each goal, flat enough to drive on.
+export function field(world, id, { length = FIELD.length, width = FIELD.width, mouth = FIELD.mouth, left = '#d8685d', right = '#5b8fd6', name = 'Field' } = {}) {
+  const hx = length / 2, hz = width / 2, T = 0.04, LINE = 0.4;
+  const line = (x, z, w, d, extra) => box(x, T + 0.01, z, w, 0.02, d, 'white', { studs: false, ...extra }); // lies on top
+  const boxes = [
+    box(-hx / 2, T / 2, 0, hx, T, width, left, { studs: false }),
+    box(hx / 2, T / 2, 0, hx, T, width, right, { studs: false }),
+    line(0, 0, LINE, width),
+    line(0, -hz + LINE / 2, length, LINE), line(0, hz - LINE / 2, length, LINE),
+    line(-hx + LINE / 2, 0, LINE, width), line(hx - LINE / 2, 0, LINE, width),
+    line(0, 0, 1.4, 1.4), // the center spot
+  ];
+  const r = 9, n = 48;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    boxes.push(line(Math.sin(a) * r, Math.cos(a) * r, (2 * Math.PI * r) / n + 0.06, LINE, { rot: [0, a, 0] }));
+  }
+  const deep = 9, wide = 2 * mouth + 12; // the box in front of each goal
+  for (const s of [-1, 1]) {
+    boxes.push(line(s * (hx - deep), 0, LINE, wide));
+    for (const zs of [-1, 1]) boxes.push(line(s * (hx - deep / 2), zs * (wide / 2 - LINE / 2), deep, LINE));
+    boxes.push(box(s * (hx + 1.5), T / 2, 0, 3, T, 2 * mouth, 'darkgray', { studs: false })); // the floor of the goal
+  }
+  world.addStatic({ kind: 'field', name, color: 'white', x: 0, z: 0, thingId: id, boxes, fixed: true }); // no dragging it away by accident
+}
+
+// A low wall of loose bricks all around the field, open at each goal; the
+// end walls are in the team colors. Heavy bricks, so the ball bounces off,
+// but a car can still bash a gap in it.
+export function fieldWalls(world, id, { length = FIELD.length, width = FIELD.width, mouth = FIELD.mouth, ends = ['red', 'blue'], name = 'Field Wall' } = {}) {
+  const hx = length / 2, hz = width / 2;
+  const add = (x, z, w, d, color) => world.addBrick({ dims: [w, B, d], color, x, y: B / 2, z, kind: 'wall', name, thingId: id, sleeping: true, density: 2.5 });
+  const row = (from, to, piece, place) => { // bricks about `piece` long from `from` to `to`
+    const n = Math.max(1, Math.round((to - from) / piece)), len = (to - from) / n;
+    for (let i = 0; i < n; i++) place(from + len * (i + 0.5), len);
+  };
+  for (const zs of [-1, 1]) row(-hx - 1, hx + 1, 7, (x, len) => add(x, zs * (hz + 0.5), len, 1, 'white'));
+  ends.forEach((color, i) => {
+    const s = i === 0 ? -1 : 1;
+    for (const zs of [-1, 1]) row(mouth + 1, hz, 5, (z, len) => add(s * (hx + 0.5), zs * z, 1, len, color)); // beside the goal posts
+  });
+}
+
+// A goal of bricks standing on the goal line at x; side: -1 is the left end
+// of the field (it opens toward +x), 1 the right. Striped posts, a crossbar,
+// and see-through netting at the back and sides to stop the ball. It's one
+// heavy piece: the ball can't budge it, but a car can knock it over.
+export function goal(world, id, x, side, { color = 'red', name = `${cap(color)} Goal`, mouth = FIELD.mouth, height = 4 } = {}) {
+  const at = (u, y, z, w, h, d, c, extra) => box(side * u, y, z, w, h, d, c, extra); // u: how deep into the goal
+  const top = height * B;
+  const boxes = [];
+  for (const u of [0.5, 3.5]) {
+    for (const zs of [-1, 1]) {
+      for (let i = 0; i < height; i++) boxes.push(at(u, B / 2 + i * B, zs * (mouth + 0.5), 1, B, 1, i % 2 ? color : 'white'));
+    }
+    boxes.push(at(u, top + B / 2, 0, 1, B, 2 * mouth + 2, color)); // crossbar, and the bar across the back
+  }
+  for (const zs of [-1, 1]) {
+    boxes.push(at(2, top + B / 2, zs * (mouth + 0.5), 2, B, 1, 'white'));
+    boxes.push(at(2, top / 2, zs * (mouth + 0.5), 2, top, 1, 'white', { glass: true, studs: false })); // side netting
+  }
+  boxes.push(at(3.5, top / 2, 0, 1, top, 2 * mouth, 'white', { glass: true, studs: false })); // back netting
+  world.addStatic({ kind: 'goal', name, color, x, z: 0, thingId: id, boxes, dynamic: true, density: 1.5 });
+}
+
+// The inside of a goal (see goal), a step past the goal line: a see-through
+// sensor, so the ball rolls in and its behaviors notice. It stays put even if
+// the goal is knocked over: that's where the goal is.
+export function goalNet(world, id, x, side, { color = 'red', name = `${cap(color)} Net`, mouth = FIELD.mouth, height = 4 } = {}) {
+  const top = height * B;
+  world.addStatic({
+    kind: 'net', name, color, x, z: 0, thingId: id, sensor: true,
+    boxes: [box(side * 2, (top + 0.04) / 2, 0, 2, top - 0.04, 2 * mouth, color, { glass: true, studs: false })],
+  });
+}
+
+// A big scoreboard on two legs. Its screen shows whatever its behaviors
+// show() on it; the ends are painted in the team colors. Knock it over and
+// it keeps showing the score, lying in the grass.
+export function scoreboard(world, id, x, z, { yaw = 0, left = 'red', right = 'blue', text = 'RED  vs  BLUE\n0 - 0', name = 'Scoreboard' } = {}) {
+  const boxes = [
+    box(-8, 4, 0, 2, 8, 2, 'darkgray'),
+    box(8, 4, 0, 2, 8, 2, 'darkgray'),
+    box(-8, 0.2, 0, 4, P, 4, 'darkgray'), // feet
+    box(8, 0.2, 0, 4, P, 4, 'darkgray'),
+    box(0, 12, 0, 24, 8, 1.6, 'black', { studs: false }),
+    box(0, 12, 0, 22, 6.6, 1.8, 'black', { studs: false, screen: { text } }),
+    box(-12.75, 12, 0, 1.5, 8, 2, left, { studs: false }),
+    box(12.75, 12, 0, 1.5, 8, 2, right, { studs: false }),
+    box(0, 16 + B / 2, 0, 27, B, 2, 'yellow'),
+  ];
+  for (let i = -4; i <= 4; i++) boxes.push(box(i * 3, 16 + B + B / 2, 0, 1, B, 1, i % 2 ? 'white' : 'yellow', { shape: 'round' })); // lamps along the top
+  world.addStatic({ kind: 'scoreboard', name, color: 'black', x, z, yaw, thingId: id, boxes, dynamic: true });
+}
+
+// A training cone of loose bricks: knock it over and Reset stands it up again.
+export function cone(world, id, x, z, { y = 0, color = 'orange', name = 'Cone' } = {}) {
+  const add = (yy, w, h, c) => world.addBrick({ dims: [w, h, w], color: c, x, y: y + yy, z, kind: 'cone', name, thingId: id, sleeping: true, studs: false });
+  add(0.15, 1.6, 0.3, color);
+  add(0.3 + 0.45, 1, 0.9, color);
+  add(1.2 + 0.25, 0.6, 0.5, 'white');
+}
+
+// A team bench with a backrest at its back (-z; turn it with yaw).
+export function bench(world, id, x, z, { color = 'red', yaw = 0, name = `${cap(color)} Bench` } = {}) {
+  world.addStatic({
+    kind: 'bench', name, color, x, z, yaw, thingId: id, dynamic: true,
+    boxes: [
+      box(-3.5, B / 2, 0, 1, B, 2, 'darkgray', { studs: false }),
+      box(3.5, B / 2, 0, 1, B, 2, 'darkgray', { studs: false }),
+      box(0, B + P / 2, 0, 8, P, 2, color),
+      box(0, B + P + 0.8, -0.8, 8, 1.6, 0.4, color, { studs: false }),
+    ],
+  });
+}
+
+// A round water cooler with a white lid.
+export function cooler(world, id, x, z, { color = 'orange', name = 'Water Cooler' } = {}) {
+  world.addStatic({
+    kind: 'cooler', name, color, x, z, thingId: id, dynamic: true,
+    boxes: [
+      box(0, 1, 0, 1.6, 2, 1.6, color, { shape: 'round', studs: false }),
+      box(0, 2.15, 0, 1.8, 0.3, 1.8, 'white', { shape: 'round' }),
+    ],
+  });
+}
+
+// A tall stadium light, its lamps facing the middle of the field. A heavy
+// foot keeps it standing until something big hits it.
+export function lightTower(world, id, x, z, { name = 'Stadium Light' } = {}) {
+  const yaw = (Math.atan2(-x, -z) * 180) / Math.PI;
+  const boxes = [
+    box(0, P / 2, 0, 3, P, 3, 'darkgray'),
+    box(0, P + 7, 0, 1, 14, 1, 'gray', { studs: false }),
+    box(0, P + 15.2, 0, 5, 2.4, 0.8, 'darkgray', { studs: false }),
+  ];
+  for (const lx of [-1.5, 0, 1.5]) for (const ly of [14.6, 15.8]) boxes.push(box(lx, P + ly, 0.45, 1.2, 1, 0.1, 'yellow', { studs: false }));
+  world.addStatic({ kind: 'light', name, color: 'gray', x, z, yaw, thingId: id, boxes, dynamic: true });
 }

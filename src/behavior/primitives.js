@@ -62,6 +62,7 @@ export const PRIMITIVES = [
   ['spawn(options)', 'Make a new brick, or a little flower with shape: "flower" (a 1x1 flower about 1.5 bricks tall; color is its petals). options: {color, shape: "brick" | "flower", size: "1x1" | "2x2" | "2x4" | "1x4" | "4x4", at: "front" | "back" | "top" | "here" | place(x,z), launch: speed (throws it forward, arcing up a little; straight and level when there is no gravity), from: part name (spawn near that part)}. All optional.', 'action'],
   ['play(sound)', 'Play a sound by name, like play("vroom"). The sounds are listed below.', 'action'],
   ['say(text, seconds)', 'Show a speech bubble above the model.', 'action'],
+  ['show(text)', 'Write text on this thing\'s screen, big and lit up, until the next show(). Only things with a screen have one (like a scoreboard). "\\n" starts a new line; a color word like "RED" lights up in its color.', 'action'],
   ['broadcast(name)', 'Send a message everything can hear with onMessage(name, ...).', 'action'],
   ['await clone(what, where)', 'Make a copy, with all its behaviors. what: null for this thing, or another thing: thing("...") or a kind like "tree" (the nearest one). where (optional): place(x, z), "front", "back", "left", "right" or "above"; leave it out for a clear spot right beside. Returns the copy as {name, kind, color, id}, or null if there are too many copies already.', 'wait'],
   ['penDown()', 'Start drawing, like a Logo turtle: from now on it leaves a line on the ground wherever it goes.', 'action'],
@@ -93,7 +94,7 @@ export const PRIMITIVES = [
 // Commands the host accepts from a sandbox (fire-and-forget).
 export const HOST_COMMANDS = new Set([
   'drive', 'speedUp', 'slowDown', 'steer', 'rise', 'stop', 'jump', 'push', 'partSpin', 'partColor', 'color',
-  'spawn', 'play', 'say', 'broadcast', 'explode', 'penDown', 'penUp', 'penColor', 'penSize', 'clearDrawing', 'remove', 'gravity', 'log',
+  'spawn', 'play', 'say', 'show', 'broadcast', 'explode', 'penDown', 'penUp', 'penColor', 'penSize', 'clearDrawing', 'remove', 'gravity', 'log',
 ]);
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).

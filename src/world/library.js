@@ -91,6 +91,18 @@ const PEOPLE = [
     figure: { torso: 'white', arms: 'white', legs: 'tan', print: 'buttons', face: 'smile', hat: 'cap', hatColor: 'blue', held: { right: 'club' } },
   }),
   minifig({
+    id: 'red-player', name: 'Red Player',
+    blurb: 'A Red team player in a red jersey and cap, ready for any game you make up.',
+    examples: ['When I press space, kick the ball if it is close.', 'When it hears "red scores", jump and say "Goal!"', 'Go to the ball fast.', 'When it bumps into a blue player, play bonk and back up.'],
+    figure: { torso: 'red', arms: 'red', legs: 'white', print: 'jersey', face: 'smile', hat: 'cap', hatColor: 'red' },
+  }),
+  minifig({
+    id: 'blue-player', name: 'Blue Player',
+    blurb: 'A Blue team player in a blue jersey and cap, ready for any game you make up.',
+    examples: ['When I press space, kick the ball if it is close.', 'When it hears "blue scores", jump and say "Goal!"', 'Go to the ball fast.', 'When it bumps into a red player, play bonk and back up.'],
+    figure: { torso: 'blue', arms: 'blue', legs: 'white', print: 'jersey', face: 'freckles', hat: 'cap', hatColor: 'blue' },
+  }),
+  minifig({
     id: 'alien', name: 'Alien', category: 'space',
     blurb: 'A friendly green alien with big eyes and bobbly antennae.',
     examples: ['When I press h, wave the left arm and say "Greetings!"', 'Forever, turn the head left, wait 1 second, turn the head right.', 'When I press space, jump and play laser.'],

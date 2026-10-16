@@ -194,6 +194,13 @@ const PRINTS = {
     g.strokeStyle = '#333'; g.lineWidth = w * 0.02; g.beginPath(); g.moveTo(w * 0.5, 0); g.lineTo(w * 0.5, h); g.stroke();
     g.fillStyle = '#9ba19d'; g.fillRect(w * 0.6, h * 0.25, w * 0.15, h * 0.1);
   },
+  jersey(g, w, h) { // a team shirt: a white V-neck, a white stripe down each side and a ball on the chest
+    g.strokeStyle = '#f2f3f2'; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.lineWidth = w * 0.045; g.beginPath(); g.moveTo(w * 0.36, h * 0.01); g.lineTo(w * 0.5, h * 0.2); g.lineTo(w * 0.64, h * 0.01); g.stroke();
+    g.lineWidth = w * 0.05; for (const x of [0.13, 0.87]) { g.beginPath(); g.moveTo(w * x, h * 0.05); g.lineTo(w * (x < 0.5 ? x - 0.04 : x + 0.04), h); g.stroke(); }
+    g.fillStyle = '#f2f3f2'; g.beginPath(); g.arc(w * 0.66, h * 0.4, w * 0.075, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#1b1d20'; g.beginPath(); g.arc(w * 0.66, h * 0.4, w * 0.028, 0, Math.PI * 2); g.fill();
+  },
 };
 
 function torsoPrint(kind) {
