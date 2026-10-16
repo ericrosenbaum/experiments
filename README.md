@@ -45,7 +45,7 @@ The same page works on touch screens. In portrait the inspector is a sheet at th
 - **Click the ground** (or 🌍 World rules) to select the **World**. World rules can change `gravity()`, drop bricks from the sky, `clone()` things, say things in a banner, recolor the ground, and react to keys and to clicks on the ground. The World itself never moves.
 - Clicking the sky selects nothing.
 - **Only the selected thing hears the keyboard.** Several things can all be taught the arrow keys, and only the one you've selected moves.
-- **Drag** the selected thing to move it; **scroll while dragging** to turn it. ↻ turns it 45°, ⧉ copies it with everything it knows, 🗑 removes it from this world, ⟲ puts a model back where it started.
+- **Drag** the selected thing to move it; **scroll while dragging** to turn it. To turn it in place, drag the **turn knob** (the yellow ⟳ button on the ground beside it) around it: it turns in 15° steps (hold Shift for any angle), with a circle and the angle shown while you turn. The same knob works with a finger. ↻ turns it 45°, ⧉ copies it with everything it knows, 🗑 removes it from this world, ⟲ puts a model back where it started.
 - **⟲ Reset world** rebuilds the world. Things stay where you dragged them, deleted things stay deleted, copies go away, and every behavior starts again.
 
 ## Describing a behavior

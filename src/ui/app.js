@@ -19,6 +19,25 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const css = (hex) => '#' + colorHex(hex).toString(16).padStart(6, '0');
 const DEG = Math.PI / 180;
+
+// The turn handle's knob: a yellow button with a round arrow, always facing
+// the camera and drawn on top, so it's easy to see and grab from any angle.
+function turnKnob() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#ffd400'; g.strokeStyle = '#1f2430'; g.lineWidth = 7;
+  g.beginPath(); g.arc(64, 64, 56, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.strokeStyle = '#1f2430'; g.lineWidth = 11; g.lineCap = 'round';
+  g.beginPath(); g.arc(64, 64, 30, -Math.PI * 0.35, Math.PI * 1.25); g.stroke();
+  const tip = [64 + 30 * Math.cos(-Math.PI * 0.35), 64 + 30 * Math.sin(-Math.PI * 0.35)];
+  g.fillStyle = '#1f2430'; g.beginPath(); g.moveTo(tip[0] + 18, tip[1] - 2); g.lineTo(tip[0] - 6, tip[1] - 18); g.lineTo(tip[0] - 4, tip[1] + 14); g.closePath(); g.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  s.renderOrder = 999;
+  return s;
+}
 // popup name -> [popup id, the button that opens it]
 const POPS = { top: ['top-menu', 'btn-top-menu'], menu: ['sel-menu', 'btn-more'], parts: ['parts-pop', 'btn-parts'] };
 const svg = (d, w = 15) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
@@ -58,6 +77,18 @@ export class App {
     this.aim.visible = false;
     scene.add(this.aim);
     for (const o of [this.hoverBox, this.selBox, this.ring, this.aim]) o.raycast = () => {};
+    // The turn handle: a knob beside the selected thing; drag it around the
+    // thing to turn it (in 15° steps, or any angle with Shift held). While it
+    // turns, a circle shows the way around and a label the angle.
+    this.turnKnob = turnKnob();
+    this.turnKnob.visible = false;
+    scene.add(this.turnKnob);
+    this.turnTrack = new THREE.Mesh(new THREE.RingGeometry(0.985, 1, 96), new THREE.MeshBasicMaterial({ color: 0xffd400, transparent: true, opacity: 0.8, depthTest: false, side: THREE.DoubleSide }));
+    this.turnTrack.geometry.rotateX(-Math.PI / 2);
+    this.turnTrack.renderOrder = 998;
+    this.turnTrack.visible = false;
+    this.turnTrack.raycast = () => {};
+    scene.add(this.turnTrack);
     this.readOnly = false; // looking at a thing another player is using
     this.marks = new Map(); // player id -> {box, tag}: what other players have selected
     this.sheet = new Sheet(this); // on phones the inspector is a sheet at the bottom
@@ -413,6 +444,12 @@ export class App {
       down = { x: ev.clientX, y: ev.clientY, alt: ev.altKey };
       this._pressStart(ev);
       if (ev.button !== 0 || this.pointing || ev.altKey || !this.selected || this.selected.isWorld || this.selected.fixed || this.readOnly) return;
+      if (this._overKnob(ev)) {
+        ev.stopPropagation();
+        this._pressCancel();
+        this._startDrag({ point: this.turnKnob.position.clone() }, ev, true);
+        return;
+      }
       const hit = this._pick(ev);
       if (hit?.entity && this.selected.has(hit.entity)) {
         ev.stopPropagation();
@@ -437,7 +474,7 @@ export class App {
       if (!(this.pointing || ev.altKey) || down) {
         if (this.hoverBox.visible && !this._partHover) this._highlight(null);
         const over = !down && this.selected && !this.selected.isWorld ? this._pick(ev)?.entity : null;
-        el.style.cursor = over && this.selected.has(over) ? 'grab' : '';
+        el.style.cursor = !down && this._overKnob(ev) ? 'grab' : over && this.selected.has(over) ? 'grab' : '';
         return;
       }
       const hit = this._pick(ev);
@@ -449,6 +486,7 @@ export class App {
       const wasDrag = this.drag;
       if (wasDrag) this._endDrag();
       const pressed = this._pressCancel();
+      if (wasDrag?.turn) { down = null; return; } // letting go of the knob isn't a click on what's under it
       if (!down) return;
       const moved = Math.hypot(ev.clientX - down.x, ev.clientY - down.y);
       const alt = down.alt || ev.altKey;
@@ -509,7 +547,47 @@ export class App {
     this.sheet.open('half');
   }
 
-  _startDrag(hit, ev) {
+  // The turn knob sits on the ground just outside the selected thing, round
+  // to the camera's right; while it's held, it follows the pointer round.
+  _placeKnob() {
+    const s = this.selected, d = this.drag, k = this.turnKnob;
+    k.visible = this.turnTrack.visible = false;
+    if (!s?.alive || s.isWorld || s.fixed || this.readOnly || (d && !d.turn)) return;
+    let c, radius, y, angle;
+    if (d) {
+      c = d.pivot;
+      ({ radius, y, at: angle } = d.turn);
+    } else {
+      c = s.position;
+      const box = s.bounds(true);
+      radius = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2 + 1.2;
+      y = Math.max(0, box.min.y) + 0.05;
+      const cam = this.camera.position;
+      angle = Math.atan2(cam.x - c.x, cam.z - c.z) / DEG - 55;
+    }
+    k.position.set(c.x + Math.sin(angle * DEG) * radius, y + 0.6, c.z + Math.cos(angle * DEG) * radius);
+    k.scale.setScalar(THREE.MathUtils.clamp(this.camera.position.distanceTo(k.position) * 0.045, 1.1, 5));
+    Object.assign(k.userData, { radius, y, angle });
+    k.visible = true;
+    if (d) {
+      this.turnTrack.position.set(c.x, y + 0.02, c.z);
+      this.turnTrack.scale.setScalar(radius);
+      this.turnTrack.visible = true;
+      const at = this._screen(k.position), label = $('turn-label');
+      label.textContent = `${d.yaw}°`;
+      if (at) { label.style.left = `${at.x}px`; label.style.top = `${at.y}px`; }
+    }
+  }
+
+  _overKnob(ev) {
+    if (!this.turnKnob.visible) return false;
+    this.raycaster.setFromCamera(this._ndc(ev), this.camera);
+    return this.raycaster.intersectObject(this.turnKnob).length > 0;
+  }
+
+  // turn: grabbed by the turn knob, so the pointer going around turns it
+  // instead of moving it.
+  _startDrag(hit, ev, turn = false) {
     const a = this.selected;
     this.controls.enabled = false;
     const pivot = a.position;
@@ -527,6 +605,11 @@ export class App {
     this.drag.foot = { minY: box.min.y, cx: c.x, cz: c.z, hx: (box.max.x - box.min.x) / 2, hz: (box.max.z - box.min.z) / 2 };
     this.drag.own = new Set();
     for (const { body } of this.drag.base) for (let i = 0; i < body.numColliders(); i++) this.drag.own.add(body.collider(i).handle);
+    if (turn) {
+      const k = this.turnKnob.userData;
+      this.drag.turn = { radius: k.radius, y: k.y, at: k.angle, last: k.angle, raw: 0 };
+      $('turn-label').classList.remove('hidden');
+    }
     this.renderer.domElement.style.cursor = 'grabbing';
     this.session.dragStart(this.drag);
     this._moveDrag(ev);
@@ -537,6 +620,14 @@ export class App {
     this.raycaster.setFromCamera(this._ndc(ev), this.camera);
     const p = new THREE.Vector3();
     if (!this.raycaster.ray.intersectPlane(d.plane, p)) return;
+    if (d.turn) { // which way round from the middle the pointer is, added up so it can go round more than once
+      const t = d.turn, ang = Math.atan2(p.x - d.pivot.x, p.z - d.pivot.z) / DEG;
+      t.raw += ((ang - t.last + 540) % 360) - 180;
+      t.last = t.at = ang;
+      d.yaw = ev.shiftKey ? Math.round(t.raw) : Math.round(t.raw / 15) * 15;
+      if (d.yaw) d.moved = true;
+      return;
+    }
     d.delta.set(p.x - d.start.x, 0, p.z - d.start.z);
     if (d.delta.length() > 0.2) d.moved = true;
   }
@@ -569,6 +660,7 @@ export class App {
   _endDrag() {
     const d = this.drag;
     this.drag = null;
+    $('turn-label').classList.add('hidden');
     this.controls.enabled = true;
     this.renderer.domElement.style.cursor = '';
     // Single player: put it back where it was, then apply the move for real so
@@ -1035,7 +1127,7 @@ export class App {
     const cam = new THREE.PerspectiveCamera(75, this.camera.aspect, 0.1, 300);
     cam.position.copy(eye);
     cam.lookAt(eye.clone().add(f.clone().multiplyScalar(10)).add(new THREE.Vector3(0, -1.5, 0))); // a little downward
-    const hidden = [this.ring, this.selBox, this.aim, this.hoverBox, ...actor.members.flatMap((e) => e.bodies.map((b) => b.object3d))]
+    const hidden = [this.ring, this.selBox, this.aim, this.hoverBox, this.turnKnob, this.turnTrack, ...actor.members.flatMap((e) => e.bodies.map((b) => b.object3d))]
       .filter((o) => o?.visible);
     for (const o of hidden) o.visible = false;
     let data = null;
@@ -1271,6 +1363,7 @@ export class App {
     this.ring.visible = false;
     this.selBox.visible = false;
     this.aim.visible = false;
+    this._placeKnob();
     if (this.selected && !this.selected.isWorld) {
       if (this.selected.usesOwnYaw) {
         const s = this.selected, c = s.position, box = s.bounds(true); // precise, or a rolled ball's box dips below the ground

@@ -100,6 +100,9 @@ button { font: inherit; cursor: pointer; color: inherit; }
 #btn-mute .cross, #btn-mute.muted .waves { display: none; }
 #btn-mute.muted .cross { display: inline; }
 
+/* the angle, next to the turn knob while it's held */
+#turn-label { position: fixed; z-index: 12; pointer-events: none; transform: translate(-50%, -190%); background: var(--ink); color: #fff; font-weight: 800; font-size: 13px; padding: 3px 8px; border-radius: 999px; }
+
 /* library */
 #library {
   position: fixed; top: calc(var(--top) + 52px); right: calc(var(--side) + var(--gap) * 2); width: 300px; max-height: calc(100% - 140px); overflow: auto; background: var(--panel);
