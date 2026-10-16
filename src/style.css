@@ -313,19 +313,15 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   #inspector { padding: 10px 12px; }
   #inspector h2 { font-size: 17px; }
   .top-menu .menu { max-height: calc(100vh - 60px); overflow: auto; }
-  #pad { padding: 6px 10px 8px; gap: 10px; max-width: calc(100% - var(--side) - 90px); }
+  #pad { padding: 6px 10px 8px; gap: 10px; }
   #console { display: none; }
-  /* the chat folds to a round button in the corner, clear of the key pad */
-  #chat, #console.collapsed ~ #chat { left: var(--gap); bottom: var(--gap); }
-  #chat.collapsed .chat-head { padding: 6px 10px; }
-  #chat.collapsed .chat-head span:first-child { font-size: 0; }
-  #chat.collapsed .chev { display: none; }
-  #chat:not(.collapsed) { width: min(380px, calc(100vw - var(--side) - var(--gap) * 3)); z-index: 15; }
-  #chat-log { max-height: 40vh; }
   .banner { font-size: 14px; max-width: calc(100vw - var(--side) - 140px); transform: translateX(calc(-50% - var(--side) / 2)); }
 }
-/* Small screens either way: the top bar scrolls sideways instead of wrapping, players are dots. */
+/* Small screens either way: the top bar scrolls sideways instead of wrapping, players are dots,
+   the Brick Talk window is gone (messages still show as bubbles over things) and the key pad
+   has no panel: just the keys and their labels float over the scene. */
 @media (max-width: 760px), (max-height: 520px) {
+  #chat { display: none; }
   #topbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: -4px; pointer-events: auto; }
   #topbar::-webkit-scrollbar { display: none; }
   .world-pick select { max-width: 150px; text-overflow: ellipsis; }
@@ -333,6 +329,18 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   .players .player::before { display: none; }
   .players .player::after { content: attr(data-initial); }
   .players .player > span { display: none; }
+
+  #pad { background: none; box-shadow: none; }
+  .pad-label { text-shadow: 0 0 3px var(--panel), 0 0 3px var(--panel), 0 0 8px var(--panel); } /* a halo keeps the label readable over the scene */
+  .pad-key { background: color-mix(in srgb, var(--panel) 82%, transparent); }
+  /* many keys: when the groups wrap into a second row (see _fitPad in src/ui/app.js), smaller keys so they fit in one */
+  #pad.dense { gap: 7px; padding: 5px 8px 6px; }
+  #pad.dense .pad-label { font-size: 11px; }
+  #pad.dense .pad-keys { grid-auto-columns: 36px; grid-auto-rows: 36px; gap: 4px; }
+  #pad.dense .pad-keys.half { grid-auto-columns: 16px; }
+  #pad.dense .pad-keys.space { grid-auto-columns: 96px; }
+  #pad.dense .pad-key { font-size: 15px; border-radius: 9px; }
+  #pad.dense .pad-keys.space .pad-key { font-size: 12px; }
 }
 
 /* Brick Talk chat */
@@ -424,7 +432,7 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   .code-edit { height: 260px; }
 
   #pad {
-    right: 50%; left: auto; transform: translateX(50%); bottom: calc(var(--sheet-h) + var(--kb) + 8px); max-width: calc(100% - 20px);
+    left: 0; right: 0; width: fit-content; margin: 0 auto; bottom: calc(var(--sheet-h) + var(--kb) + 8px); max-width: calc(100% - 20px);
     justify-content: center; gap: 12px; padding: 6px 10px 8px;
   }
   body.sheet-full #pad { display: none; }
@@ -443,11 +451,6 @@ button.chip:hover { outline: 2px solid var(--yellow); }
   .bubble.seen img { width: 130px; }
   .top-menu .menu { position: fixed; top: calc(var(--top) + 48px); right: var(--gap); }
 
-  #chat, #console.collapsed ~ #chat, #console:not(.collapsed) ~ #chat { left: var(--gap); bottom: calc(var(--sheet-h) + var(--kb) + 8px); max-width: calc(100vw - 20px); }
-  #chat:not(.collapsed) { right: var(--gap); width: auto; z-index: 15; }
-  #chat-log { max-height: 38vh; }
-  #chat-input { font-size: 16px; }
-  body.sheet-full #chat { display: none; }
 }
 @media (pointer: coarse) {
   .pad-key:hover { border-color: var(--line); } /* no hover on touch: don't leave keys looking pressed */

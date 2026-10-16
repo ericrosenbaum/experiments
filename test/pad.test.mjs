@@ -16,6 +16,9 @@ assert.deepEqual(padGroups(labels).map((g) => [g.label, g.keys.join(' ')]), [
 ]);
 assert.equal(padGroups(keyLabels('onKey("ArrowLeft", () => steer(60)); onKey("ArrowRight", () => steer(-60));'))[0].label, 'turn');
 assert.equal(padGroups(keyLabels('onKey(" ", () => { play("honk"); jump(5); });'))[0].label, 'jump');
+// a handler passed by name is read through to the function it names
+assert.equal(keyLabels('async function startHole() { await teleport(place(0, 0)); }\nonKey("r", startHole);').r, 'go');
+assert.equal(keyLabels('const wave = () => part("left arm").wiggle();\nonKey("w", wave);').w, 'wave');
 // w sits above s on the pad, like on a keyboard
 const html = padHtml([{ kind: 'letters', keys: ['w', 's'], label: 'up and down' }]);
 assert.match(html, /data-key="w" style="grid-row:1/);

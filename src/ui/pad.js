@@ -19,10 +19,16 @@ export function keyLabels(code) {
   try { ast = parse(code, { ecmaVersion: 'latest', allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true }); } catch { return {}; }
   const best = new Map(); // key -> [rank, label]
   const consider = (key, rank, label) => { if (label && (!best.has(key) || rank < best.get(key)[0])) best.set(key, [rank, label]); };
+  const fns = new Map(); // functions by name, for handlers passed by name: onKey("r", startHole)
+  walk(ast, (n) => {
+    if (n.type === 'FunctionDeclaration' && n.id) fns.set(n.id.name, n);
+    if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && /Function/.test(n.init?.type ?? '')) fns.set(n.id.name, n.init);
+  });
   walk(ast, (n) => {
     if (n.type !== 'CallExpression' || !KEY_EVENTS.has(n.callee.name) || n.arguments[0]?.type !== 'Literal') return;
     const key = normKey(n.arguments[0].value);
-    walk(n.arguments[1], (c) => { if (c.type === 'CallExpression') { const [rank, label] = callLabel(c); consider(key, rank, label); } });
+    const handler = n.arguments[1]?.type === 'Identifier' ? fns.get(n.arguments[1].name) : n.arguments[1];
+    walk(handler, (c) => { if (c.type === 'CallExpression') { const [rank, label] = callLabel(c); consider(key, rank, label); } });
   });
   return Object.fromEntries([...best].map(([k, [, label]]) => [k, label]));
 }

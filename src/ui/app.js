@@ -884,6 +884,7 @@ export class App {
     for (const k of [...this.session.heldKeys]) this.session.keyUp(k);
     pad.innerHTML = html;
     pad.classList.toggle('hidden', !html);
+    this._watchPad();
     for (const btn of pad.querySelectorAll('.pad-key')) {
       const key = btn.dataset.key;
       const up = () => { btn.classList.remove('down'); this.session.keyUp(key); };
@@ -901,6 +902,24 @@ export class App {
 
   _padShowKey(key, down) {
     for (const btn of $('pad').querySelectorAll('.pad-key')) if (btn.dataset.key === key) btn.classList.toggle('down', down);
+  }
+
+  // With many keys the groups wrap into a second row and the pad hides a lot
+  // of the scene on a phone, so then the keys shrink (.dense) to fit in one
+  // row more often. Re-fit whenever the pad's size changes: new keys, a turn
+  // of the phone, or coming back from behind the full sheet or the library.
+  _watchPad() {
+    if (this._padWatch) return;
+    const pad = $('pad');
+    // fit on the next frame: changing the pad's size inside the observer's own callback would be a reported loop
+    this._padWatch = new ResizeObserver(() => { cancelAnimationFrame(this._padFit); this._padFit = requestAnimationFrame(() => this._fitPad()); });
+    this._padWatch.observe(pad);
+  }
+  _fitPad() {
+    const pad = $('pad');
+    pad.classList.remove('dense');
+    const bottoms = new Set([...pad.children].map((g) => Math.round(g.getBoundingClientRect().bottom)));
+    pad.classList.toggle('dense', bottoms.size > 1); // groups on one row (align-items: flex-end) share a bottom edge
   }
 
   _blocksFor(b) {
@@ -1259,7 +1278,7 @@ export class App {
 
 // On phones the inspector is a sheet at the bottom of the screen with three
 // heights: peek (just the name of what's selected), half, and full (for
-// typing). Drag the handle, or tap it to toggle; the key pad and chat float
+// typing). Drag the handle, or tap it to toggle; the key pad floats
 // above whatever height it has. A keyboard lifts it (--kb) on browsers that
 // don't shrink the page for it.
 const SHEET_PEEK = 78;
