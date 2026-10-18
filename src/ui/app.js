@@ -712,7 +712,7 @@ export class App {
   // cursor like typing, so a kid can say "go to", point at a tree, and keep talking.
   _wireSpeech() {
     const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR || !window.isSecureContext) return; // the microphone needs https (or localhost)
     const btn = $('btn-talk');
     btn.classList.remove('hidden');
     const rec = new SR();
@@ -1245,7 +1245,9 @@ export class App {
       location.href = url.href; // reload into the room
       return;
     }
-    navigator.clipboard?.writeText(url.href).then(() => this.toast('Link copied. Send it to a friend!'), () => this.toast(url.href));
+    // no clipboard on a plain http page (a laptop serving its Wi-Fi): show the link instead
+    if (!navigator.clipboard) { this.toast(url.href); return; }
+    navigator.clipboard.writeText(url.href).then(() => this.toast('Link copied. Send it to a friend!'), () => this.toast(url.href));
   }
 
   renderPlayers() {

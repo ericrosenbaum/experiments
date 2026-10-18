@@ -426,8 +426,22 @@ export class Room {
     this.pending.dirty.add(actor.key);
   }
 
+  // A bug in one step (one thing's physics, a pen, a program's command)
+  // mustn't take the whole server down with every room in it: log it, at most
+  // once a minute per kind of error, and keep going.
   _tick() {
     if (this.disposed) return;
+    try { this._step(); } catch (err) {
+      const key = String(err?.message);
+      const last = (this.errors ??= new Map()).get(key) ?? 0;
+      if (now() - last > 60_000) {
+        this.errors.set(key, now());
+        this.log(`room ${this.id}: error in a step, carrying on: ${err?.stack ?? err}`);
+      }
+    }
+  }
+
+  _step() {
     const t = now();
     const dt = Math.min(0.1, (t - this.lastTick) / 1000);
     this.lastTick = t;

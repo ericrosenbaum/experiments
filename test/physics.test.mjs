@@ -122,4 +122,21 @@ for (const id of Object.keys(LIBRARY_BY_ID)) {
   car.control.steer = 0;
   console.log('ok: refreshing queries leaves a driving race car\'s rider alone');
 }
+// A pen can draw a long line, be cleared, and draw a long line again (its
+// buffers used to outlive clearDrawing and crash the next one that grew).
+{
+  const bot = w.addModel(LIBRARY_BY_ID.robot, { x: -60, z: -60, id: 'pen-bot' });
+  w.penDown('pen-bot');
+  bot.control.drive = 7;
+  bot.control.steer = 90;
+  run(w, 14);
+  const first = w.pen('pen-bot').count;
+  assert.ok(first > 256, `the pen should draw past its first buffer, drew ${first}`);
+  w.clearDrawing();
+  run(w, 14);
+  assert.ok(w.pen('pen-bot').count > 256, `the pen should draw a long line again after clearDrawing, drew ${w.pen('pen-bot').count}`);
+  w.penUp('pen-bot');
+  w.remove(bot);
+  console.log(`ok: a pen draws ${first} segments, clears, and draws as many again`);
+}
 console.log('physics: all checks passed');

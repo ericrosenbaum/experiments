@@ -11,6 +11,7 @@ npm run dev                          # Claude writes the code if a key is set,
                                      # otherwise the offline compiler is used
 npm test                             # compiler, prompt, physics, geometry, stage, machines, codec, sandbox and room checks (headless)
 npm run dev:all                      # the page plus the sim server, for playing together (below)
+npm run dev:lan                      # the same, open to other devices on your Wi-Fi (prints the address to share)
 ```
 
 Add `#machines`, `#castle`, `#space`, `#platformer`, `#village`, `#farm` or `#calvinball` to the URL to start in that world.
@@ -131,6 +132,7 @@ page A  ──intents (select, keys, drags, teach…)──►  sim server: one 
 ```
 
 - `npm run sim` starts the server (`server/sim/`, port 8787); `npm run dev` proxies `/ws` to it, so `npm run dev:all` is the usual way. `LAG_MS=120 npm run sim` delays every message both ways, to feel what the cloud feels like.
+- Same Wi-Fi, no cloud: `npm run dev:lan` serves the page to the local network and prints this computer's address (like `http://192.168.0.40:5173/`). Everyone opens that, including you (a link copied from `localhost` won't work for anyone else); Play together then makes a room on your computer's sim server. The sim server itself stays private: players reach it through the page's `/ws`. Over plain `http` the browser allows no clipboard (the room link shows in a toast instead) and no microphone (the Talk button is hidden). `PORT` and `SIM_PORT` pick other ports.
 - The server is the only thing that steps physics. Pages build the world from the server's descriptions (`src/net/entities.js`) and move bodies from delta snapshots (`src/net/codec.js`, 15 bytes per moved body), drawn 100 ms behind and interpolated (`src/net/mirror.js`). Dragging is held on your page and on the server at once, so it feels attached.
 - Programs run in **sandboxes** on the server behind one interface (`src/behavior/sandbox-host.js`): a worker thread per player for local play (`server/sim/sandbox-node.js`), or a V8 isolate with a memory limit and a time limit per slice (`server/sim/sandbox-isolate.js`, `SANDBOX=isolate`) for a server on the internet. Either way `process`, `require`, `fetch` and friends don't exist inside, every command still goes through the Runtime's whitelist and clamps, and a loop that never pauses stops only its own sandbox.
 - `server/sim/protocol.js` validates every message; a page is limited to 60 messages a second, 12 added models and 40 taught behaviors. Rooms close ten minutes after the last player leaves.

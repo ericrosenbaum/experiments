@@ -487,9 +487,10 @@ export class World {
   }
 
   _penSegment(p, a, b) {
-    if (!p.mesh) {
+    if (!p.mesh) { // a fresh drawing (the first, or after clearDrawing): fresh buffers too
       p.cap = 0;
       p.count = 0;
+      p.pos = p.col = p.nrm = p.idx = null;
       p.mesh = new THREE.Mesh(new THREE.BufferGeometry(), PEN_MATERIAL);
       p.mesh.frustumCulled = false;
       p.mesh.receiveShadow = true;
