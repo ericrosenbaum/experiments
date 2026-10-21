@@ -14,6 +14,11 @@ const SUSTAIN = 1;
 const DECAY_TC = 1 / (1 - 0.9999) / 44100;
 const STEAL_FADE = 0.023;
 
+// Tone.now() normally runs 100 ms ahead of the audio clock so its own
+// scheduler has slack. Here, taps play right away and recorder bells do their
+// own lookahead, so drop it: a tapped note starts on the next render quantum.
+Tone.getContext().lookAhead = 0;
+
 let master = null;
 let buffers = []; // per instrument, an array of ToneAudioBuffers
 const voices = INSTRUMENTS.map(() => []);
@@ -40,11 +45,22 @@ export function unlock() {
   playThroughSilentSwitch();
   if (!master) {
     // The original summed every voice, scaled by 0.25 and hard-clipped.
-    // A compressor and limiter keep big chords clean instead.
-    const limiter = new Tone.Limiter(-1).toDestination();
-    const comp = new Tone.Compressor({ threshold: -18, ratio: 3, attack: 0.003, release: 0.25 }).connect(limiter);
+    // A compressor and a soft clipper keep big chords clean instead. (A
+    // Tone.Limiter would be a second compressor, and each one delays the
+    // signal by its 6 ms lookahead; the waveshaper adds none.)
+    const clipper = new Tone.WaveShaper(softClip, 4096).toDestination();
+    const comp = new Tone.Compressor({ threshold: -18, ratio: 3, attack: 0.003, release: 0.25 }).connect(clipper);
     master = new Tone.Gain(0.35).connect(comp);
   }
+}
+
+// Unchanged below the knee, then eases into a ceiling of -1 dBFS.
+function softClip(v) {
+  const knee = 0.7;
+  const ceiling = 0.89;
+  const x = Math.abs(v);
+  if (x <= knee) return v;
+  return Math.sign(v) * (knee + (ceiling - knee) * Math.tanh((x - knee) / (ceiling - knee)));
 }
 
 // iOS Safari only lets a gesture start audio when it ends (touchend, click),
