@@ -1,0 +1,211 @@
+:root {
+  --btn: clamp(40px, 9vmin, 60px);
+  --margin: 10px;
+  --font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Avenir Next', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: var(--font);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ---------- buttons ---------- */
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.btn {
+  position: absolute;
+  width: var(--btn);
+  height: var(--btn);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-user-drag: none;
+}
+
+/* the original dimmed a button while it was held */
+.btn:active img {
+  filter: brightness(0.4);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.top-right {
+  top: calc(var(--margin) + env(safe-area-inset-top));
+  right: calc(var(--margin) + env(safe-area-inset-right));
+}
+.bottom-left {
+  bottom: calc(var(--margin) + env(safe-area-inset-bottom));
+  left: calc(var(--margin) + env(safe-area-inset-left));
+}
+.bottom-center {
+  bottom: calc(var(--margin) + env(safe-area-inset-bottom));
+  left: calc(50% - var(--btn) / 2);
+}
+.bottom-right {
+  bottom: calc(var(--margin) + env(safe-area-inset-bottom));
+  right: calc(var(--margin) + env(safe-area-inset-right));
+}
+
+#hud.locked #clear,
+#hud.locked #undo,
+#hud.locked #help {
+  display: none;
+}
+
+/* below the help button, against the right edge, as in the original */
+#tips {
+  position: absolute;
+  top: calc(var(--btn) + var(--margin) * 2 + env(safe-area-inset-top));
+  right: calc(var(--margin) * 2 + env(safe-area-inset-right));
+  width: min(420px, calc(100vw - var(--margin) * 4));
+  height: auto;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+#tips[hidden] {
+  display: none;
+}
+
+#toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--btn) + var(--margin) * 3 + env(safe-area-inset-bottom));
+  max-width: min(440px, calc(100vw - 32px));
+  transform: translate(-50%, 8px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(40, 40, 40, 0.92);
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- start screen ---------- */
+
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #fdef8f;
+  color: #3a2a00;
+  cursor: pointer;
+  transition: opacity 0.4s;
+  overflow: hidden;
+}
+
+#splash.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: min(100%, calc(100vw * 1365 / 1024));
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+  /* on wide screens, fade the picture's sides into the page's yellow */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+@media (max-aspect-ratio: 1024/1365) {
+  #splash img {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+.splash-text {
+  position: relative;
+  padding: calc(24px + env(safe-area-inset-top)) 16px 0;
+  text-align: center;
+}
+
+#splash h1 {
+  margin: 0 0 6px;
+  font-size: clamp(36px, 8vmin, 72px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+#splash p {
+  margin: 0 auto 18px;
+  max-width: 30em;
+  font-size: clamp(16px, 2.6vmin, 22px);
+}
+
+#splash p.small {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#start {
+  padding: 12px 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #3a2a00;
+  color: #fdef8f;
+  font: inherit;
+  font-size: clamp(17px, 2.8vmin, 24px);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#start:focus-visible {
+  outline: 3px solid #3a2a00;
+  outline-offset: 3px;
+}
