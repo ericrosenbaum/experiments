@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Sing while you draw, then touch the drawing to hear it. Rub back and forth to scratch it like a record." />
+    <title>Singing Fingers</title>
+    <link rel="icon" type="image/png" href="./assets/icons/Icon-76@2x.png" />
+    <link rel="apple-touch-icon" href="./assets/icons/Icon-60@3x.png" />
+    <script type="module" crossorigin src="./assets/index-sJxGG70r.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DEl_qGYw.css">
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+
+    <div id="hud">
+      <button id="help" class="btn top-right" title="Tips (H)" aria-pressed="false">
+        <img src="./assets/ui/help.png" alt="Tips" />
+      </button>
+      <img id="tips" src="./assets/ui/tips.png" alt="Sing and draw: touch the screen and sing as you move your finger. Touch and listen: touch what you drew to hear it." hidden />
+      <button id="clear" class="btn bottom-left" title="Clear everything">
+        <img src="./assets/ui/trash.png" alt="Clear" />
+      </button>
+      <button id="lock" class="btn bottom-center" title="Lock: touches only play, never draw (L)" aria-pressed="false">
+        <img src="./assets/ui/lock-open.png" alt="Lock" />
+      </button>
+      <button id="undo" class="btn bottom-right" title="Undo (Z)">
+        <img src="./assets/ui/undo.png" alt="Undo" />
+      </button>
+      <div id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <div id="splash">
+      <img src="./assets/ui/launch.jpg" alt="" />
+      <div class="splash-text">
+        <h1>Singing Fingers</h1>
+        <p>Sing while you draw, then touch the drawing to hear it.</p>
+        <button id="start">Tap to start</button>
+        <p class="small">It will ask to use your microphone.</p>
+      </div>
+    </div>
+
+  </body>
+</html>
