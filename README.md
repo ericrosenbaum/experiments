@@ -11,6 +11,7 @@ deploy workflow.
 | Oh My Eyes — letter-dice picture game | [`oh-my-eyes`](../../tree/oh-my-eyes) | https://ericrosenbaum.github.io/experiments/oh-my-eyes/ |
 | personal website — redesign of ericrosenbaum.com | [`claude/personal-website-design-74h65r`](../../tree/claude/personal-website-design-74h65r) | https://ericrosenbaum.github.io/experiments/personal-website/ |
 | MelodyMorph — web port of the iPad music app | [`melodymorph`](../../tree/melodymorph) | https://ericrosenbaum.github.io/experiments/melodymorph/ |
+| Singing Fingers — web port of the iPad sing-and-draw app | [`singingfingers`](../../tree/singingfingers) | https://ericrosenbaum.github.io/experiments/singingfingers/ |
 
 Landing page: https://ericrosenbaum.github.io/experiments/
 
