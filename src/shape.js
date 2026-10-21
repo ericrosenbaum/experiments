@@ -11,6 +11,10 @@
 const BULGE_RATIO = 2;
 const BULGE_POINTS = 10;
 const HIT_MARGIN = 5;
+// Issue #4: the start is the easiest place to miss and the one people aim
+// for most, so its hit area reaches this much further
+const START_BULGE = 12;
+const CAP_STEPS = 12;
 // floats per vertex: x, y, r, g, b
 export const STRIDE = 5;
 
@@ -70,8 +74,24 @@ export class Shape {
       maxX = Math.max(maxX, ax, bx);
       maxY = Math.max(maxY, ay, by);
     }
+    for (const [pt, r] of this.endCircles()) {
+      minX = Math.min(minX, pt.x - r);
+      minY = Math.min(minY, pt.y - r);
+      maxX = Math.max(maxX, pt.x + r);
+      maxY = Math.max(maxY, pt.y + r);
+    }
     this.bounds = { minX, minY, maxX, maxY };
     this.finished = true;
+  }
+
+  // the round caps' hit areas, the start's enlarged
+  endCircles() {
+    const first = this.points[0];
+    const last = this.points.at(-1);
+    return [
+      [first, first.width + HIT_MARGIN + START_BULGE],
+      [last, last.width + HIT_MARGIN],
+    ];
   }
 
   /** Is `p` on the shape (with a little margin)? */
@@ -79,6 +99,7 @@ export class Shape {
     if (!this.hit || this.points.length < 2) return false;
     const b = this.bounds;
     if (p.x < b.minX || p.x > b.maxX || p.y < b.minY || p.y > b.maxY) return false;
+    for (const [pt, r] of this.endCircles()) if ((p.x - pt.x) ** 2 + (p.y - pt.y) ** 2 <= r * r) return true;
     const h = this.hit;
     const nv = h.length / 2;
     for (let i = 0; i < nv - 2; i++) {
@@ -88,16 +109,19 @@ export class Shape {
   }
 
   /**
-   * The point on the stroke's center line closest to `p`, as the segment it
-   * lies on and how far along it. `index` is the nearest vertex, rounded the
-   * way ofPolyline::getClosestPoint rounds it.
+   * The point on the stroke's center line under `p`, as the segment it lies
+   * on and how far along it. Issue #11: where a stroke crosses itself, the
+   * finger is on several parts at once, and the one drawn last wins, since
+   * that's the one on top. A "part" is a run of consecutive segments within
+   * reach; within it, and when nothing is in reach, it's simply the closest.
    */
   closest(p) {
     const pts = this.points;
-    if (pts.length < 2) return { segment: 0, t: 0, index: 0 };
+    if (pts.length < 2) return { segment: 0, t: 0 };
     let best = Infinity;
     let segment = 0;
     let t = 0;
+    let run = null; // the latest run of in-reach segments: { last, best, segment, t }
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i];
       const b = pts[i + 1];
@@ -113,8 +137,14 @@ export class Shape {
         segment = i;
         t = u;
       }
+      const reach = Math.max(a.width, b.width) + HIT_MARGIN;
+      if (d <= reach * reach) {
+        if (!run || run.last !== i - 1) run = { last: i, best: Infinity, segment: i, t: u };
+        run.last = i;
+        if (d < run.best) Object.assign(run, { best: d, segment: i, t: u });
+      }
     }
-    return { segment, t, index: t > 0.5 ? segment + 1 : segment };
+    return run ? { segment: run.segment, t: run.t } : { segment, t };
   }
 
   /** Where in the recording to start when touched at `p`. */
@@ -125,20 +155,47 @@ export class Shape {
     return a.audioPos + (b.audioPos - a.audioPos) * t;
   }
 
+  /** Direction of the stroke as drawn (radians) at the segment under `p`. */
+  headingAt(p) {
+    const { segment } = this.closest(p);
+    const a = this.points[segment];
+    const b = this.points[segment + 1];
+    if (!b || (a.x === b.x && a.y === b.y)) return a.angle;
+    return Math.atan2(b.y - a.y, b.x - a.x);
+  }
+
   /**
    * Shape::updatePlayback: +1 to keep playing forward, -1 if the finger is
    * moving against the direction the stroke was drawn, or null to leave it.
+   * Issue #2: the original compared raw angles, so heading left could read as
+   * reversing on a stroke drawn leftward, and it took the heading of the
+   * nearest touch point, which on a tight curve can point well off the
+   * stroke. This compares the wrapped difference with the segment itself.
    */
   directionFor(p, prev) {
     if (p.x === prev.x && p.y === prev.y) return null;
-    const { index } = this.closest(p);
-    if (index <= 1) return null;
     const touchAngle = Math.atan2(p.y - prev.y, p.x - prev.x);
-    // the original compared raw angles, so heading left could read as
-    // reversing on a stroke drawn leftward; compare the wrapped difference
-    let diff = Math.abs(touchAngle - this.points[index].angle) % (2 * Math.PI);
+    let diff = Math.abs(touchAngle - this.headingAt(p)) % (2 * Math.PI);
     if (diff > Math.PI) diff = 2 * Math.PI - diff;
     return diff > Math.PI / 2 ? -1 : 1;
+  }
+
+  /**
+   * How fast, in px per second, the finger moved along the stroke while
+   * drawing it, around `p`; for turning a swipe's speed into a playback rate.
+   */
+  drawingSpeedAt(p, sampleRate) {
+    const { segment } = this.closest(p);
+    const pts = this.points;
+    // over a few points either side: single segments are jittery
+    const a = pts[Math.max(0, segment - 3)];
+    const b = pts[Math.min(pts.length - 1, segment + 4)];
+    let len = 0;
+    for (let i = Math.max(0, segment - 3); i < Math.min(pts.length - 1, segment + 4); i++) {
+      len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+    }
+    const seconds = (b.audioPos - a.audioPos) / sampleRate;
+    return seconds > 0 ? len / seconds : 0;
   }
 
   /** Shape::getIndexAtPlaybackPosition. */
@@ -169,6 +226,50 @@ export class Shape {
     return scratch;
   }
 }
+
+/**
+ * Issue #10: round caps on both ends, as triangles (x, y, r, g, b each), from
+ * a strip's vertices so they follow the playback bulge too.
+ */
+export function capVertices(shape, verts, out) {
+  const n = shape.points.length;
+  const size = 2 * CAP_STEPS * 3 * STRIDE;
+  if (!out || out.length < size) out = new Float32Array(size);
+  let o = 0;
+  for (const [i, from] of [
+    [0, Math.PI / 2], // the start's cap sweeps around behind it
+    [n - 1, -Math.PI / 2], // the end's, ahead of it
+  ]) {
+    const pt = shape.points[i];
+    const v = i * 2 * STRIDE;
+    const ax = verts[v];
+    const ay = verts[v + 1];
+    const bx = verts[v + STRIDE];
+    const by = verts[v + STRIDE + 1];
+    const cx = (ax + bx) / 2;
+    const cy = (ay + by) / 2;
+    const r = Math.hypot(ax - bx, ay - by) / 2;
+    const [cr, cg, cb] = pt.color;
+    for (let k = 0; k < CAP_STEPS; k++) {
+      const t0 = pt.angle + from + (k / CAP_STEPS) * Math.PI;
+      const t1 = pt.angle + from + ((k + 1) / CAP_STEPS) * Math.PI;
+      for (const [x, y] of [
+        [cx, cy],
+        [cx + Math.cos(t0) * r, cy + Math.sin(t0) * r],
+        [cx + Math.cos(t1) * r, cy + Math.sin(t1) * r],
+      ]) {
+        out[o++] = x;
+        out[o++] = y;
+        out[o++] = cr;
+        out[o++] = cg;
+        out[o++] = cb;
+      }
+    }
+  }
+  return out;
+}
+
+export const CAP_VERTEX_COUNT = 2 * CAP_STEPS * 3;
 
 // the two strip vertices for a point: to its right, then to its left
 function sides(pt, width) {

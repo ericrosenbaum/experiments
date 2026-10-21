@@ -11,6 +11,7 @@ export const WINDOW = 1024; // samples per analysis at 44.1 kHz, as in the origi
 export const MIN_WIDTH = 5;
 export const MAX_WIDTH = 30;
 const GATE = 0.05; // on the scaled loudness below; quieter than this is silence
+const START_RATIO = 1.3;
 
 /** Pitch class (0 = C … 11.99 = B) of a frequency in Hz. */
 export function pitchClass(freq) {
@@ -44,6 +45,7 @@ export class Analyzer {
     this.hue = 0; // 0–1; the original started out red
     this.saturation = 1;
     this.width = 0;
+    this.sounding = false;
     // A slow-moving estimate of the room's background level. The original's
     // gate is a fixed, very low level that suited the iPad's microphone; a
     // laptop fan can sit above it, so the gate also stays a little above the
@@ -68,8 +70,12 @@ export class Analyzer {
     const dt = w / this.sampleRate;
     if (loud < this.noiseFloor) this.noiseFloor += (loud - this.noiseFloor) * Math.min(1, dt / 0.2);
     else this.noiseFloor += (loud - this.noiseFloor) * (dt / 30);
+    // Issue #5: a sound has to be a little louder to start a stroke than to
+    // keep one going, so a voice hovering at the gate doesn't chop the stroke
+    // into bits, and a breath or a bump doesn't start one.
     const gate = Math.max(GATE, this.noiseFloor * 1.6);
-    this.width = loud < gate ? 0 : MIN_WIDTH + Math.min(loud, 1) * (MAX_WIDTH - MIN_WIDTH);
+    this.sounding = loud >= (this.sounding ? gate : gate * START_RATIO);
+    this.width = this.sounding ? MIN_WIDTH + Math.min(loud, 1) * (MAX_WIDTH - MIN_WIDTH) : 0;
     return { hue: this.hue, saturation: this.saturation, width: this.width, freq };
   }
 }

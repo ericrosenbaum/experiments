@@ -7,7 +7,8 @@
 //   { t: 'endRecord', id }         stop; replies { t: 'recorded', id, samples }
 //   { t: 'load', id, samples }     a saved shape's sound
 //   { t: 'play', id, pos, token }  start playing at sample pos
-//   { t: 'direction', id, rate }   play forward (1) or backward (-1)
+//   { t: 'direction', id, rate }   the playback rate to ease toward: 1 forward,
+//                                  -1 backward, faster or slower after a swipe
 //   { t: 'stop', id }              fade out
 //   { t: 'remove', id } / { t: 'clear' }
 // Messages out:
@@ -51,16 +52,22 @@ class SingingFingersProcessor extends AudioWorkletProcessor {
           samples[i] *= i / ramp;
           samples[samples.length - ramp + i] *= 1 - i / ramp;
         }
-        this.shapes.set(m.id, { samples, voice: null });
+        this.shapes.set(m.id, { samples, voice: null, fading: [] });
         this.port.postMessage({ t: 'recorded', id: m.id, samples: samples.slice() });
         break;
       }
       case 'load':
-        this.shapes.set(m.id, { samples: m.samples, voice: null });
+        this.shapes.set(m.id, { samples: m.samples, voice: null, fading: [] });
         break;
       case 'play': {
         const s = this.shapes.get(m.id);
         if (!s) break;
+        // touched again while playing: fade the old voice out under the new
+        // one instead of cutting it off mid-wave, which clicks (issue #13)
+        if (s.voice) {
+          if (s.voice.fadeOut < 0) s.voice.fadeOut = this.fadeLen;
+          s.fading.push(s.voice);
+        }
         s.voice = { pos: m.pos, rate: 1, target: 1, fadeIn: 0, fadeOut: -1, token: m.token };
         break;
       }
@@ -102,6 +109,7 @@ class SingingFingersProcessor extends AudioWorkletProcessor {
 
     out.fill(0);
     for (const [id, s] of this.shapes) {
+      if (s.fading.length) s.fading = s.fading.filter((f) => this.render(s, f, out));
       const v = s.voice;
       if (v && !this.render(s, v, out)) {
         s.voice = null;

@@ -44,13 +44,35 @@ npm run build    # dist/, deployed by .github/workflows/deploy.yml
 - **Saving**: the drawing, sounds and all, is kept in the browser
   (IndexedDB) across reloads.
 - **Small fixes**: playback interpolates between samples (the original's
-  interpolation was a no-op); reversing compares wrapped angles, so strokes
-  drawn leftward no longer reverse by mistake; each finger has its own
-  previous position; a stroke's first point lines up with the stroke; strokes
-  too short to see are dropped. The silence gate also stays a little above
+  interpolation was a no-op); each finger has its own
+  previous position; a stroke's first point lines up with the stroke. The silence gate also stays a little above
   the room's background level, so a noisy laptop doesn't draw on its own;
   in a quiet room it is the original's.
 - Mouse works too, and there are keys: Z undo, L lock, H tips.
+
+## Fixes from the original's issue list
+
+- [#1](https://github.com/ericrosenbaum/singing-fingers/issues/1): a finger
+  has to move 8 px before it can reverse a stroke, so a wobble doesn't.
+- [#2](https://github.com/ericrosenbaum/singing-fingers/issues/2): direction
+  is judged against the segment under the finger, with wrapped angles.
+- [#3](https://github.com/ericrosenbaum/singing-fingers/issues/3): strokes
+  with less than 0.15 s of sound are dropped.
+- [#4](https://github.com/ericrosenbaum/singing-fingers/issues/4): the start
+  of a stroke has a bigger touch target.
+- [#5](https://github.com/ericrosenbaum/singing-fingers/issues/5): starting a
+  stroke takes a bit more sound than keeping one going, besides the
+  background-level gate above.
+- [#10](https://github.com/ericrosenbaum/singing-fingers/issues/10): round
+  caps on both ends (strokes cut off by silence keep their width rather than
+  pinching to a point).
+- [#11](https://github.com/ericrosenbaum/singing-fingers/issues/11): touching
+  where a stroke crosses itself plays the part drawn last.
+- [#12](https://github.com/ericrosenbaum/singing-fingers/issues/12), one of
+  its ideas: swipe along a stroke and let go, and it keeps playing to the
+  end, faster or slower with the swipe, backward if you swiped backward.
+- In the spirit of [#13](https://github.com/ericrosenbaum/singing-fingers/issues/13):
+  touching a stroke that's still playing crossfades instead of clicking.
 
 ## Layout
 

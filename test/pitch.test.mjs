@@ -77,3 +77,14 @@ test('a steady background hum stops counting as sound', () => {
   const r = feed(a, hum);
   assert.equal(r.width, 0);
 });
+
+test('takes a little more to start a stroke than to keep one going (issue #5)', () => {
+  const sr = 44100;
+  const a = new Analyzer(sr);
+  feed(a, new Float32Array(sr));
+  // scaled loudness of a sine of amplitude A is sqrt(A / sqrt(2) * 1.63)
+  const amp = (loud) => (loud * loud * Math.SQRT2) / 1.63;
+  assert.equal(feed(a, tone(440, sr, 8192, amp(0.06))).width, 0); // above the gate, below the start level
+  assert.ok(feed(a, tone(440, sr, 8192, amp(0.08))).width > 0); // starts
+  assert.ok(feed(a, tone(440, sr, 8192, amp(0.055))).width > 0); // and carries on quieter
+});

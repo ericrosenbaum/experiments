@@ -9,6 +9,16 @@
 import { Shape, hsbToRgb } from './shape.js';
 import { encodeShape, decodeShape, saved } from './storage.js';
 
+// Issue #1: a finger has to travel this far (px) before its direction can
+// reverse a stroke, so a wobble while holding still doesn't
+const REVERSE_DISTANCE = 8;
+// Issue #3: strokes with less sound than this (seconds) are slips, not songs
+const MIN_SOUND = 0.15;
+// Issue #12: let go of a stroke while swiping along it at least this fast
+// (px/s) and it keeps playing, faster or slower as the swipe was
+const FLING_SPEED = 450;
+const MAX_FLING_RATE = 4;
+
 export class SingingFingers {
   constructor({ canvas, renderer, audio, hud }) {
     this.canvas = canvas;
@@ -74,7 +84,7 @@ export class SingingFingers {
   }
 
   pointFor(e) {
-    return { x: e.clientX, y: e.clientY };
+    return { x: e.clientX, y: e.clientY, t: e.timeStamp };
   }
 
   get color() {
@@ -88,8 +98,8 @@ export class SingingFingers {
     const p = this.pointFor(e);
     const touched = this.shapes.filter((s) => s.finished && s.inside(p));
     if (touched.length || this.locked) {
-      const ptr = { kind: 'play', prev: p, shapes: new Set(touched) };
-      for (const s of touched) this.startPlaying(s, p);
+      const ptr = { kind: 'play', prev: p, shapes: new Set(touched), anchors: new Map(), trail: [p] };
+      for (const s of touched) this.startPlaying(s, p, ptr);
       this.pointers.set(e.pointerId, ptr);
     } else if (!this.drawing) {
       this.drawing = { kind: 'draw', prev: p, shape: null };
@@ -114,13 +124,21 @@ export class SingingFingers {
         if (!s.finished || !s.inside(p)) continue;
         ptr.shapes.add(s);
         if (!s.playing) {
-          this.startPlaying(s, p);
-        } else {
-          const rate = s.directionFor(p, ptr.prev);
-          if (rate !== null) this.audio.direction(s.id, rate);
+          this.startPlaying(s, p, ptr);
+          continue;
         }
+        const anchor = ptr.anchors.get(s) ?? p;
+        if (Math.hypot(p.x - anchor.x, p.y - anchor.y) < REVERSE_DISTANCE) {
+          if (!ptr.anchors.has(s)) ptr.anchors.set(s, p);
+          continue;
+        }
+        const rate = s.directionFor(p, anchor);
+        if (rate !== null) this.audio.direction(s.id, rate);
+        ptr.anchors.set(s, p);
       }
       ptr.prev = p;
+      ptr.trail.push(p);
+      if (ptr.trail.length > 32) ptr.trail.shift();
       return;
     }
 
@@ -155,10 +173,28 @@ export class SingingFingers {
       this.drawing = null;
       return;
     }
-    // stop what this finger was playing, unless another finger still is
+    // stop what this finger was playing, unless another finger still is, or
+    // it was flung
     const held = new Set();
     for (const other of this.pointers.values()) if (other.kind === 'play') other.shapes.forEach((s) => held.add(s));
-    for (const s of ptr.shapes) if (!held.has(s)) this.stopPlaying(s);
+    const velocity = swipeVelocity(ptr.trail, e.timeStamp);
+    for (const s of ptr.shapes) {
+      if (held.has(s) || !s.playing) continue;
+      if (!this.fling(s, ptr.prev, velocity)) this.stopPlaying(s);
+    }
+  }
+
+  /** Issue #12: keep `s` playing after a swipe, at the swipe's speed. */
+  fling(s, p, v) {
+    if (!v || !s.inside(p)) return false;
+    const heading = s.headingAt(p);
+    const along = v.x * Math.cos(heading) + v.y * Math.sin(heading);
+    if (Math.abs(along) < FLING_SPEED) return false;
+    const drawn = s.drawingSpeedAt(p, this.audio.sampleRate);
+    if (!(drawn > 0)) return false;
+    const rate = Math.sign(along) * Math.min(MAX_FLING_RATE, Math.max(0.25, Math.abs(along) / drawn));
+    this.audio.direction(s.id, rate);
+    return true;
   }
 
   recPos(shape) {
@@ -169,10 +205,13 @@ export class SingingFingers {
   endShape(ptr, p) {
     const s = ptr.shape;
     ptr.shape = null;
-    if (p.x !== ptr.prev.x || p.y !== ptr.prev.y) s.addPoint(p, ptr.prev, this.audio.width, this.color, this.recPos(s));
+    // the original ended a stroke cut off by silence at zero width; with
+    // round caps it keeps its last width instead
+    const width = this.audio.width || s.points.at(-1).width;
+    if (p.x !== ptr.prev.x || p.y !== ptr.prev.y) s.addPoint(p, ptr.prev, width, this.color, this.recPos(s));
     this.audio.endRecord(s.id);
-    if (s.points.length < 2) {
-      // a stroke too short to see or touch
+    if (s.points.length < 2 || this.recPos(s) < MIN_SOUND * this.audio.sampleRate) {
+      // a slip: too short to see, touch or hear
       this.removeShape(s);
       return;
     }
@@ -180,7 +219,8 @@ export class SingingFingers {
   }
 
   // Shape::startPlaying
-  startPlaying(s, p) {
+  startPlaying(s, p, ptr) {
+    ptr?.anchors.set(s, p);
     s.playing = true;
     s.token++;
     s.playPos = s.audioPositionAt(p);
@@ -220,4 +260,15 @@ export class SingingFingers {
   setLocked(locked) {
     this.locked = locked;
   }
+}
+
+/** The finger's velocity (px/s) over its last tenth of a second, if it was still moving when lifted. */
+function swipeVelocity(trail, now) {
+  const last = trail.at(-1);
+  if (!last || now - last.t > 60) return null;
+  let first = last;
+  for (let i = trail.length - 2; i >= 0 && last.t - trail[i].t <= 100; i--) first = trail[i];
+  const dt = (last.t - first.t) / 1000;
+  if (dt < 0.015) return null;
+  return { x: (last.x - first.x) / dt, y: (last.y - first.y) / dt };
 }

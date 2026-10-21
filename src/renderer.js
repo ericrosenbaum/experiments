@@ -1,7 +1,7 @@
 // Draws shapes as vertex-colored triangle strips with WebGL, as the
 // original's ofMesh did, on black.
 
-import { STRIDE } from './shape.js';
+import { STRIDE, CAP_VERTEX_COUNT, capVertices } from './shape.js';
 
 const VERTEX = `
 attribute vec2 position;
@@ -28,6 +28,7 @@ export class Renderer {
     this.height = 0;
     this.buffers = new Map(); // shape -> { buffer, version }
     this.scratch = null;
+    this.caps = null;
     canvas.addEventListener('webglcontextlost', (e) => e.preventDefault());
     canvas.addEventListener('webglcontextrestored', () => this.init());
     this.init();
@@ -84,8 +85,10 @@ export class Renderer {
 
     for (const shape of shapes) {
       if (shape.vertexCount < 3) continue;
+      let verts = shape.vertices;
       if (shape.playing) {
         this.scratch = shape.animatedVertices(time, this.scratch);
+        verts = this.scratch;
         gl.bindBuffer(gl.ARRAY_BUFFER, this.dynamic);
         gl.bufferData(gl.ARRAY_BUFFER, this.scratch.subarray(0, shape.vertexCount * STRIDE), gl.STREAM_DRAW);
       } else {
@@ -103,6 +106,13 @@ export class Renderer {
       gl.vertexAttribPointer(this.position, 2, gl.FLOAT, false, STRIDE * 4, 0);
       gl.vertexAttribPointer(this.color, 3, gl.FLOAT, false, STRIDE * 4, 8);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, shape.vertexCount);
+
+      this.caps = capVertices(shape, verts, this.caps);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.dynamic);
+      gl.bufferData(gl.ARRAY_BUFFER, this.caps, gl.STREAM_DRAW);
+      gl.vertexAttribPointer(this.position, 2, gl.FLOAT, false, STRIDE * 4, 0);
+      gl.vertexAttribPointer(this.color, 3, gl.FLOAT, false, STRIDE * 4, 8);
+      gl.drawArrays(gl.TRIANGLES, 0, CAP_VERTEX_COUNT);
     }
   }
 

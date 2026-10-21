@@ -1,5 +1,5 @@
 // Drives the built app in headless Chrome with a fake microphone that "sings"
-// a few notes: draws a stroke, touches it, rubs it backwards, undoes, locks,
+// a few notes: draws a stroke, touches it, rubs it backwards, flings it, undoes, locks,
 // and checks the drawing comes back after a reload. Run with the preview
 // server up: npx vite preview --port 4173, then node tools/smoke.mjs [outdir]
 import { writeFileSync, mkdtempSync } from 'node:fs';
@@ -97,6 +97,24 @@ await page.mouse.up();
 await page.waitForTimeout(200);
 const stopped = await sf(() => window.singingFingers.shapes.every((s) => !s.playing));
 
+// swipe along the stroke and let go: it keeps playing (issue #12)
+const [sx, sy, ex, ey] = await sf(() => {
+  const pts = window.singingFingers.shapes[0].points;
+  return [pts[5].x, pts[5].y, pts[25].x, pts[25].y];
+});
+await page.mouse.move(sx, sy);
+await page.mouse.down();
+for (let i = 1; i <= 8; i++) {
+  await page.mouse.move(sx + ((ex - sx) * i) / 8, sy + ((ey - sy) * i) / 8);
+  await page.waitForTimeout(8);
+}
+await page.mouse.up();
+await page.waitForTimeout(250);
+const flung = await sf(() => window.singingFingers.shapes[0].playing);
+await page.screenshot({ path: `${out}/4b-flung.png` });
+await page.waitForFunction(() => !window.singingFingers.shapes[0].playing, null, { timeout: 8000 });
+
+
 // lock: blank canvas no longer draws
 await page.click('#lock');
 await page.mouse.move(100, 100);
@@ -130,5 +148,5 @@ await page.click('#help');
 await page.waitForTimeout(200);
 await page.screenshot({ path: `${out}/6-phone.png` });
 
-console.log(JSON.stringify({ mic, drawn, playing, stopped, afterLock, restored, replay, before, afterUndo, errors }, null, 1));
+console.log(JSON.stringify({ mic, drawn, playing, stopped, flung, afterLock, restored, replay, before, afterUndo, errors }, null, 1));
 await browser.close();
