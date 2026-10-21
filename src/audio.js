@@ -33,7 +33,11 @@ export function loadSamples() {
 
 /** Resume the audio context; browsers require this inside a user gesture. */
 export function unlock() {
-  if (Tone.getContext().state !== 'running') Tone.start();
+  const ctx = Tone.getContext();
+  // 'suspended' before the first gesture; 'interrupted' on iOS after a call
+  // or switching apps
+  if (ctx.state !== 'running') Tone.start().catch(() => {});
+  playThroughSilentSwitch();
   if (!master) {
     // The original summed every voice, scaled by 0.25 and hard-clipped.
     // A compressor and limiter keep big chords clean instead.
@@ -41,6 +45,58 @@ export function unlock() {
     const comp = new Tone.Compressor({ threshold: -18, ratio: 3, attack: 0.003, release: 0.25 }).connect(limiter);
     master = new Tone.Gain(0.35).connect(comp);
   }
+}
+
+// iOS Safari only lets a gesture start audio when it ends (touchend, click),
+// not when it begins, so pointerdown alone never unlocks it there. Listen for
+// the end of every gesture until the context is running, and again whenever
+// iOS interrupts it.
+for (const type of ['pointerup', 'touchend', 'click', 'keydown']) {
+  window.addEventListener(type, () => Tone.getContext().state !== 'running' && unlock(), { capture: true, passive: true });
+}
+
+// The iPhone's ring/silent switch mutes Web Audio unless the page asks for
+// media playback. Safari 16.4+ has an API for that; on older versions,
+// playing any <audio> element (here, a looping silent one) does the same.
+let sessionSet = false;
+function playThroughSilentSwitch() {
+  if (sessionSet) return;
+  sessionSet = true;
+  if (navigator.audioSession) {
+    navigator.audioSession.type = 'playback';
+    return;
+  }
+  if (!/iPhone|iPad|iPod/.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent))) {
+    return;
+  }
+  const el = document.createElement('audio');
+  el.setAttribute('x-webkit-airplay', 'deny');
+  el.preload = 'auto';
+  el.loop = true;
+  el.src = silentWav();
+  el.play().catch(() => {
+    sessionSet = false; // try again on the next gesture
+  });
+}
+
+function silentWav() {
+  const samples = 4410; // 0.1 s at 44.1 kHz, 8-bit mono
+  const buf = new DataView(new ArrayBuffer(44 + samples));
+  const str = (o, s) => [...s].forEach((c, i) => buf.setUint8(o + i, c.charCodeAt(0)));
+  str(0, 'RIFF');
+  buf.setUint32(4, 36 + samples, true);
+  str(8, 'WAVEfmt ');
+  buf.setUint32(16, 16, true);
+  buf.setUint16(20, 1, true);
+  buf.setUint16(22, 1, true);
+  buf.setUint32(24, 44100, true);
+  buf.setUint32(28, 44100, true);
+  buf.setUint16(32, 1, true);
+  buf.setUint16(34, 8, true);
+  str(36, 'data');
+  buf.setUint32(40, samples, true);
+  for (let i = 0; i < samples; i++) buf.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
 }
 
 export const now = () => Tone.now();
