@@ -66,7 +66,7 @@ export class Menus {
   async loadExamples() {
     if (!this.examples) {
       const res = await fetch(`${ASSETS}/examples/index.json`);
-      this.examples = (await res.json()).map((e, i) => ({ ...e, title: e.title || `Example ${i + 1}` }));
+      this.examples = await res.json();
     }
     return this.examples;
   }

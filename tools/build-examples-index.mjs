@@ -15,6 +15,16 @@ function thumbFor(file) {
   if (!found) throw new Error(`no thumbnail for ${file}`);
   return found;
 }
+// Many examples were never given a title. Name those after their file
+// ("Example 8a"), or for the date-stamped ones, when they were saved.
+const MONTHS = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+function fallbackTitle(file) {
+  const numbered = file.match(/^example-0*(\w+)\.xml$/);
+  if (numbered) return `Example ${numbered[1]}`;
+  const [, y, mo, d, h, mi] = file.match(/(\d{4})-(\d\d)-(\d\d)-(\d\d)-(\d\d)/);
+  return `${MONTHS[mo - 1]} ${+d}, ${y}, ${+h % 12 || 12}:${mi} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
 const examples = readdirSync(dir)
   .filter((f) => f.endsWith('.xml'))
   .sort()
@@ -23,7 +33,7 @@ const examples = readdirSync(dir)
     return {
       file,
       thumb: thumbFor(file),
-      title: m.title,
+      title: m.title || fallbackTitle(file),
       author: m.author,
       description: m.description,
     };
