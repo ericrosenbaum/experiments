@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#323232" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Make interactive musical instruments and compositions by placing, playing and arranging colored bells." />
+    <title>MelodyMorph</title>
+    <link rel="icon" type="image/png" href="./assets/icons/Icon-76@2x.png" />
+    <link rel="apple-touch-icon" href="./assets/icons/Icon-76@2x.png" />
+    <script type="module" crossorigin src="./assets/index-DOzgbEgB.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/CanvasPool-C5I4jMTV.js">
+    <link rel="modulepreload" crossorigin href="./assets/Filter-CCN5j_8F.js">
+    <link rel="modulepreload" crossorigin href="./assets/canvasUtils-DjJbAzsM.js">
+    <link rel="modulepreload" crossorigin href="./assets/Cache-CybsNgns.js">
+    <link rel="modulepreload" crossorigin href="./assets/GCManagedHash-D6BmU3vx.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderTargetSystem-DBvkKPk1.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTextureBatchBindGroup-Cgsy0fHk.js">
+    <link rel="modulepreload" crossorigin href="./assets/GraphicsContext-n30UaxYE.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTexelRangeRects-BBhpQl5n.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-BKLOG1fJ.css">
+  </head>
+  <body>
+    <div id="stage"></div>
+
+    <div id="hud">
+      <button id="hide-ui" class="icon-btn top-left" title="Hide the controls (H)" aria-pressed="false">
+        <img src="./assets/gui/fullscreen_button.png" alt="Hide controls" />
+      </button>
+
+      <div class="top-center chrome">
+        <div id="instrument-tabs" role="tablist" aria-label="Instrument"></div>
+        <div id="palette" title="Drag a bell out to place it. Drop a bell back here to delete it.">
+          <button class="octave-btn" id="octave-down" title="Lower octave (←)">
+            <img src="./assets/gui/button_left.png" alt="Lower octave" />
+          </button>
+          <div class="palette-window"><div class="palette-strip"></div></div>
+          <button class="octave-btn" id="octave-up" title="Higher octave (→)">
+            <img src="./assets/gui/button_right.png" alt="Higher octave" />
+          </button>
+        </div>
+      </div>
+
+      <div id="tools" class="left">
+        <button class="icon-btn chrome" data-mode="draw" title="Draw (hold D)"><img src="./assets/gui/pencil_button.png" alt="Draw" /></button>
+        <button class="icon-btn chrome" data-mode="erase" title="Erase (hold E)"><img src="./assets/gui/eraser_button.png" alt="Erase" /></button>
+        <button class="icon-btn chrome" data-mode="select" title="Select (hold S)"><img src="./assets/gui/select_button.png" alt="Select" /></button>
+        <button class="icon-btn chrome" data-mode="path" title="Path player (hold P)"><img src="./assets/gui/path_button.png" alt="Path player" /></button>
+        <button class="icon-btn chrome" data-mode="mute" title="Mute: move bells without playing them (hold M)"><img src="./assets/gui/mute_button.png" alt="Mute" /></button>
+        <div class="tool-gap chrome"></div>
+        <button class="icon-btn" data-mode="slide" title="Strum: slide across bells to play them (hold T)"><img src="./assets/gui/slide_button.png" alt="Strum" /></button>
+      </div>
+
+      <div class="top-right chrome">
+        <button id="record" class="icon-btn big" title="Record (R): play some bells, then tap again to make a recorder bell" aria-pressed="false">
+          <img src="./assets/gui/rec_bell_maker.png" alt="Record" />
+        </button>
+        <button id="stop-all" class="icon-btn" title="Stop all recordings and paths (Esc)">
+          <img src="./assets/gui/stop_button.png" alt="Stop all" />
+        </button>
+      </div>
+
+      <div class="bottom-right chrome">
+        <button id="help-btn" class="icon-btn" title="Help (?)"><img src="./assets/gui/help_button.png" alt="Help" /></button>
+        <button id="gear-btn" class="icon-btn" title="Menu" aria-expanded="false"><img src="./assets/gui/gear.png" alt="Menu" /></button>
+      </div>
+
+      <div id="gear-menu" class="popover" hidden>
+        <button data-action="open">Open…</button>
+        <button data-action="save">Save…</button>
+        <button data-action="new">New</button>
+        <hr />
+        <label class="switch"><input type="checkbox" id="opt-all-notes" /> <span>Show all notes</span></label>
+        <label class="switch"><input type="checkbox" id="opt-note-names" /> <span>Show note names</span></label>
+      </div>
+
+      <div id="selection-tools" hidden>
+        <button data-sel="duplicate">duplicate</button>
+        <button data-sel="pitch-up">pitch +</button>
+        <button data-sel="pitch-down">pitch −</button>
+        <button data-sel="delete">delete</button>
+      </div>
+
+      <div id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <div id="modal" class="modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true"></div>
+    </div>
+
+    <div id="loading">Loading sounds…</div>
+
+  </body>
+</html>

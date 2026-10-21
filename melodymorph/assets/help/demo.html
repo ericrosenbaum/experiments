@@ -1,0 +1,61 @@
+<html>
+	<head>
+		<title>ofxiPhoneWebViewController demo document</title>
+		<style type="text/css">
+            * {
+                font-family: sans-serif;
+                color:white;
+            }
+		</style>
+        <script type="text/javascript">
+            function insertThumb(pngURL, xmlURL) {
+                thumbHTML = "<a href='of://callOFfunction/?=" + xmlURL + "'>";
+                thumbHTML += "<img src=" + pngURL + ">";
+                thumbHTML += "</a>";
+                document.getElementById('contentFromOF').innerHTML = thumbHTML;
+            }
+        </script>
+	</head>
+	<body style="background-color:#777777;">
+        <div width=400>
+            
+            <div style="text-align:center">
+                <p><h2>Welcome to MelodyMorph</h2></p>
+            
+                <iframe title="YouTube video player" class="youtube-player" type="text/html"
+                    width="320" height="195" src="http://www.youtube.com/embed/cr77IgwD2j0"
+                    frameborder="0" allowFullScreen></iframe>
+            </div>
+            
+            <p>Some text here.</p>
+
+            <p>Some text here.</p>
+
+            <p>hmmm</p>
+            
+            <p><a href="http://melodymorph2.xvm.mit.edu:8080/shared_page.html">SHARED MORPHS</a></p>
+            
+            <div id="contentFromOF">nothing here yet</div>
+
+        </div>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
