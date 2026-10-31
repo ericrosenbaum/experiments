@@ -8,7 +8,9 @@ import { Thumbnails } from './thumbs.js';
 import { WORLDS } from '../world/worlds.js';
 import { colorHex } from '../world/bricks.js';
 import { generateBehavior, findNamedBehaviors, probeClaude } from '../behavior/generate.js';
-import { renderBlocks } from './blocks.js';
+import { BlockView, blocklyBusy } from './blockview.js';
+import { Palette } from './palette.js';
+import { setBlockContext } from '../blocks/blockly.js';
 import { highlight } from './highlight.js';
 import { keyLabels, padGroups, padHtml } from './pad.js';
 import { describeTarget, applyTheme } from '../stage.js';
@@ -93,6 +95,7 @@ export class App {
     this.readOnly = false; // looking at a thing another player is using
     this.marks = new Map(); // player id -> {box, tag}: what other players have selected
     this.sheet = new Sheet(this); // on phones the inspector is a sheet at the bottom
+    this.blockViews = new Map(); // "thing:behavior id" -> BlockView, for the selected thing's behaviors
   }
 
   // session: the LocalSession (single player) or NetSession (a room); view: the lights and camera, for themes
@@ -116,6 +119,7 @@ export class App {
       if (sessionStorage.getItem(NO_ROOM_KEY)) { sessionStorage.removeItem(NO_ROOM_KEY); this.toast("Couldn't reach a room server, so you're playing alone"); this.log('🔗 Playing together needs the sim server (npm run sim). This page has none, so it runs alone.'); }
     } catch { /* storage blocked */ }
     this.sheet.boot();
+    this._wirePalette();
     this.session.start(location.hash.slice(1) || 'playground');
   }
 
@@ -393,7 +397,24 @@ export class App {
       parts.appendChild(b);
     }
     $('composer').dataset.placeholder = actor.isWorld ? 'At the start, turn off gravity…' : 'When I press the up arrow, drive forward…';
+    this._blockContext();
     this.renderBehaviors();
+  }
+
+  // What the blocks' menus offer: this thing's parts, the things in the world, the messages in use.
+  _blockContext() {
+    const a = this.selected;
+    const things = [...this.world.things().keys()].filter((id) => id !== a?.key).map((id) => {
+      const d = this.world.actor(id).describe();
+      return { id, name: d.name, kind: d.kind };
+    }).sort((x, y) => x.name.localeCompare(y.name));
+    const messages = worldMessages(this.session.behaviorMap(), () => '').map((m) => m.name);
+    const ctx = { parts: (a?.model?.def.parts ?? []).map((p) => p.name), things, messages };
+    const key = JSON.stringify(ctx);
+    if (key === this._blockCtxKey) return;
+    this._blockCtxKey = key;
+    setBlockContext(ctx);
+    this.palette?.invalidate();
   }
 
   onWorldRebuilt() {
@@ -920,6 +941,9 @@ export class App {
     this.renderPad();
     this.renderWorldCount();
     if (!a) return;
+    // keep the keyboard where it was in a behavior's blocks (Delete, Ctrl+Z): cards are rebuilt
+    const focused = document.activeElement?.closest?.('.bk-view') ? document.activeElement : null;
+    const scroll = $('inspector').scrollTop; // and the panel where it was scrolled to
     list.innerHTML = '';
     const behaviors = this.session.behaviorsOf(a.key);
     const ro = this.readOnly;
@@ -938,7 +962,7 @@ export class App {
           </button>
         </div>
         ${b.collapsed ? '' : `<div class="b-body">
-          ${b.showCode ? `<div class="code-edit"><pre aria-hidden="true">${highlight(b.draft ?? b.code)}</pre><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code for ${esc(b.title)}">${esc(b.draft ?? b.code)}</textarea></div>` : this._blocksFor(b)}
+          ${b.showCode ? `<div class="code-edit"><pre aria-hidden="true">${highlight(b.draft ?? b.code)}</pre><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code for ${esc(b.title)}">${esc(b.draft ?? b.code)}</textarea></div>` : '<div class="bk-slot"></div>'}
           <div class="b-foot">
             <button class="code" title="${b.showCode ? 'Back to the blocks' : 'See the JavaScript'}">${ICON.code}${b.showCode ? 'View blocks' : 'View code'}</button>
             <span class="grow"></span>
@@ -957,11 +981,6 @@ export class App {
       card.querySelector('.b-title').onclick = fold;
       card.querySelector('.switch').onclick = () => { if (ro) return; this.session.setEnabled(a, b, !b.enabled); this.renderBehaviors(); };
       if (b.collapsed) { list.appendChild(card); continue; }
-      card.querySelector('.bk-scripts')?.addEventListener('click', (ev) => {
-        const script = ev.target.closest('.bk-script');
-        const at = script?.querySelector('[data-at]')?.dataset.at;
-        if (at != null) this.runScript(a, b, Number(at), script);
-      });
       card.querySelector('.code').onclick = () => { b.showCode = !b.showCode; this.renderBehaviors(); };
       card.querySelector('.del').onclick = () => {
         if (ro) return;
@@ -994,7 +1013,77 @@ export class App {
         this.renderBehaviors();
       };
       list.appendChild(card);
+      const slot = card.querySelector('.bk-slot');
+      if (slot) this._blockView(a, b).mount(slot);
     }
+    if (this.palette?.isOpen && !ro) {
+      const zone = document.createElement('div');
+      zone.className = 'bk-new';
+      zone.textContent = behaviors.length ? 'Drop a block here to start a new behavior' : 'Drop a block here to teach it a behavior';
+      list.appendChild(zone);
+    }
+    $('inspector').scrollTop = scroll;
+    if (focused?.isConnected && document.activeElement !== focused) focused.focus({ preventScroll: true });
+    // forget the blocks of behaviors that are gone or belong to something else
+    const keep = new Set(behaviors.map((b) => `${a.key}:${b.id}`));
+    for (const [k, v] of this.blockViews) if (!keep.has(k)) { v.dispose(); this.blockViews.delete(k); }
+  }
+
+  // A behavior's blocks: kept while its thing is selected, so editing them
+  // doesn't start them over.
+  _blockView(a, b) {
+    const k = `${a.key}:${b.id}`;
+    let v = this.blockViews.get(k);
+    if (!v) {
+      v = new BlockView({
+        code: b.code,
+        readOnly: this.readOnly,
+        onEdit: (code) => {
+          if (this.readOnly || !a.alive) return;
+          this._lastBlocks = v;
+          try { this.session.editCode(a, b, code); } catch (err) { this.log(err.message, 'error'); return; }
+          if (this.net) b.code = code; // what the blocks show now; the room's copy follows
+          this._blockContext();
+        },
+        onRun: (at, el) => this.runScript(a, b, at, el),
+      });
+      this.blockViews.set(k, v);
+    }
+    v.setReadOnly(this.readOnly);
+    v.setCode(b.code);
+    return v;
+  }
+
+  // The blocks palette, and the button that opens it.
+  _wirePalette() {
+    this.palette = new Palette({
+      el: $('palette'),
+      targets: () => [
+        ...[...$('behaviors').querySelectorAll('.behavior')].map((card) => {
+          const a = this.selected;
+          const v = a && this.blockViews.get(`${a.key}:${card.dataset.bid}`);
+          return v && card.querySelector('.bk-slot') ? { el: card, view: v } : null;
+        }).filter(Boolean),
+        ...[...$('behaviors').querySelectorAll('.bk-new')].map((el) => ({ el, view: null })),
+      ],
+      onNew: (code) => {
+        const a = this.selected;
+        if (!a || this.readOnly) return;
+        try {
+          this.session.teach(a, { text: 'Made with blocks', html: 'Made with blocks', title: 'My blocks', summary: [], code, source: 'blocks' });
+        } catch (err) { this.log(err.message, 'error'); return; }
+        this.renderBehaviors();
+        this._blockContext();
+      },
+      onOpenChange: (open) => {
+        $('btn-blocks').classList.toggle('on', open);
+        $('btn-blocks').setAttribute('aria-expanded', String(open));
+        document.body.classList.toggle('palette-open', open);
+        if (open && this.sheet.active) this.sheet.open('half'); // on a phone: the blocks above, the behaviors below
+        this.renderBehaviors();
+      },
+    });
+    $('btn-blocks').onclick = () => this.palette.toggle();
   }
 
   // Clicking a stack of blocks runs it once, like in Scratch: the behavior's
@@ -1007,8 +1096,7 @@ export class App {
   onScriptRan(b, at, ok, off) {
     if (off) this.log(`“${b.title}” is switched off. Turn it on to run its blocks.`);
     if (ok) return;
-    const el = $('behaviors').querySelector(`[data-bid="${b.id}"] .bk-script [data-at="${at}"]`)?.closest('.bk-script');
-    this._nope(el);
+    this._nope($('behaviors').querySelector(`[data-bid="${b.id}"] .bk-view`));
   }
 
   _nope(el) { // a quick shake: there's nothing in this stack to run
@@ -1078,36 +1166,27 @@ export class App {
     pad.classList.toggle('dense', bottoms.size > 1); // groups on one row (align-items: flex-end) share a bottom edge
   }
 
-  _blocksFor(b) {
-    if (b._blocks?.code !== b.code) {
-      const things = this.world.things();
-      const thingName = (id) => (things.has(id) ? this.world.actor(id).name : null);
-      b._blocks = { code: b.code, html: renderBlocks(b.code, { thingName }) };
-    }
-    return b._blocks.html;
-  }
-
   // Light up the blocks the selected thing's programs are running right now
   // (or ran in the last moment, so quick blocks still flash).
   _lightBlocks() {
     const a = this.selected;
     if (!a) return;
     const now = performance.now();
-    const behaviors = this.session.behaviorsOf(a.key);
-    for (const card of $('behaviors').children) {
-      const b = behaviors.find((x) => x.id === +card.dataset.bid);
-      const t = b && this.session.traceOf(a, b);
-      for (const el of card.querySelectorAll('[data-at]')) {
-        const id = +el.dataset.at;
-        el.classList.toggle('lit', !!t && (t.live.has(id) || now - (t.lastSeen.get(id) ?? -1e9) < 400));
-      }
+    for (const b of this.session.behaviorsOf(a.key)) {
+      const v = this.blockViews.get(`${a.key}:${b.id}`);
+      if (!v) continue;
+      const t = this.session.traceOf(a, b);
+      v.light((pos) => !!t && (t.live.has(pos) || now - (t.lastSeen.get(pos) ?? -1e9) < 400));
     }
   }
 
   onProgramsChanged() {
     clearTimeout(this._rerender);
     this._rerender = setTimeout(() => {
-      if (document.activeElement?.tagName !== 'TEXTAREA') this.renderBehaviors();
+      // not under a hand that's typing code or moving blocks
+      if (document.activeElement?.tagName === 'TEXTAREA') return;
+      if (document.body.classList.contains('bb-dragging') || [...this.blockViews.values()].some((v) => blocklyBusy(v.ws))) { this.onProgramsChanged(); return; }
+      this.renderBehaviors();
     }, 50);
   }
 
@@ -1121,6 +1200,14 @@ export class App {
     const norm = (k) => (k.length === 1 ? k.toLowerCase() : k);
     addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') { this.setPointing(false); return; }
+      // Ctrl+Z / Ctrl+Y anywhere but a text box undo the last change to blocks
+      // (inside the blocks, Blockly does it itself)
+      const undo = (ev.metaKey || ev.ctrlKey) && /^[zy]$/i.test(ev.key);
+      if (undo && !typing() && !document.activeElement?.closest?.('.injectionDiv') && this._lastBlocks?.ws) {
+        ev.preventDefault();
+        this._lastBlocks.ws.undo(ev.key.toLowerCase() === 'y' || ev.shiftKey);
+        return;
+      }
       if (typing() || ev.metaKey || ev.ctrlKey) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(ev.key)) ev.preventDefault();
       this.session.keyDown(norm(ev.key));

@@ -130,7 +130,7 @@ export class Runtime {
     this._lastCheck = now;
     for (const s of [...this.sandboxes]) {
       if (late) s.lastPong = now;
-      if (now - s.lastPong > 3500) { s.terminate('got stuck — a loop never paused. Try adding wait() inside it.'); continue; }
+      if (now - s.lastPong > (s.answered ? 3500 : 15000)) { s.terminate(s.answered ? 'got stuck — a loop never paused. Try adding wait() inside it.' : "couldn't start."); continue; }
       s.ping();
     }
   }
@@ -250,13 +250,16 @@ export class Program {
     this.sandbox.load(this.id, instrument(this.behavior.code), this.isClone);
   }
 
-  stop(reason) {
+  // dead: the sandbox is already gone (terminated as stuck), so there's nothing to tell it
+  stop(reason, dead = false) {
     const s = this.sandbox;
     if (!s) return;
     this.sandbox = null;
-    s.send(this.id, { type: 'stop' });
-    s.detach(this.id);
-    if (!s.shared) s.terminate();
+    if (!dead) {
+      s.send(this.id, { type: 'stop' });
+      s.detach(this.id);
+      if (!s.shared) s.terminate();
+    }
     for (const t of this.tasks) t.finish?.();
     this.tasks = [];
     this.rt.programs.delete(this);
@@ -298,8 +301,7 @@ export class Program {
         this.rt.ui.onProgramsChanged?.(this);
         break;
       case 'dead': // the sandbox was terminated (stuck, or its owner left)
-        this.sandbox = null;
-        this.stop(m.reason);
+        this.stop(m.reason, true);
         break;
       case 'ran': this.rt.ui.onScriptRan?.(this.behavior, m.at, m.ok); break;
       case 'trace': {

@@ -9,7 +9,7 @@ npm install
 cp .env.example .env.local           # then paste your key into .env.local
 npm run dev                          # Claude writes the code if a key is set,
                                      # otherwise the offline compiler is used
-npm test                             # compiler, prompt, physics, geometry, stage, machines, codec, sandbox and room checks (headless)
+npm test                             # compiler, prompt, blocks, physics, geometry, stage, machines, codec, sandbox and room checks (headless)
 npm run dev:all                      # the page plus the sim server, for playing together (below)
 npm run dev:lan                      # the same, open to other devices on your Wi-Fi (prints the address to share)
 ```
@@ -65,10 +65,19 @@ The sentence-starter buttons ("When I press space…", "Forever…", "When it bu
 
 1. the kid's own words, chips included;
 2. a plain-English read-back of each rule ("While ↑ is held: drive forward"), so the kid can check that it understood;
-3. the code, which can be edited and re-run;
+3. the program as blocks (below), with the code a click away (*View code*), where it can be edited and re-run;
 4. notes on anything it couldn't do.
 
 Each behavior can be switched on and off, edited, or deleted. A model can run several behaviors at the same time.
+
+### Blocks
+
+A behavior's program shows as Scratch-style blocks drawn with [Blockly](https://developers.google.com/blockly) (the zelos renderer, in Scratch's colors). The code stays the source of truth: the blocks are made from it, and editing the blocks writes it again.
+
+- **Code to blocks** (`src/blocks/fromcode.js`) parses the JavaScript with acorn and keeps its shape: the same statements in the same order and nesting, in plain words. `onKey(" ", async () => { await jump(5) })` becomes a "when space key pressed" hat with "jump with power 5" under it. Events and function definitions get a hat; comments become yellow notes; anything without a block of its own (a `do…while`, a `try`, a destructuring) becomes a gray block holding its JavaScript, so nothing is ever lost. None of the premade programs need one.
+- **Blocks to code** (`src/blocks/blockly.js`) is a Blockly code generator. The round trip keeps what the code does (the tests compare syntax trees), and a second round trip changes nothing. Every statement block knows where its code starts, which is the id `trace.js` reports, so the blocks that are running glow, and clicking a script runs it once.
+- **Editing.** Type into a number or a piece of text, pick from a menu (keys, sounds, colors, parts, things, messages, variables), drag blocks around, delete them, or undo (Ctrl+Z). When Blockly is done (the menu closed, the drag dropped), the code is written again and the program restarts. Right-click a block that takes time (move, turn, swing...) for "Don't wait for it": the code drops its `await`, so the next block starts at once. Blockly's own keyboard navigation is off, since arrows, space and letters drive the selected thing.
+- **The palette.** The **Blocks** button above the behaviors opens every block, by category (Events, Motion, Parts, Looks, Sound, Pen, World, Control, Sensing, Operators, Variables, Lists, My Blocks, Other), in a panel to the left of the inspector. Drag a block onto a behavior and it snaps into the nearest place it fits (the place lights up while you drag), or drop it on "new behavior" to start one. The menus offer the selected thing's own parts and the things in the world. The lexicon is one table, `src/blocks/lexicon.js`, read by both directions and the palette.
 
 ### Two code generators
 
@@ -174,6 +183,10 @@ src/net/       session.js  a room: the same interface, as messages to the sim se
                mirror.js   the page's copy of the server's world, moved by snapshots
                codec.js    binary delta snapshots; entities.js  how things cross the wire
 src/ui/app.js  world picker, selecting/dragging, composer, behavior cards, bubbles, players
+src/blocks/    lexicon.js   every block: wording, category, the primitive it calls, its slots
+               fromcode.js  JavaScript -> Blockly blocks (with each statement's offset)
+               blockly.js   the Blockly block types, theme and code generator, the palette's contents
+src/ui/        blockview.js a behavior's blocks in its card; palette.js the Blocks panel and dragging out of it
 src/chat/      symbols.js     Brick Talk vocabulary, build images, validator
                prompt.js      Claude prompt + enum schema
                chat.js        the chat window and in-world bubbles
@@ -182,7 +195,7 @@ server/        /api/generate, /api/bricktalk, /api/see (Vite middleware)
 server/sim/    the sim server: index.js (WebSockets), room.js (one world, players, locks),
                protocol.js, sandbox-node.js (worker threads), sandbox-isolate.js (isolated-vm)
 test/          compiler / prompt / physics / geometry / stage / codec / sandbox / room checks
-tools/         smoke.mjs (headless browser run), room-smoke.mjs (two pages in a room), model-probe, castle-probe, golf-probe, physics probes
+tools/         smoke.mjs (headless browser run), blocks-smoke.mjs (the blocks in a browser: every behavior, editing, every palette block), room-smoke.mjs (two pages in a room), model-probe, castle-probe, golf-probe, physics probes
 tools/minifig/ render.html + review.mjs render minifigs (patent-scale silhouettes and color views);
                overlay.py overlays the silhouettes on the patent drawing to compare
 ```

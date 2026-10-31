@@ -23,7 +23,8 @@ export function instrument(code) {
   let depth = 0;
   const wrap = (start, end, open, close) => {
     depth++;
-    edits.push({ pos: start, text: open, close: false, depth }, { pos: end, text: close, close: true, depth });
+    if (start === end) edits.push({ pos: start, text: open + close, close: false, depth }); // an empty body: () => {}
+    else edits.push({ pos: start, text: open, close: false, depth }, { pos: end, text: close, close: true, depth });
   };
   const hatOf = new Map(); // function node -> the id of the block that names it
 

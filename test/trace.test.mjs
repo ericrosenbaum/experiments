@@ -1,20 +1,35 @@
 // Tracing keeps programs valid and working, and every id it reports is a
-// block the blocks view drew (so it can light up).
+// block the blocks view drew (so it can light up), both for the code as
+// written and for the code the blocks write after an edit.
 import assert from 'node:assert/strict';
 import { instrument } from '../src/behavior/trace.js';
-import { renderBlocks } from '../src/ui/blocks.js';
+import { codeToBlocks } from '../src/blocks/fromcode.js';
+import { Blockly, toCode } from '../src/blocks/blockly.js';
 import { WORLDS } from '../src/world/worlds.js';
+import { PROGRAMS } from './blocks-programs.js';
 
 const AsyncFunction = (async () => {}).constructor;
 const programs = [];
 for (const w of WORLDS) for (const list of Object.values(w.behaviors)) for (const b of list) if (b.code) programs.push(b.code);
 programs.push('onKey("x", async () => {\n  for (let i = 0; i < 3; i++) { if (i === 1) continue; jump(i); }\n  outer: while (true) { break outer; }\n  const f = () => ({ a: 1 });\n  if (isClone()) return; else play("pop");\n});');
+programs.push(...PROGRAMS);
 
-for (const code of programs) {
+// (a statement inside a gray block of JavaScript lights up with nothing)
+const checkIds = (code, ids) => {
   const traced = instrument(code);
+  const { raws } = codeToBlocks(code);
   assert.doesNotThrow(() => new AsyncFunction('__on', '__off', '__hat', '__def', traced), `instrumented code should parse:\n${traced}`);
-  const blocks = new Set([...renderBlocks(code).matchAll(/data-at="(\d+)"/g)].map((m) => +m[1]));
-  for (const [, id] of traced.matchAll(/__on\((\d+)\)/g)) assert.ok(blocks.has(+id), `traced id ${id} should be a block in:\n${code}`);
+  for (const [, id] of traced.matchAll(/__on\((\d+)\)/g)) assert.ok(ids.has(+id) || raws.some(([a, b]) => +id > a && +id < b), `traced id ${id} should be a block in:\n${code}`);
+};
+for (const code of programs) {
+  const r = codeToBlocks(code);
+  checkIds(code, new Set(Object.values(r.at)));
+  // the code the blocks write
+  const ws = new Blockly.Workspace();
+  Blockly.serialization.workspaces.load(r.json, ws);
+  const again = toCode(ws);
+  ws.dispose();
+  checkIds(again.code, new Set(Object.values(again.at)));
 }
 
 // Same results as before, with balanced on/off, including early returns.

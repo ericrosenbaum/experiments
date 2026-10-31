@@ -15,6 +15,7 @@ export class Sandbox {
     this.label = label;
     this.handlers = new Map(); // program id -> (msg) => void
     this.lastPong = now();
+    this.answered = false; // a new thread takes a moment to start: it isn't stuck until it has answered once
     this.dead = false;
     this.onDead = null; // (reason) => void, set by the Runtime
     transport.onMessage((m) => this._receive(m));
@@ -49,6 +50,7 @@ export class Sandbox {
 
   _receive(m) {
     if (!m || typeof m !== 'object') return;
+    this.answered = true;
     if (m.type === 'pong') { this.lastPong = now(); return; }
     if (m.program == null) { // a thread-level error: every program hears it
       for (const h of this.handlers.values()) h(m);
