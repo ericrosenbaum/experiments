@@ -1,15 +1,11 @@
 import { MelodyMorph } from './app.js';
 import { Hud } from './hud.js';
 import { Menus } from './menus.js';
-import { ASSETS } from './config.js';
 import { loadSamples } from './audio.js';
 import { autosave, morphFromHash, prefs } from './storage.js';
+import { morphFromXml } from './morph-format.js';
 
 async function boot() {
-  const font = new FontFace('NewMedia', `url("${ASSETS}/fonts/NewMediaFett.ttf")`);
-  document.fonts.add(font);
-  font.load().catch(() => {});
-
   const loading = document.getElementById('loading');
   loadSamples()
     .then(() => loading.classList.add('done'))
@@ -69,7 +65,8 @@ async function boot() {
     }
   });
 
-  window.melodymorph = app; // handy from the console
+  window.melodymorph = app; // handy from the console, and for tools/render-thumbnails.mjs
+  app.morphFromXml = morphFromXml;
 }
 
 boot();

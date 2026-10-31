@@ -1,10 +1,38 @@
-# MelodyMorph (web)
+# MelodyMorph 2
 
-A browser port of [MelodyMorph](https://github.com/ericrosenbaum/melodymorph),
-an iPad app (openFrameworks, 2011–2014) for making interactive musical
-instruments and compositions out of colored bells.
+A visual redesign of the [web port](../../tree/melodymorph) of
+[MelodyMorph](https://github.com/ericrosenbaum/melodymorph), an iPad app
+(openFrameworks, 2011–2014) for making interactive musical instruments and
+compositions out of colored bells.
 
-Live at https://ericrosenbaum.github.io/experiments/melodymorph/
+Live at https://ericrosenbaum.github.io/experiments/melodymorph2/
+(the first port is still at https://ericrosenbaum.github.io/experiments/melodymorph/).
+
+## The redesign
+
+Same app, same information on screen, flat and consistent:
+
+- **Bells** are vector shapes instead of beveled bitmaps: ring, rounded
+  square, ball, star and triangle per instrument, still plain, banded or
+  striped for triad, scale and chromatic notes, with the band or stripes in a
+  lighter shade of the bell's color. Hue still follows the note and octave
+  still darkens or pales it, toned down slightly from full HSV. They're drawn
+  once as white masks and tinted (`src/bell-art.js`), so they stay crisp at any
+  zoom; they still grow when played and flash when selected, and now also send
+  out a ripple.
+- **Recorder bells** are flat cards with their score of colored diamonds and a
+  playhead while they play. **Path players** are discs with an arrow pointing
+  the way the path sets off; the path and the travelling head use the
+  original's pink. Idle things are gray, playing things light up.
+- **Controls** use one icon set ([Lucide](https://lucide.dev)) on round flat
+  buttons; the active tool is yellow, a held one white. Instrument tabs are a
+  segmented control, the palette shows which octave you're on, and dropping a
+  bell on it says "drop to delete".
+- **Menus, dialogs, switches, toasts** share the same tokens (`:root` in
+  `src/styles.css`). Example thumbnails are re-rendered in the new style
+  (`tools/render-thumbnails.mjs`), and there's a new app icon.
+- Saves are shared with the first port (same browser storage and formats).
+- The help animations are still the original's hand-drawn GIFs.
 
 ```sh
 npm install
@@ -13,7 +41,7 @@ npm test         # file format and tuning tests
 npm run build    # dist/, deployed by .github/workflows/deploy.yml
 ```
 
-## What carries over
+## What carries over from the iPad app
 
 Everything you could do on the iPad:
 
@@ -32,8 +60,7 @@ Everything you could do on the iPad:
 
 ## What's different
 
-- **Rendering**: PixiJS (WebGL) instead of openFrameworks. Bells are tinted
-  sprites from the original sprite sheet, as before.
+- **Rendering**: PixiJS (WebGL) instead of openFrameworks.
 - **Sound**: Tone.js instead of ofxMaxim. Same voice model as `PolySynth.h`:
   8 voices per instrument, one second of sustain then the same exponential
   decay, oldest voice stolen with a short fade. Notes from recorder bells are
@@ -56,12 +83,13 @@ Everything you could do on the iPad:
 
 - `src/app.js`: canvas, camera, input, modes, recording, selection
 - `src/world.js`: bells, recorder bells, path players, drawn lines
+- `src/bell-art.js`: the vector bell shapes and patterns
 - `src/audio.js`: sample voices on Tone.js
 - `src/music.js`: notes, colors, sample/pitch mapping
 - `src/morph-format.js`: the XML file format and the compact share format
 - `src/hud.js`, `src/menus.js`, `src/storage.js`: controls, dialogs, saving
-- `public/assets/`: the original's images, samples, fonts, help GIFs and
-  examples; `archive/` holds older example sets and art that the app
-  doesn't load
+- `public/assets/`: the original's samples, help GIFs and examples (with
+  re-rendered thumbnails in `examples/thumbs/`); the original's bitmap art,
+  fonts and older example sets stay in the repo, unused by this version
 - `tools/smoke.mjs`, `tools/smoke-touch.mjs`: headless-Chromium checks
   against `npx vite preview --port 4173`

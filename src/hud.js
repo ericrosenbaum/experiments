@@ -1,8 +1,10 @@
 // The controls around the canvas: instrument tabs, the note palette, tool
 // buttons, record/stop, and keyboard shortcuts.
 
-import { ASSETS, MODES } from './config.js';
-import { INSTRUMENTS, NOTE_FUNCTIONS, NOTE_NAMES, bellColor, cssColor, isDiatonic } from './music.js';
+import * as icons from 'lucide';
+import { MODES } from './config.js';
+import { INSTRUMENTS, NOTE_FUNCTIONS, NOTE_NAMES, isDiatonic } from './music.js';
+import { bellIcon } from './bell-art.js';
 import * as audio from './audio.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -13,13 +15,13 @@ const HOLD_MS = 350;
 
 const KEYS = { d: 'draw', e: 'erase', s: 'select', p: 'path', m: 'mute', t: 'slide' };
 
-export function bellIcon(instrument, fn, tint = '#ffffff') {
-  const el = document.createElement('div');
-  el.className = 'bell-icon';
-  el.style.setProperty('--row', instrument);
-  el.style.setProperty('--col', fn);
-  el.style.setProperty('--tint', tint);
-  return el;
+/** Fill every [data-icon] element under root with its Lucide icon. */
+export function placeIcons(root = document) {
+  for (const el of root.querySelectorAll('[data-icon]')) {
+    const icon = icons[el.dataset.icon];
+    if (!icon || el.querySelector('svg')) continue;
+    el.prepend(icons.createElement(icon, { 'stroke-width': 2, 'aria-hidden': 'true' }));
+  }
 }
 
 export class Hud {
@@ -27,10 +29,7 @@ export class Hud {
     this.app = app;
     this.prefs = prefs;
     this.root = $('#hud');
-    // absolute, since a url() inside a custom property resolves against the
-    // stylesheet that uses it
-    const sheet = new URL(`${ASSETS}/other-images/bell_spritesheet.png`, location.href).href;
-    document.documentElement.style.setProperty('--sheet', `url("${sheet}")`);
+    placeIcons();
 
     this.buildTabs();
     this.buildPalette();
@@ -51,7 +50,6 @@ export class Hud {
     app.on('trash-hover', (on) => $('#palette').classList.toggle('trash', on));
     app.on('recording', (on) => {
       $('#record').setAttribute('aria-pressed', on);
-      $('#record img').src = `${ASSETS}/gui/${on ? 'rec_bell_maker_active' : 'rec_bell_maker'}.png`;
     });
     app.on('mode', () => this.syncTools());
     app.on('canvas-action', () => {
@@ -74,7 +72,7 @@ export class Hud {
       b.className = 'tab';
       b.setAttribute('role', 'tab');
       b.title = `${inst.name} (${i + 1})`;
-      b.append(bellIcon(i, 0));
+      b.append(bellIcon(i, 0, { size: 22, body: '#eef0f4' }));
       const name = document.createElement('span');
       name.className = 'tab-name';
       name.textContent = inst.name;
@@ -120,7 +118,7 @@ export class Hud {
     for (const el of $$('.pnote')) {
       const note = +el.dataset.note;
       const octave = +el.dataset.octave;
-      el.replaceChildren(bellIcon(this.app.instrument, NOTE_FUNCTIONS[note], cssColor(bellColor(note, octave))));
+      el.replaceChildren(bellIcon(this.app.instrument, NOTE_FUNCTIONS[note], { note, octave, size: 46 }));
       if (this.app.showNoteNames) {
         const label = document.createElement('span');
         label.className = 'note-label';
@@ -137,6 +135,7 @@ export class Hud {
     o = Math.min(Math.max(o, 0), 2);
     this.app.octave = o;
     $('.palette-strip').style.transform = `translateX(${(-o * 100) / 3}%)`;
+    $$('.octave-dots i').forEach((d, i) => d.classList.toggle('on', i === o));
     $('#octave-down').disabled = o === 0;
     $('#octave-up').disabled = o === 2;
   }
@@ -260,7 +259,11 @@ export class Hud {
   // since you still need it to play.
   toggleChrome() {
     const hidden = this.root.classList.toggle('ui-hidden');
-    $('#hide-ui').setAttribute('aria-pressed', hidden);
+    const btn = $('#hide-ui');
+    btn.setAttribute('aria-pressed', hidden);
+    btn.dataset.icon = hidden ? 'Minimize2' : 'Maximize2';
+    btn.replaceChildren();
+    placeIcons(btn.parentElement);
     if (hidden && MODES.includes(this.app.mode) && this.app.mode !== 'slide') this.app.setMode('none');
     const fs = document.fullscreenEnabled;
     if (fs && hidden && !document.fullscreenElement && matchMedia('(pointer: coarse)').matches) {

@@ -39,6 +39,10 @@ test('shiftPitch wraps across octaves like the original', () => {
 test('colors', () => {
   assert.equal(hsv(0, 1, 1), 0xff0000);
   assert.equal(hsv(1 / 3, 1, 1), 0x00ff00);
-  assert.equal(bellColor(0, 0), 0x800000);
-  assert.equal(bellColor(0, 2), 0xff8080);
+  // hue from the note; low octave darker, high octave paler
+  const rgb = (n) => [n >> 16, (n >> 8) & 255, n & 255];
+  const [r0, g0] = rgb(bellColor(0, 0));
+  const [r1, g1] = rgb(bellColor(0, 1));
+  const [r2, g2] = rgb(bellColor(0, 2));
+  assert.ok(r1 > g1 && r0 < r1 && g2 > g1 && r2 >= r1);
 });

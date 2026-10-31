@@ -1,11 +1,11 @@
 name: Deploy
 
-# Publishes this branch to https://ericrosenbaum.github.io/experiments/melodymorph/
+# Publishes this branch to https://ericrosenbaum.github.io/experiments/melodymorph2/
 # via the shared workflow on main (see main's README).
 
 on:
   push:
-    branches: [melodymorph]
+    branches: [melodymorph2]
   workflow_dispatch:
 
 jobs:
@@ -14,6 +14,6 @@ jobs:
       contents: write
     uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
     with:
-      name: melodymorph
+      name: melodymorph2
       build: npm run build
       dist: dist

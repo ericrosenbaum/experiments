@@ -2,10 +2,9 @@
 // controls around it live in hud.js and talk to this through its methods and
 // events.
 
-import { Application, Assets, Container, Graphics, Rectangle, Texture, TilingSprite } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle, Texture, TilingSprite } from 'pixi.js';
 import * as audio from './audio.js';
 import {
-  ASSETS,
   BACKGROUND,
   BELL_RADIUS,
   DESIGN_HEIGHT,
@@ -16,10 +15,12 @@ import {
   MIN_ZOOM,
   SCREEN_START_X,
   SCREEN_START_Y,
+  THEME,
 } from './config.js';
 import { DEFAULT_INSTRUMENT, INSTRUMENTS, shiftPitch } from './music.js';
 import { Bell, DrawingLine, PathPlayer, RecorderBell } from './world.js';
 import { emptyMorph } from './morph-format.js';
+import { bellMasks } from './bell-art.js';
 
 export class MelodyMorph {
   constructor(el) {
@@ -64,18 +65,10 @@ export class MelodyMorph {
     });
     this.el.appendChild(pixi.canvas);
 
-    const [sheet, recBell, pathPlayer, pathHead] = await Promise.all(
-      ['bell_spritesheet', 'rec_bell', 'path_player', 'path_head'].map((n) =>
-        Assets.load(`${ASSETS}/other-images/${n}.png`),
-      ),
-    );
-    // sprite sheet: a row per instrument, a column per note function
-    const cell = (col, row) => new Texture({ source: sheet.source, frame: new Rectangle(col * 128, row * 128, 128, 128) });
+    // flat vector bells, rendered once as white masks and tinted per note
+    const tex = (canvas) => (canvas ? Texture.from(canvas) : null);
     this.textures = {
-      bells: INSTRUMENTS.map((_, row) => [0, 1, 2].map((col) => cell(col, row))),
-      recBell,
-      pathPlayer,
-      pathHead,
+      bells: bellMasks().map((fns) => fns.map(({ body, pattern }) => ({ body: tex(body), pattern: tex(pattern) }))),
     };
 
     this.grid = new TilingSprite({ texture: makeGridTexture(), width: 1, height: 1 });
@@ -166,9 +159,9 @@ export class MelodyMorph {
     const g = this.selectionGfx.clear();
     const r = this.selectionRect();
     if (r && r.w * r.h > 0) {
-      g.rect(r.x, r.y, r.w, r.h)
-        .fill({ color: 0xffff00, alpha: 0.1 })
-        .stroke({ width: 1.5 / zoom, color: 0xffff00, alpha: 0.6 });
+      g.roundRect(r.x, r.y, r.w, r.h, 8 / zoom)
+        .fill({ color: THEME.select, alpha: 0.08 })
+        .stroke({ width: 2 / zoom, color: THEME.select, alpha: 0.85 });
     }
     this.emit('frame');
   }
@@ -651,7 +644,7 @@ export class MelodyMorph {
     out.width = 400;
     out.height = 300;
     const ctx = out.getContext('2d');
-    ctx.fillStyle = '#323232';
+    ctx.fillStyle = `#${BACKGROUND.toString(16).padStart(6, '0')}`;
     ctx.fillRect(0, 0, 400, 300);
     // crop the middle 4:3 of the view
     const W = src.width;

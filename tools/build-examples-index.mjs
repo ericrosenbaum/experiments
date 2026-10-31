@@ -6,11 +6,12 @@ import { morphFromXml } from '../src/morph-format.js';
 
 const dir = new URL('../public/assets/examples/', import.meta.url);
 
-// Newer examples have a same-named .png; the older bells_<stamp>.xml ones
-// have largeThumbImage_<stamp>.png.
+// Prefer thumbnails rendered in this version's style (tools/render-thumbnails.mjs).
+// Failing that, the iPad's: newer examples have a same-named .png, the older
+// bells_<stamp>.xml ones have largeThumbImage_<stamp>.png.
 function thumbFor(file) {
   const base = file.replace(/\.xml$/, '');
-  const candidates = [`${base}.png`, `largeThumbImage_${base.replace(/^bells_/, '')}.png`];
+  const candidates = [`thumbs/${base}.jpg`, `${base}.png`, `largeThumbImage_${base.replace(/^bells_/, '')}.png`];
   const found = candidates.find((c) => existsSync(new URL(c, dir)));
   if (!found) throw new Error(`no thumbnail for ${file}`);
   return found;

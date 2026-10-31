@@ -1,6 +1,6 @@
 // Notes, colors and instrument tunings. Pure functions, no audio or DOM.
 
-import { NUM_NOTES, LOW_OCT_BRIGHTNESS, HIGH_OCT_SATURATION } from './config.js';
+import { NUM_NOTES, BELL_SATURATION, BELL_VALUE, LOW_OCT_BRIGHTNESS, HIGH_OCT_SATURATION } from './config.js';
 
 export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C'];
 
@@ -71,8 +71,8 @@ export function hsv(h, s, v) {
 
 /** A bell's color: hue from the note, darker low octave, paler high octave. */
 export function bellColor(note, octave, brightness = 1) {
-  const s = octave === 2 ? HIGH_OCT_SATURATION : 1;
-  const v = (octave === 0 ? LOW_OCT_BRIGHTNESS : 1) * brightness;
+  const s = BELL_SATURATION * (octave === 2 ? HIGH_OCT_SATURATION : 1);
+  const v = BELL_VALUE * (octave === 0 ? LOW_OCT_BRIGHTNESS : 1) * brightness;
   return hsv(note / NUM_NOTES, s, v);
 }
 

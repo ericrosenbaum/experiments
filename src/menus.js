@@ -3,6 +3,7 @@
 import { ASSETS } from './config.js';
 import { morphFromText, morphFromXml } from './morph-format.js';
 import { downloadXml, saves, shareUrl } from './storage.js';
+import { placeIcons } from './hud.js';
 
 const h = (tag, props = {}, ...children) => {
   const el = document.createElement(tag);
@@ -50,6 +51,7 @@ export class Menus {
     this.panel.className = `modal-panel${narrow ? ' narrow' : ''}`;
     this.panel.setAttribute('aria-label', label);
     this.panel.replaceChildren(...content);
+    placeIcons(this.panel);
     this.modal.hidden = false;
     this.panel.querySelector('[autofocus]')?.focus();
   }
@@ -60,7 +62,7 @@ export class Menus {
   }
 
   head(title, ...extra) {
-    return h('div', { class: 'modal-head' }, h('h2', {}, title), ...extra, h('button', { class: 'close-x', 'aria-label': 'Close', onclick: () => this.close() }, '×'));
+    return h('div', { class: 'modal-head' }, h('h2', {}, title), ...extra, h('button', { class: 'close-x', 'aria-label': 'Close', 'data-icon': 'X', onclick: () => this.close() }));
   }
 
   async loadExamples() {
@@ -351,9 +353,9 @@ export class Menus {
             h(
               'div',
               { class: 'help-nav' },
-              h('button', { class: 'btn', onclick: () => step(-1), 'aria-label': 'Previous' }, '‹'),
+              h('button', { class: 'btn', onclick: () => step(-1), 'aria-label': 'Previous', 'data-icon': 'ChevronLeft' }),
               counter,
-              h('button', { class: 'btn', onclick: () => step(1), 'aria-label': 'Next', autofocus: true }, '›'),
+              h('button', { class: 'btn', onclick: () => step(1), 'aria-label': 'Next', 'data-icon': 'ChevronRight' }),
             ),
           ),
           h(
