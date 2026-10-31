@@ -8,6 +8,7 @@
 // questions go through the same decision model the game uses.
 
 import { slug, parseRules } from './engine.js';
+import { suggestMusic, suggestSounds, MUSIC, MUSIC_BY_ID, SOUNDS } from './audio.js';
 
 export class Signal { constructor(type, data) { this.type = type; this.data = data; } }
 
@@ -79,6 +80,7 @@ async function authorStep(world, t, io) {
       ? 'Describe the first scene. Where is the player, and what is going on? End with a question, like: what do you do?'
       : `Describe ${sc.name}. What does the player find there?`, { kind: 'record' });
     sc.description = a.skipped ? { text: '', skipped: true } : { text: a.text, clip: a.clip };
+    if (io.suggestAudio && !a.skipped) await offerMusic(sc, io);
     return;
   }
   if (t.need === 'name') {
@@ -106,6 +108,10 @@ async function authorOption(world, sc, opt, io) {
   const a = await io.ask(`When the player says "${phrase}", what happens?`, { kind: 'record' });
   opt.result = a.skipped ? { text: '', skipped: true } : { text: a.text, clip: a.clip };
   const rules = [];
+  if (io.suggestAudio && !a.skipped) {
+    const fx = await offerSound(`${phrase} ${a.text}`, io);
+    if (fx) rules.push(`sound ${fx}`);
+  }
 
   // Destination
   const places = Object.entries(world.scenes).map(([id, s]) => C('scene:' + id, s.name || 'the first place'));
@@ -168,3 +174,39 @@ function knownFacts(world) {
   return [...f];
 }
 
+
+// ---- optional audio suggestions ---------------------------------------------
+// Only asked when the author's own words suggest something, and a plain "no"
+// moves on. The music starts playing under the question so it's heard, not
+// described.
+
+const YES = C('yes', 'yes', 'yeah', 'sure', 'okay', 'yes please', 'sounds good');
+const NO = C('no', 'no', 'no thanks', 'nope', 'no music', 'none', 'skip');
+
+async function offerMusic(sc, io) {
+  const [id] = suggestMusic(`${sc.name} ${sc.description.text}`);
+  if (!id) return;
+  io.previewMusic(id);
+  const a = await io.ask(`Want music under this scene? This is "${id}": ${MUSIC_BY_ID[id].about}. Say yes, no, or another kind: ${MUSIC.map((m) => m.id).join(', ')}.`, {
+    kind: 'choice', choices: [YES, NO, ...MUSIC.map((m) => C('music:' + m.id, m.id, `${m.id} music`))],
+  });
+  if (a.choice === 'yes') sc.music = id;
+  else if (a.choice?.startsWith('music:')) { sc.music = a.choice.slice(6); io.previewMusic(sc.music); }
+  else io.previewMusic(null);
+}
+
+async function offerSound(text, io) {
+  const ideas = suggestSounds(text, 3);
+  for (let i = 0; i < ideas.length; i++) {
+    const id = ideas[i];
+    await io.previewSound(id);
+    const about = SOUNDS.find((x) => x.id === id).about;
+    const more = i < ideas.length - 1 ? ', or "another"' : '';
+    const a = await io.ask(`Add a sound to that? That was ${about}. Say yes, no${more}.`, {
+      kind: 'choice', choices: [YES, NO, C('another', 'another', 'another one', 'something else', 'different')],
+    });
+    if (a.choice === 'yes') return id;
+    if (a.choice !== 'another') return null;
+  }
+  return null;
+}

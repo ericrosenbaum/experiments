@@ -6,7 +6,7 @@ export const slug = (s) =>
 
 // One rule per line. Unknown lines are reported, not fatal.
 export function parseRules(src) {
-  const r = { needs: [], needsNot: [], else: null, gives: [], takes: [], sets: [], clears: [], go: null, once: false, end: null, errors: [] };
+  const r = { needs: [], needsNot: [], else: null, gives: [], takes: [], sets: [], clears: [], sounds: [], go: null, once: false, end: null, errors: [] };
   for (const raw of String(src || '').split('\n')) {
     const line = raw.trim();
     if (!line || line.startsWith('#')) continue;
@@ -22,6 +22,7 @@ export function parseRules(src) {
       case 'takes': r.takes.push(slug(arg)); break;
       case 'sets': r.sets.push(slug(arg)); break;
       case 'clears': r.clears.push(slug(arg)); break;
+      case 'sound': r.sounds.push(arg.toLowerCase()); break;
       case 'go': r.go = slug(arg.replace(/^to\s+/i, '')); break;
       case 'once': r.once = true; break;
       case 'win': r.end = 'win'; break;
@@ -52,13 +53,19 @@ export function availableOptions(world, st) {
   return scene.options.filter((o) => !st.used[`${st.scene}/${o.id}`]);
 }
 
+const phraseKey = (o) => String(o.phrase?.text || o.id).toLowerCase().trim();
+
 // Choices handed to the decision model: scene options + built-in commands.
+// Options that share a phrase are variants of one choice (e.g. "pet the cat"
+// the first time vs. after) and are offered once; step() picks the variant.
 export function choicesFor(world, st) {
-  const opts = availableOptions(world, st).map((o) => ({
-    id: o.id,
-    phrases: [o.phrase?.text, ...(o.also || [])].filter(Boolean),
-  }));
-  return [...opts, ...BUILTINS];
+  const groups = new Map();
+  for (const o of availableOptions(world, st)) {
+    const k = phraseKey(o);
+    if (!groups.has(k)) groups.set(k, { id: o.id, phrases: [o.phrase?.text].filter(Boolean) });
+    groups.get(k).phrases.push(...(o.also || []));
+  }
+  return [...groups.values(), ...BUILTINS];
 }
 
 // A Line is { text, clip? }. Plain strings are synth-only lines.
@@ -112,16 +119,19 @@ export function step(world, state, choiceId) {
     return { state: fresh, lines: [L('Starting over.'), ...describe(world, fresh)] };
   }
 
-  const opt = world.scenes[st.scene]?.options.find((o) => o.id === choiceId);
-  if (!opt) return { state: st, lines: [L("You can't do that here.")] };
-  const r = parseRules(opt.rules);
-
-  const ok = r.needs.every((x) => has(st, x)) && r.needsNot.every((x) => !has(st, x));
-  if (!ok) {
-    lines.push(opt.otherwise || L(r.else || "You can't do that yet."));
+  const chosen = world.scenes[st.scene]?.options.find((o) => o.id === choiceId);
+  if (!chosen) return { state: st, lines: [L("You can't do that here.")] };
+  const ok = (o) => { const r = parseRules(o.rules); return r.needs.every((x) => has(st, x)) && r.needsNot.every((x) => !has(st, x)); };
+  const variants = availableOptions(world, st).filter((o) => phraseKey(o) === phraseKey(chosen));
+  const opt = variants.find(ok);
+  if (!opt) {
+    const e = variants.find((o) => o.otherwise || parseRules(o.rules).else) || chosen;
+    lines.push(e.otherwise || L(parseRules(e.rules).else || "You can't do that yet."));
     return { state: st, lines };
   }
+  const r = parseRules(opt.rules);
 
+  for (const id of r.sounds) lines.push({ sfx: id, text: '' });
   lines.push(opt.result || L('…'));
   for (const x of r.gives) if (!st.have.includes(x)) st.have.push(x);
   st.have = st.have.filter((x) => !r.takes.includes(x));
@@ -155,7 +165,8 @@ export function findScene(world, ref) {
 }
 
 function optionList(world, st) {
-  const opts = availableOptions(world, st);
+  const seen = new Set();
+  const opts = availableOptions(world, st).filter((o) => !seen.has(phraseKey(o)) && seen.add(phraseKey(o)));
   const out = [];
   opts.forEach((o, i) => {
     if (i) out.push(L(i === opts.length - 1 ? 'or' : ','));
@@ -166,15 +177,17 @@ function optionList(world, st) {
 }
 
 // Static checks shown in the editor: dangling go targets, unknown rules, etc.
-export function lint(world) {
+export function lint(world, { sounds, music } = {}) {
   const issues = [];
   if (!world.scenes[world.start]) issues.push(`Start scene "${world.start}" doesn't exist.`);
   for (const [sid, sc] of Object.entries(world.scenes)) {
     if (!sc.description?.text && !sc.description?.clip) issues.push(`${sc.name}: no description yet.`);
+    if (sc.music && music && !music.has(sc.music)) issues.push(`${sc.name}: no music called "${sc.music}"`);
     if (!sc.options.length) issues.push(`${sc.name}: no options — the player will be stuck.`);
     for (const o of sc.options) {
       const r = parseRules(o.rules);
       r.errors.forEach((e) => issues.push(`${sc.name} / ${o.phrase?.text}: unknown rule "${e}"`));
+      r.sounds.filter((x) => sounds && !sounds.has(x)).forEach((x) => issues.push(`${sc.name} / ${o.phrase?.text}: no sound called "${x}"`));
       if (r.go && !findScene(world, r.go)) issues.push(`${sc.name} / ${o.phrase?.text}: goes to "${r.go}", which doesn't exist.`);
     }
     void sid;
