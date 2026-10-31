@@ -1,0 +1,70 @@
+30-second excerpts of open-licensed game music, chosen and cut for the Story
+Soundtrack Lab (stars-and-stories) and copied here unchanged. 0 A.D. music is
+CC BY-SA 3.0; Battle for Wesnoth and Hedgewars music is GPL; Flare music is
+CC BY-SA 3.0; Valyria Tear's tracks and the other OpenGameArt pieces are under
+CC licenses. File, then title and source:
+
+settling-1.m4a	Shrine — yd
+settling-2.m4a	Rainy — Ove Melaa
+settling-3.m4a	Nature — John Dum, Hedgewars
+settling-4.m4a	Cradle of Civilization — 0 A.D.
+once_upon-1.m4a	Elvish Theme — Battle for Wesnoth
+once_upon-2.m4a	Elf Land — Battle for Wesnoth
+once_upon-3.m4a	Sunrise — 0 A.D.
+once_upon-4.m4a	As Seasons Change — 0 A.D.
+cozy-1.m4a	Caketown — Matthew Pablo
+cozy-2.m4a	Town Theme — Flare
+cozy-3.m4a	Tavern in the Mist — 0 A.D.
+cozy-4.m4a	An Old Warhorse Goes to Pasture — 0 A.D.
+wonder-1.m4a	Silvan Sanctuary — Battle for Wesnoth
+wonder-2.m4a	Mountain Shrine — Valyria Tear
+wonder-3.m4a	Mountain Idyll — 0 A.D.
+wonder-4.m4a	Elysian Fields — 0 A.D.
+potion-1.m4a	Magical Theme — Flare
+potion-2.m4a	Revelation — Battle for Wesnoth
+potion-3.m4a	Karmic Confluence — 0 A.D.
+potion-4.m4a	Mirage — 0 A.D.
+journey-1.m4a	Overworld Theme — Flare
+journey-2.m4a	Expedition — 0 A.D.
+journey-3.m4a	Pirate — Jonatan Nilsson, Hedgewars
+journey-4.m4a	The Road Ahead — 0 A.D.
+flight-1.m4a	Return to Wesnoth — Battle for Wesnoth
+flight-2.m4a	Overworld — Valyria Tear
+flight-3.m4a	Land Between the Two Seas — 0 A.D.
+flight-4.m4a	Peaks of Atlas — 0 A.D.
+deep-1.m4a	Underground — Battle for Wesnoth
+deep-2.m4a	Cave Theme — Flare
+deep-3.m4a	Underwater — Hedgewars
+deep-4.m4a	Water's Edge — 0 A.D.
+mischief-1.m4a	School of Quirks — Zander Noriega
+mischief-2.m4a	Three Sheets to the Wind — Battle for Wesnoth
+mischief-3.m4a	Sheep — Hedgewars
+mischief-4.m4a	Whistler — 0 A.D.
+trouble-1.m4a	Suspense — Battle for Wesnoth
+trouble-2.m4a	Awareness — el Corleo
+trouble-3.m4a	Calm Before the Storm — 0 A.D.
+trouble-4.m4a	Halloween — Hedgewars
+sad-1.m4a	Sad Moment — Valyria Tear
+sad-2.m4a	Sad — Battle for Wesnoth
+sad-3.m4a	Dried Tears — 0 A.D.
+sad-4.m4a	Hill of Sorrows — 0 A.D.
+search-1.m4a	Into the Shadows — Battle for Wesnoth
+search-2.m4a	Dungeon Theme — Flare
+search-3.m4a	Northern Frontier — 0 A.D.
+search-4.m4a	Point of No Return — 0 A.D.
+triumph-1.m4a	Heroism — Edward J. Blakeley
+triumph-2.m4a	Heroes' Rite — Battle for Wesnoth
+triumph-3.m4a	You Are Victorious! — 0 A.D.
+triumph-4.m4a	Forging a City-State — 0 A.D.
+friends-1.m4a	Love Theme — Battle for Wesnoth
+friends-2.m4a	Soliloquy — Matthew Pablo
+friends-3.m4a	Solstice Festival — 0 A.D.
+friends-4.m4a	Harvest Festival — 0 A.D.
+nightfall-1.m4a	Forest at Night — Valyria Tear
+nightfall-2.m4a	Nunc Dimittis — Battle for Wesnoth
+nightfall-3.m4a	Harvest Moon — 0 A.D.
+nightfall-4.m4a	Albian Nocturne — 0 A.D.
+lullaby-1.m4a	Safe Room Theme — Flare
+lullaby-2.m4a	Transience — Battle for Wesnoth
+lullaby-3.m4a	Juno Protect You — 0 A.D.
+lullaby-4.m4a	Midwinter — 0 A.D.

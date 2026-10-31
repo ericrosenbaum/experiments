@@ -3,7 +3,7 @@
 
 export const SAMPLE_WORLD = {
   id: 'sample-space-adventure',
-  version: 2,
+  version: 3,
   title: 'Space Adventure',
   start: 'cabin',
   items: {
@@ -13,7 +13,7 @@ export const SAMPLE_WORLD = {
   scenes: {
     cabin: {
       name: 'the cabin',
-      music: 'space',
+      music: 'trouble',
       description: { text: 'You wake up in a narrow sleeping cabin on a rocket ship. A red light is flashing and an alarm is going off. There is a closet, a bunk, and a door. What do you do?' },
       options: [
         { id: 'look', phrase: { text: 'look around' }, also: ['search the room', 'check under the pillow'],
@@ -30,7 +30,7 @@ export const SAMPLE_WORLD = {
     },
     corridor: {
       name: 'the corridor',
-      music: 'space',
+      music: 'search',
       description: { text: 'A long corridor. Emergency lights flicker. To the left is the bridge. To the right is the airlock. Behind you is your cabin.' },
       options: [
         { id: 'bridge', phrase: { text: 'go to the bridge' }, also: ['go left'],
@@ -44,7 +44,7 @@ export const SAMPLE_WORLD = {
     },
     bridge: {
       name: 'the bridge',
-      music: 'space',
+      music: 'trouble',
       description: { text: 'The bridge. Every screen is flashing: hull breach, evacuate. There is a big button labeled: unlock escape pod.' },
       options: [
         { id: 'button', phrase: { text: 'press the button' }, also: ['push the big button', 'unlock the escape pod'],
@@ -58,7 +58,7 @@ export const SAMPLE_WORLD = {
     },
     airlock: {
       name: 'the airlock',
-      music: 'night',
+      music: 'nightfall',
       description: { text: 'The airlock. Through a round window you can see the stars. A hatch leads to the escape pod.' },
       options: [
         { id: 'pod', phrase: { text: 'open the hatch' }, also: ['get in the escape pod', 'climb into the pod'],
@@ -72,7 +72,7 @@ export const SAMPLE_WORLD = {
     },
     pod: {
       name: 'the escape pod',
-      music: 'space',
+      music: 'flight',
       description: { text: 'You squeeze into the tiny escape pod. There is one seat and a big red launch lever.' },
       options: [
         { id: 'lever', phrase: { text: 'pull the lever' }, also: ['launch the pod', 'pull the red lever'],

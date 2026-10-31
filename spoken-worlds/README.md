@@ -23,7 +23,8 @@ language.
 | `js/store.js` | IndexedDB storage, export/import file, text-only share links |
 | `js/sample.js` | "Space Adventure", a complete example world |
 | `js/examples.js` | "Rainy Saturday" and "Harbor Morning": exploratory, nothing to win |
-| `js/audio.js` | sound effects (Scratch library clips in `sounds/`), music beds, suggestions from words |
+| `js/audio.js` | sound effects (Scratch library clips in `sounds/`), shared output and ducking |
+| `js/music.js` | scene music from the Story Soundtrack Lab: 16 moods × 4 clips in `music/`, crossfading clip engine, keyword suggestions |
 | `js/app.js` | UI: play, author by voice, map editor, debug panel, settings |
 
 Everything runs in the browser. Model files (Whisper, MiniLM) download once

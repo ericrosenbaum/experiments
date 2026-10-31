@@ -1,6 +1,7 @@
 import { SAMPLE_WORLD } from './sample.js';
 import { EXAMPLES } from './examples.js';
-import { setMusic, playSound, currentMusic, suggestSounds, suggestMusic, MUSIC, SOUND_IDS, MUSIC_BY_ID, audioContext } from './audio.js';
+import { playSound, suggestSounds, SOUND_IDS, audioContext } from './audio.js';
+import { setMusic, currentMusic, currentTrack, suggestMusic, MOODS, MOOD_IDS } from './music.js';
 import { newState, choicesFor, describe, step, lint, parseRules } from './engine.js';
 import { decide, lexical, BACKENDS, llm } from './decide.js';
 import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech } from './speech.js';
@@ -350,7 +351,7 @@ function renderDebug() {
     rows.push(`visited   ${game.visited.join(', ')}`);
     rows.push(`turn      ${game.turn}${game.ended ? '  ENDED: ' + game.ended : ''}`);
   }
-  if (currentMusic()) rows.push(`music     ${currentMusic()}`);
+  if (currentMusic()) rows.push(`music     ${MOODS[currentMusic()].label}: ${currentTrack() || 'loading…'}`);
   if (mode === 'author') {
     rows.push(summary(world, focus));
     if (focus) rows.push(`next: ${focus.need} @ ${focus.scene}${focus.option ? ' / ' + focus.option : ''}`);
@@ -401,8 +402,8 @@ function musicField(sc) {
   const fits = suggestMusic(`${sc.name} ${sc.description?.text || ''}`, 3);
   const sel = el('select', { onchange: (e) => { sc.music = e.target.value || undefined; save(); refreshIssues(); setMusic(sc.music); } },
     el('option', { value: '' }, 'no music'),
-    ...[...fits, ...MUSIC.map((m) => m.id).filter((id) => !fits.includes(id))].map((id) =>
-      el('option', { value: id, selected: sc.music === id }, `${id} — ${MUSIC_BY_ID[id].about}${fits.includes(id) ? '  (suggested)' : ''}`)));
+    ...[...fits, ...MOOD_IDS.filter((id) => !fits.includes(id))].map((id) =>
+      el('option', { value: id, selected: sc.music === id }, `${MOODS[id].label}${fits.includes(id) ? '  (suggested)' : ''}`)));
   return el('div', { class: 'field row tight' }, el('span', { class: 'small muted', text: 'Music' }), sel,
     el('button', { class: 'small', type: 'button', onclick: () => setMusic(currentMusic() ? null : sel.value || fits[0]) }, '▶ / ■'));
 }
@@ -465,7 +466,7 @@ function renderMap() {
 }
 
 function refreshIssues() {
-  $('#issues').replaceChildren(...lint(world, { sounds: SOUND_IDS, music: new Set(Object.keys(MUSIC_BY_ID)) }).map((t) => el('li', { text: t })));
+  $('#issues').replaceChildren(...lint(world, { sounds: SOUND_IDS, music: new Set(MOOD_IDS) }).map((t) => el('li', { text: t })));
 }
 
 $('#start-select').addEventListener('change', (e) => { world.start = e.target.value; save(); refreshIssues(); });
