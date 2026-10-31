@@ -10,7 +10,7 @@ const S = (name, music, description, options) => ({ name, music, description: { 
 
 export const RAINY_SATURDAY = {
   id: 'example-rainy-saturday',
-  version: 1,
+  version: 2,
   title: 'Rainy Saturday',
   start: 'kitchen',
   items: {
@@ -44,7 +44,7 @@ export const RAINY_SATURDAY = {
       o('porch', 'go to the front porch', ['go out the front door'], 'You open the front door.', 'go porch'),
       o('kitchen', 'go to the kitchen', ['go back to the kitchen'], 'Back to the toasty kitchen.', 'go kitchen'),
     ]),
-    attic: S('the attic', 'curious', 'The attic. Dusty and quiet. Your flashlight finds boxes, an old trunk, and a round window.', [
+    attic: S('the attic', 'search', 'The attic. Dusty and quiet. Your flashlight finds boxes, an old trunk, and a round window.', [
       o('trunk', 'open the trunk', ['look in the trunk'], 'Old costumes! You put on a pirate hat. It fits perfectly.', 'gives pirate-hat\nsound creak'),
       o('boxes', 'look in the boxes', ['open a box'], "Holiday lights, and a box labeled Mom's rocks. One of them sparkles. You keep it.", 'gives sparkly-rock\nsound sparkle'),
       o('window', 'look out the round window', ['look out the window'], 'You can see the whole street from up here. The rain is getting lighter.'),
@@ -54,7 +54,7 @@ export const RAINY_SATURDAY = {
       o('sneeze', 'blow the dust', ['blow on a box'], 'A big cloud of dust. Ah, ah, achoo!', 'sound sneeze'),
       o('down', 'go back down', ['climb down', 'go down the ladder'], 'Carefully, carefully, down the ladder.', 'go living-room'),
     ]),
-    backyard: S('the backyard', 'rain', 'The backyard. Puddles everywhere. The frog is still on the step.', [
+    backyard: S('the backyard', 'settling', 'The backyard. Puddles everywhere. The frog is still on the step.', [
       o('frog', 'say hi to the frog', ['talk to the frog', 'hello frog'], 'Ribbit, says the frog. That is probably hello.', 'sound croak'),
       o('puddle', 'jump in a puddle', ['splash in the puddles', 'jump in the puddle'], 'Splash! Your socks are soaked. Worth it.', 'sound splash'),
       o('garden', 'look at the garden', ['check the garden'], 'Tomatoes, and a sunflower taller than you. A snail is climbing it very, very slowly.'),
@@ -63,7 +63,7 @@ export const RAINY_SATURDAY = {
       o('rain', 'catch raindrops', ['stick out your tongue'], 'You catch three on your tongue. They taste like sky.', 'sound drip'),
       o('inside', 'go inside', ['go back to the kitchen'], 'You kick off your muddy boots.', 'go kitchen'),
     ]),
-    porch: S('the front porch', 'morning', 'The front porch. The rain is stopping. A rainbow is starting over the street.', [
+    porch: S('the front porch', 'wonder', 'The front porch. The rain is stopping. A rainbow is starting over the street.', [
       o('rainbow', 'look at the rainbow', ['watch the rainbow'], 'All the colors. Even purple.', 'sound sparkle'),
       o('wave', 'wave at the neighbor', ['say hi to the neighbor'], 'Mrs. Patel waves back with her watering can. Who waters plants in the rain?', 'sound hey'),
       o('bell', 'ring the doorbell', ['press the doorbell'], 'Ding dong. Biscuit runs to the door to see who it is. It is you.', 'sound doorbell'),
@@ -77,7 +77,7 @@ export const RAINY_SATURDAY = {
 
 export const HARBOR_MORNING = {
   id: 'example-harbor-morning',
-  version: 1,
+  version: 2,
   title: 'Harbor Morning',
   start: 'pier',
   items: {
@@ -87,7 +87,7 @@ export const HARBOR_MORNING = {
     spyglass: { text: 'a brass spyglass' },
   },
   scenes: {
-    pier: S('the pier', 'sea', 'A wooden pier at sunrise. Seagulls. Fishing boats bumping together. Somewhere, someone is baking bread.', [
+    pier: S('the pier', 'journey', 'A wooden pier at sunrise. Seagulls. Fishing boats bumping together. Somewhere, someone is baking bread.', [
       o('gulls', 'watch the seagulls', ['look at the birds'], 'One seagull is clearly the boss. It is staring at your pocket.', 'sound seagull'),
       o('bell', "ring the ship's bell", ['ring the bell'], 'Clang! A fisherman laughs and rings his bell back.', 'sound bell'),
       o('fisher', 'talk to the fisherman', ['say hi to the fisherman'], "Morning! he says. Caught nothing but an old boot and a bottle. Want the bottle? He tosses it to you.", 'needs no bottle\ngives bottle'),
@@ -107,7 +107,7 @@ export const HARBOR_MORNING = {
       o('eat', 'eat the cinnamon roll', ['take a bite'], 'You take one tiny bite. Hmm. Maybe save the rest for someone.', "needs cinnamon-roll\nelse You don't have one. Yet.\nsound chomp"),
       o('pier', 'go back to the pier', ['go back'], 'Back down the hill.', 'go pier'),
     ]),
-    beach: S('the beach', 'sea', 'The beach. Cold sand. Waves coming in and going out.', [
+    beach: S('the beach', 'deep', 'The beach. Cold sand. Waves coming in and going out.', [
       o('shells', 'look for shells', ['find a shell', 'collect shells'], 'You find a perfect spiral shell.', 'gives shell\nsound sparkle'),
       o('toes', 'dip your toes in', ['go in the water', 'touch the water'], 'Freezing! You yelp. A seagull laughs at you.', 'sound splash'),
       o('castle', 'build a sandcastle', ['make a sandcastle'], 'Towers, a moat, and a flag made of seaweed. A wave takes one tower. You build it back.'),
@@ -117,7 +117,7 @@ export const HARBOR_MORNING = {
       o('pier', 'go back to the pier', ['go up the steps'], 'You shake the sand out of your shoes.', 'go pier'),
       o('lighthouse', 'walk to the lighthouse', ['go to the lighthouse'], 'You hop from rock to rock.', 'go lighthouse'),
     ]),
-    lighthouse: S('the lighthouse', 'curious', 'The lighthouse. Tall and white, with a red door. Someone painted a little star on it.', [
+    lighthouse: S('the lighthouse', 'search', 'The lighthouse. Tall and white, with a red door. Someone painted a little star on it.', [
       o('knock-again', 'knock on the door', [], 'Tomas waves you in. Come up any time!', 'needs met-tomas\ngo lamp-room'),
       o('knock', 'knock on the door', ['knock', 'go inside'], 'Old Tomas opens the door, sniffs, and grins. Is that cinnamon? Come up, come up! You give him the roll and climb the stairs.', "needs cinnamon-roll\nelse Footsteps, then a voice: I only open the door for people who bring something sweet.\ntakes cinnamon-roll\nsets met-tomas\nsound doorbell\ngo lamp-room"),
       o('star', 'press the star', ['touch the star'], 'Click! A tiny drawer slides out of the door. Inside is a brass spyglass.', "needs read-note\nneeds no spyglass\nelse It's a little painted star. Pretty.\ngives spyglass\nsound magic"),
@@ -126,7 +126,7 @@ export const HARBOR_MORNING = {
       o('pier', 'go back to the pier', ['go back'], 'Back along the rocks.', 'go pier'),
       o('beach', 'go to the beach', ['walk to the beach'], 'Down to the sand.', 'go beach'),
     ]),
-    'lamp-room': S('the lamp room', 'curious', 'The top of the lighthouse. A giant glass lamp. Windows all around. You can see the whole harbor.', [
+    'lamp-room': S('the lamp room', 'wonder', 'The top of the lighthouse. A giant glass lamp. Windows all around. You can see the whole harbor.', [
       o('talk', 'talk to Tomas', ['ask Tomas a question'], 'He tells you about the big storm, when this lamp kept twelve boats safe.'),
       o('lamp', 'look at the lamp', ['touch the lamp'], 'It is like a huge glass beehive. Tomas says you can see it thirty miles away.'),
       o('spyglass', 'look through the spyglass', ['use the spyglass', 'look out to sea'], 'Far out at sea, a whale comes up for air. Then another. Tomas gasps. I have not seen them in years!', "needs spyglass\nelse Tomas says there's a spyglass hidden somewhere around the lighthouse. Something about a star.\nsound gasp"),

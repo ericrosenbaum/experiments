@@ -8,7 +8,8 @@
 // questions go through the same decision model the game uses.
 
 import { slug, parseRules } from './engine.js';
-import { suggestMusic, suggestSounds, MUSIC, MUSIC_BY_ID, SOUNDS } from './audio.js';
+import { suggestSounds, SOUNDS } from './audio.js';
+import { suggestMusic, MOODS, MOOD_IDS } from './music.js';
 
 export class Signal { constructor(type, data) { this.type = type; this.data = data; } }
 
@@ -187,8 +188,8 @@ async function offerMusic(sc, io) {
   const [id] = suggestMusic(`${sc.name} ${sc.description.text}`);
   if (!id) return;
   io.previewMusic(id);
-  const a = await io.ask(`Want music under this scene? This is "${id}": ${MUSIC_BY_ID[id].about}. Say yes, no, or another kind: ${MUSIC.map((m) => m.id).join(', ')}.`, {
-    kind: 'choice', choices: [YES, NO, ...MUSIC.map((m) => C('music:' + m.id, m.id, `${m.id} music`))],
+  const a = await io.ask(`Want music under this scene? This is "${MOODS[id].label}". Say yes, no, or the name of another mood.`, {
+    kind: 'choice', choices: [YES, NO, ...MOOD_IDS.map((m) => C('music:' + m, MOODS[m].label, `${MOODS[m].label} music`, m.replace('_', ' ')))],
   });
   if (a.choice === 'yes') sc.music = id;
   else if (a.choice?.startsWith('music:')) { sc.music = a.choice.slice(6); io.previewMusic(sc.music); }

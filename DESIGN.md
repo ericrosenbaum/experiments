@@ -355,19 +355,31 @@ if one matches, *plays* it and asks "Add a sound to that? Say yes, no, or
 another." On the map editor the same suggestions appear as chips under each
 option.
 
-**Music beds** loop quietly under a scene (`scene.music`), duck while any
-voice is speaking, and crossfade when you move between scenes. After the
-author describes a scene, the tool picks a bed from the description's words
-(beach → sea, attic → curious), **starts playing it under the question**, and
-asks yes / no / another kind. The bed catalogue in `js/audio.js` takes
-recorded loops (`src: 'music/….mp3'`); until there are some, each bed is a
-small generated piece (chord pad, a few soft plucked notes, and optional
-waves / rain / crickets made from filtered noise).
+**Scene music** comes from the Story Soundtrack Lab (stars-and-stories): its
+16 moods (Settling in, Cozy home, Wonder, Setting off, Searching, Mischief,
+Uh-oh, Nightfall, Goodnight…), each with four 30-second excerpts of
+open-licensed game music (0 A.D., Battle for Wesnoth, Flare, Hedgewars,
+OpenGameArt; `music/`, 9.7 MB, fetched only when a mood plays). A scene's
+mood is `scene.music`. Ported from the lab, in `js/music.js`:
 
-The soundtrack tool from stars-and-stories was meant to be adapted here, but
-it wasn't on any branch I could reach, so the bed format is deliberately
-simple: an id, mood words for matching, and a looping clip. Its clips and
-matching logic should drop into `MUSIC` and `suggestMusic()`.
+- **Clip engine.** A mood's clips play back to back with a 2.5 s crossfade.
+  On a mood change (walking into another scene) the old mood fades out over
+  3 s (1.5 s for Uh-oh and Rescue!), and the new mood starts on the clip
+  closest in key, brightness and busyness to what was playing.
+- **Keyword weights.** Each mood's weighted keywords, plus a few added for
+  small explorable places (kitchen, attic, pier, alarm…), rank moods for a
+  piece of text.
+- **Ducking.** The music drops to about a third while the narrator or a
+  recording is speaking, the same idea as the lab's "under voices".
+
+After the author describes a scene, the tool ranks the moods for the
+description, **starts the top one under the question**, and asks: yes, no,
+or say another mood's name. The map editor's music picker lists the
+suggested moods first.
+
+What didn't come over: the lab's Tone.js synth cues (this uses the clips
+only), its timeline of hand-tagged moods (a scene has one mood), and the
+Claude classifier (not on-device).
 
 ## 6. Open questions / next experiments
 
@@ -382,3 +394,5 @@ matching logic should drop into `MUSIC` and `suggestMusic()`.
 - Kid-friendliness: the narrator's prompts should be short; recording should
   be forgiving (trim silence automatically).
 - Collaborative worlds: two people add scenes to the same file.
+- A `music <mood>` rule, so a moment can change the music (Rescue! when the
+  whales appear), the way the lab follows a story as it's told.
