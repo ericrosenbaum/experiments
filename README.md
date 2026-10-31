@@ -1,57 +1,29 @@
-# experiments
+# Spoken Worlds
 
-Each experiment lives on its own branch and deploys to its own path on the
-repo's GitHub Pages site. `main` holds only the landing page and the shared
-deploy workflow.
+Make and play small text adventures by talking. The author speaks scenes and
+choices; those recordings become the game. A synth "narrator" voice runs the
+tool and fills in anything not recorded. An on-device decision model maps
+what the player says to one of the author's options — it never writes
+content. Game logic (items, locks, endings) is a tiny deterministic rule
+language.
 
-| Experiment | Branch | URL |
-|---|---|---|
-| assemble — molecular self-assembly simulator | [`assemble`](../../tree/assemble) | https://ericrosenbaum.github.io/experiments/assemble/ |
-| sleep spectrogram | [`spectrogram`](../../tree/spectrogram) | https://ericrosenbaum.github.io/experiments/spectrogram/ |
-| Oh My Eyes — letter-dice picture game | [`oh-my-eyes`](../../tree/oh-my-eyes) | https://ericrosenbaum.github.io/experiments/oh-my-eyes/ |
-| personal website — redesign of ericrosenbaum.com | [`claude/personal-website-design-74h65r`](../../tree/claude/personal-website-design-74h65r) | https://ericrosenbaum.github.io/experiments/personal-website/ |
-| MelodyMorph — web port of the iPad music app | [`melodymorph`](../../tree/melodymorph) | https://ericrosenbaum.github.io/experiments/melodymorph/ |
-| Singing Fingers — web port of the iPad sing-and-draw app | [`singingfingers`](../../tree/singingfingers) | https://ericrosenbaum.github.io/experiments/singingfingers/ |
+- **Design & full workflow walkthrough:** [DESIGN.md](DESIGN.md)
+- **Prototype:** `index.html` (static, no build). Serve the folder, e.g.
+  `python3 -m http.server`, and open it in desktop Chrome. Deploys to
+  https://ericrosenbaum.github.io/experiments/spoken-worlds/
 
-Landing page: https://ericrosenbaum.github.io/experiments/
+## Prototype map
 
-## How deploys work
+| file | what |
+|---|---|
+| `js/engine.js` | world model, rules parser, turn resolution, built-in commands, lint |
+| `js/decide.js` | decision model: lexical / sentence embeddings / built-in browser LLM |
+| `js/speech.js` | recording, speech-to-text (Whisper on device, or Web Speech), TTS, playing mixed recorded + synth lines |
+| `js/author.js` | the spoken authoring conversation (to-do queue of unfinished scenes) |
+| `js/store.js` | IndexedDB storage, export/import file, text-only share links |
+| `js/sample.js` | "Space Adventure", a complete example world |
+| `js/app.js` | UI: play, author by voice, map editor, debug panel, settings |
 
-GitHub Pages serves the `gh-pages` branch. Each experiment branch has a small
-`.github/workflows/deploy.yml` that, on every push to that branch, calls the
-reusable workflow [`publish-experiment.yml`](.github/workflows/publish-experiment.yml)
-on `main`. It builds the experiment (if it has a build step) and replaces
-only `gh-pages/<name>/`, so experiments deploy independently of each other.
-Pushes to `main` that touch `site/` redeploy the landing page at the root
-(`deploy-site.yml`), leaving the experiment folders alone.
-
-## Adding an experiment
-
-1. Create a branch (an orphan branch if it shares nothing with the others):
-   `git checkout --orphan my-thing`
-2. Add `.github/workflows/deploy.yml`:
-
-   ```yaml
-   name: Deploy
-   on:
-     push:
-       branches: [my-thing]
-     workflow_dispatch:
-   jobs:
-     deploy:
-       permissions:
-         contents: write
-       uses: ericrosenbaum/experiments/.github/workflows/publish-experiment.yml@main
-       with:
-         name: my-thing           # URL path: /experiments/my-thing/
-         # build: npm run build   # omit for plain static files
-         # dist: dist             # directory to publish (default: repo root)
-   ```
-
-   Built sites must use relative asset paths (Vite: `base: './'`), since they
-   are served from a subfolder.
-3. Push the branch, then add a line for it to `site/index.html` and this
-   README on `main`.
-
-To take an experiment down, delete its folder from `gh-pages` (and its
-deploy workflow, or the next push brings it back).
+Everything runs in the browser. Model files (Whisper, MiniLM) download once
+from the Hugging Face hub via transformers.js and are cached; after that it
+works offline.

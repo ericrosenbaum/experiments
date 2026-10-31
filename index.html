@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spoken Worlds</title>
+<meta name="description" content="Make and play small text adventures by talking. Everything runs on your device.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <h1><a href="#" id="home-link">Spoken Worlds</a></h1>
+  <span id="world-title" class="muted"></span>
+  <button id="settings-btn" class="ghost" aria-label="Settings">Settings</button>
+</header>
+
+<main>
+  <!-- Home: list of worlds -->
+  <section id="home" class="view">
+    <p class="lede">Make and play little adventures by talking. Your voice, your recordings, all on this device.</p>
+    <div class="row">
+      <button id="new-world" class="primary">New world, by voice</button>
+      <button id="load-sample">Load “Space Adventure”</button>
+      <label class="button">Open a file<input id="import-file" type="file" accept=".json,application/json" hidden></label>
+    </div>
+    <ul id="world-list" class="cards"></ul>
+  </section>
+
+  <!-- World: play / author / map -->
+  <section id="world" class="view" hidden>
+    <nav class="tabs" role="tablist">
+      <button data-mode="play" role="tab">Play</button>
+      <button data-mode="author" role="tab">Author by voice</button>
+      <button data-mode="map" role="tab">Map &amp; edit</button>
+      <span class="spacer"></span>
+      <button id="export" class="ghost">Share file</button>
+      <button id="share-link" class="ghost">Copy text-only link</button>
+    </nav>
+
+    <div id="talk-pane">
+      <div id="log" aria-live="polite"></div>
+      <div id="hint" class="muted"></div>
+      <div class="talk-row">
+        <button id="talk" class="talk" aria-label="Tap to talk"><span>Tap to talk</span></button>
+      </div>
+      <div id="caption" class="muted"></div>
+      <form id="type-form" class="row">
+        <input id="type-input" placeholder="…or type here" autocomplete="off">
+        <button>Send</button>
+      </form>
+      <div id="teach" hidden></div>
+      <details id="debug" open>
+        <summary>Debug</summary>
+        <div id="debug-body"></div>
+      </details>
+    </div>
+
+    <div id="map-pane" hidden>
+      <ul id="issues"></ul>
+      <div id="map"></div>
+      <div class="row">
+        <button id="add-scene">Add a place</button>
+        <label>Start at <select id="start-select"></select></label>
+        <button id="delete-world" class="danger ghost">Delete world</button>
+      </div>
+      <details>
+        <summary>Rules cheat sheet</summary>
+        <pre class="muted">go &lt;place&gt;         move there after the result
+needs &lt;thing&gt;      only works if you have it (item or switch)
+needs no &lt;thing&gt;   only works if you don't
+else &lt;text&gt;        what you hear if a "needs" fails
+gives &lt;item&gt;       add to inventory
+takes &lt;item&gt;       remove from inventory
+sets &lt;switch&gt;      turn a hidden switch on   (clears &lt;switch&gt; turns it off)
+once               option disappears after use
+win / lose         end the game</pre>
+      </details>
+    </div>
+  </section>
+</main>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2>Settings</h2>
+    <label>Speech to text
+      <select id="asr">
+        <option value="whisper">Whisper, on device (downloads ~40 MB once)</option>
+        <option value="webspeech">Browser speech recognition (may use the cloud)</option>
+        <option value="typed">Typing only</option>
+      </select>
+    </label>
+    <p class="muted small" id="asr-status"></p>
+    <label>Decision model
+      <select id="backend">
+        <option value="lexical">Word matching (instant, no download)</option>
+        <option value="embeddings">Sentence embeddings, on device (~23 MB once)</option>
+        <option value="llm">Built-in browser AI (Chrome, if available)</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="hybrid"> When unsure, ask the built-in AI to break ties</label>
+    <p class="muted small" id="backend-status"></p>
+    <label>Narrator voice <select id="voice"></select></label>
+    <p class="muted small">Voices marked “on device” don't use the network.</p>
+    <div class="row"><button id="preload">Download models now</button><button value="close" class="primary">Done</button></div>
+  </form>
+</dialog>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
