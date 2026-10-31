@@ -11,6 +11,7 @@
     "sim": "node server/sim/index.js",
     "dev:all": "node tools/dev-all.mjs",
     "dev:lan": "node tools/dev-all.mjs --lan",
+    "dev:remote": "node tools/dev-all.mjs --remote",
     "smoke": "node tools/smoke.mjs",
     "smoke:room": "node tools/room-smoke.mjs",
     "smoke:blocks": "node tools/blocks-smoke.mjs",

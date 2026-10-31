@@ -26,6 +26,8 @@ const config = {
   plugins: [claudeApi],
   build: { target: 'esnext' },
   worker: { format: 'es' },
-  server: { proxy: sim },
+  // dev:remote reaches vite through a Cloudflare quick tunnel, whose Host vite
+  // would otherwise refuse.
+  server: { proxy: sim, ...(process.env.DEV_TUNNEL ? { allowedHosts: ['.trycloudflare.com'] } : {}) },
   preview: { proxy: sim },
 };
