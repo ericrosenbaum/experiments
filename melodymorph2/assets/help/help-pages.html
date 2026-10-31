@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>MelodyMorph Help</title>
+		<style type="text/css">
+            * {
+                font-family: sans-serif;
+                color:white;
+            }
+		</style>
+        <script type="text/javascript">
+            var descriptions = new Array(
+                    "Drag a note from the palette and tap to play it",
+                    "Shift the palette up and down",
+                    "Use the tabs to change instruments",
+                    "Hold down the pencil button and draw",
+                    "Hold down the slide button and strum"
+            );
+            
+            var numPics = descriptions.length;
+            var picNum = 0; // zero-indexed
+
+            function updateImage() {
+                document.getElementById("pic").src="gifs/help" + (picNum+1) + ".gif";
+                document.getElementById("description").innerHTML = descriptions[picNum];
+                document.getElementById("page-counter").innerHTML = (picNum + 1) + " / " + numPics;
+            }
+            function nextImage() {
+                picNum++;
+                picNum %= numPics;
+                updateImage();
+            }
+            function prevImage() {
+                if (picNum > 0) {
+                    picNum--;
+                }
+                picNum %= numPics;
+                updateImage();
+            }
+        </script>
+	</head>
+	<body style="background-color:#777777;" onload="updateImage()">
+        <div width=400>
+            
+            <div style="text-align:center">
+                <div id="description"></div>
+                <img src="" id="pic" onclick="nextImage()">
+            </div>
+            <div style="text-align:center;">
+                <span style="float:left;"><img src="buttons/prev.png" onclick="prevImage()"></span>
+                <span id="page-counter" style="margin:auto; text-align:center; color:#3f3f3f"></span>
+                <span style="float:right;"><img src="buttons/next.png" onclick="nextImage()"></span>
+            </div>
+        </div>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
