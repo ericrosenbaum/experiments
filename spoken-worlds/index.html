@@ -20,9 +20,11 @@
     <p class="lede">Make and play little adventures by talking. Your voice, your recordings, all on this device.</p>
     <div class="row">
       <button id="new-world" class="primary">New world, by voice</button>
-      <button id="load-sample">Load “Space Adventure”</button>
       <label class="button">Open a file<input id="import-file" type="file" accept=".json,application/json" hidden></label>
     </div>
+    <h2 class="small muted">Examples</h2>
+    <div id="examples" class="row"></div>
+    <h2 class="small muted">Your worlds</h2>
     <ul id="world-list" class="cards"></ul>
   </section>
 
@@ -72,8 +74,12 @@ else &lt;text&gt;        what you hear if a "needs" fails
 gives &lt;item&gt;       add to inventory
 takes &lt;item&gt;       remove from inventory
 sets &lt;switch&gt;      turn a hidden switch on   (clears &lt;switch&gt; turns it off)
+sound &lt;name&gt;       play a sound effect before the result
 once               option disappears after use
-win / lose         end the game</pre>
+win / lose         end the game
+
+Two options with the same "player says" are variants of one
+choice: the first whose needs are met plays (first time / again).</pre>
       </details>
     </div>
   </section>
@@ -99,6 +105,8 @@ win / lose         end the game</pre>
     </label>
     <label class="check"><input type="checkbox" id="hybrid"> When unsure, ask the built-in AI to break ties</label>
     <p class="muted small" id="backend-status"></p>
+    <label class="check"><input type="checkbox" id="music"> Play scene music</label>
+    <label class="check"><input type="checkbox" id="suggest-audio"> Suggest music and sounds while authoring</label>
     <label>Narrator voice <select id="voice"></select></label>
     <p class="muted small">Voices marked “on device” don't use the network.</p>
     <div class="row"><button id="preload">Download models now</button><button value="close" class="primary">Done</button></div>

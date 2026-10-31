@@ -2,6 +2,7 @@
 // a sequence of Lines (recorded clip if there is one, synth voice otherwise).
 
 import { getClip } from './store.js';
+import { playSound, duck } from './audio.js';
 
 const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
@@ -186,13 +187,20 @@ export async function playLines(lines, { onLine } = {}) {
   const merged = [];
   for (const l of lines) {
     const prev = merged[merged.length - 1];
-    if (!l.clip && prev && !prev.clip) prev.text = `${prev.text} ${l.text}`.replace(/\s+([,.])/g, '$1');
+    if (!l.clip && !l.sfx && prev && !prev.clip && !prev.sfx) prev.text = `${prev.text} ${l.text}`.replace(/\s+([,.])/g, '$1');
     else merged.push({ ...l });
   }
-  for (const l of merged) {
-    if (cancelled) break;
-    onLine?.(l);
-    if (l.clip && (await playClip(l.clip))) continue;
-    await say(l.text);
+  try {
+    for (const l of merged) {
+      if (cancelled) break;
+      onLine?.(l);
+      if (l.sfx) { duck(true); await playSound(l.sfx); continue; }
+      if (!l.text && !l.clip) continue;
+      duck(true);
+      if (l.clip && (await playClip(l.clip))) continue;
+      await say(l.text);
+    }
+  } finally {
+    if (!cancelled) duck(false);
   }
 }

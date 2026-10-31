@@ -75,6 +75,7 @@ out loud:
 | `gives <item>` | adds an item to your inventory |
 | `takes <item>` | removes an item |
 | `sets <fact>` / `clears <fact>` | hidden true/false facts (door unlocked, alarm off…) |
+| `sound <name>` | play a short sound effect before the result (Scratch library, see §5b) |
 | `once` | option disappears after it's used |
 | `win` / `lose` | ends the game after the result |
 
@@ -91,6 +92,15 @@ rules:
   needs keycard
   else The bridge door is locked. There's a slot for a keycard.
   go bridge
+```
+
+**Variants.** Two options with the same phrase are one choice to the player;
+the engine plays the first whose `needs` are met. That gives "first time vs.
+again" without new syntax:
+
+```
+pet Biscuit → Biscuit purrs and bumps her head…   needs no biscuit-friend / sets biscuit-friend / sound meow
+pet Biscuit → Biscuit flops over for belly rubs.  needs biscuit-friend
 ```
 
 ### Built-in commands (free in every world)
@@ -243,6 +253,29 @@ The full Space Adventure (5 scenes, 2 items, 1 switch, a win) is in
 `js/sample.js` and loads from the prototype's home screen. It's text-only, so
 it plays in the synth voice; re-record any line in the editor to hear the mix.
 
+### Exploratory worlds (no winning)
+
+Two more examples in `js/examples.js` show the other end of the range —
+slice-of-life places to poke around in, not puzzles:
+
+- **Rainy Saturday** — kitchen, living room, attic, backyard, porch. A cat, a
+  frog, pancakes, a pirate hat in a trunk.
+- **Harbor Morning** — pier, bakery, beach, lighthouse, lamp room. Trade a
+  shell for a cinnamon roll, bribe the lighthouse keeper, spot whales.
+
+What makes them work as wandering rather than a puzzle:
+
+- **Short scenes** (1–2 sentences) and **lots of options** (6–11 per place),
+  so most things you'd think to say do something.
+- **No fail states.** Items and switches unlock *extra* moments, never block
+  the only way forward.
+- **Every `needs` has a friendly `else` that points somewhere** ("It's pitch
+  dark up there. Maybe there's a flashlight in the kitchen.") — the else lines
+  *are* the hooks between places.
+- **Curiosity rewards**: "listen" in the attic leads to "find the squeak";
+  the note in the fisherman's bottle leads to the star on the lighthouse door.
+- **Sounds and music** do a lot of the atmosphere so the text can stay short.
+
 ### The turn loop in detail
 
 1. Speak the queued lines (scene description first time you enter; result
@@ -307,6 +340,34 @@ lower-end phones, so the plan is to build desktop-first, but measure on a
 phone in the first week.
 
 ---
+
+## 5b. Music and sound effects (optional, suggested)
+
+Both are suggestions the author can take or ignore; neither is needed for a
+world to work.
+
+**Sound effects** are the processed Scratch sound-library clips from the
+`brick-behaviors` branch (75 clips, under 1 MB, in `sounds/`). An option gets
+one with the rule `sound splash`. Each clip has a few "fits" words (frog →
+croak, puddle → splash, shell → sparkle…); after the author records what
+happens, the tool checks the option phrase and result for those words and,
+if one matches, *plays* it and asks "Add a sound to that? Say yes, no, or
+another." On the map editor the same suggestions appear as chips under each
+option.
+
+**Music beds** loop quietly under a scene (`scene.music`), duck while any
+voice is speaking, and crossfade when you move between scenes. After the
+author describes a scene, the tool picks a bed from the description's words
+(beach → sea, attic → curious), **starts playing it under the question**, and
+asks yes / no / another kind. The bed catalogue in `js/audio.js` takes
+recorded loops (`src: 'music/….mp3'`); until there are some, each bed is a
+small generated piece (chord pad, a few soft plucked notes, and optional
+waves / rain / crickets made from filtered noise).
+
+The soundtrack tool from stars-and-stories was meant to be adapted here, but
+it wasn't on any branch I could reach, so the bed format is deliberately
+simple: an id, mood words for matching, and a looping clip. Its clips and
+matching logic should drop into `MUSIC` and `suggestMusic()`.
 
 ## 6. Open questions / next experiments
 

@@ -1,4 +1,6 @@
 import { SAMPLE_WORLD } from './sample.js';
+import { EXAMPLES } from './examples.js';
+import { setMusic, playSound, currentMusic, suggestSounds, suggestMusic, MUSIC, SOUND_IDS, MUSIC_BY_ID, audioContext } from './audio.js';
 import { newState, choicesFor, describe, step, lint, parseRules } from './engine.js';
 import { decide, lexical, BACKENDS, llm } from './decide.js';
 import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech } from './speech.js';
@@ -19,7 +21,7 @@ const el = (tag, attrs = {}, ...kids) => {
 
 // ---- settings ----------------------------------------------------------------
 const settings = Object.assign(
-  { asr: window.SpeechRecognition || window.webkitSpeechRecognition ? 'webspeech' : 'whisper', backend: 'lexical', hybrid: false, voice: '' },
+  { asr: window.SpeechRecognition || window.webkitSpeechRecognition ? 'webspeech' : 'whisper', backend: 'lexical', hybrid: false, voice: '', music: true, suggestAudio: true },
   JSON.parse(localStorageGet('sw-settings') || '{}'),
 );
 function localStorageGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
@@ -69,6 +71,7 @@ async function openWorld(id, startMode = 'play') {
 
 function stopAll() {
   stopSpeaking();
+  setMusic(null);
   authoring = false;
   if (pendingAnswer) { pendingAnswer.reject(new Signal('stop')); pendingAnswer = null; }
 }
@@ -185,6 +188,7 @@ async function startPlay(fromScene) {
   } else {
     game = saved && world.scenes[saved.scene] && !saved.ended ? saved : newState(world);
   }
+  sceneMusic();
   renderDebug();
   $('#hint').textContent = 'Tap to talk (or press space). Try “what can I do?”';
   const intro = game.turn === 0 ? [{ text: world.title + '.' }] : [{ text: 'Welcome back.' }];
@@ -202,9 +206,14 @@ async function playTurn(text) {
   const { state, lines } = step(world, game, res.choice);
   game = state;
   store.putProgress(world.id, game);
+  sceneMusic();
   renderDebug();
   if (res.choice == null) showTeach(text);
   await speak(lines);
+}
+
+function sceneMusic(scene = game?.scene) {
+  setMusic(settings.music ? world.scenes[scene]?.music : null);
 }
 
 // After a miss, let the author teach the world what that utterance meant.
@@ -225,6 +234,7 @@ async function playTurnWithChoice(id) {
   const { state, lines } = step(world, game, id);
   game = state;
   store.putProgress(world.id, game);
+  sceneMusic();
   renderDebug();
   await speak(lines);
 }
@@ -233,7 +243,10 @@ async function playTurnWithChoice(id) {
 const answered = { n: 0 };
 const io = {
   say: (t) => speak([t]),
-  setFocus: (f) => { focus = f; renderDebug(); },
+  setFocus: (f) => { focus = f; if (f) sceneMusic(f.scene); renderDebug(); },
+  get suggestAudio() { return settings.suggestAudio; },
+  previewMusic: (id) => setMusic(settings.music ? id : null),
+  previewSound: (id) => playSound(id),
   async ask(prompt, spec = {}) {
     for (;;) {
       if (!authoring) throw new Signal('stop');
@@ -337,6 +350,7 @@ function renderDebug() {
     rows.push(`visited   ${game.visited.join(', ')}`);
     rows.push(`turn      ${game.turn}${game.ended ? '  ENDED: ' + game.ended : ''}`);
   }
+  if (currentMusic()) rows.push(`music     ${currentMusic()}`);
   if (mode === 'author') {
     rows.push(summary(world, focus));
     if (focus) rows.push(`next: ${focus.need} @ ${focus.scene}${focus.option ? ' / ' + focus.option : ''}`);
@@ -382,7 +396,37 @@ function lineField(label, line, set, opts = {}) {
   return el('label', { class: 'field' }, el('span', {}, label, line?.clip ? el('b', { text: '● recorded' }) : null, recBtn, playBtn), ta);
 }
 
+// Scene music: a picker, with the beds that fit the description listed first.
+function musicField(sc) {
+  const fits = suggestMusic(`${sc.name} ${sc.description?.text || ''}`, 3);
+  const sel = el('select', { onchange: (e) => { sc.music = e.target.value || undefined; save(); refreshIssues(); setMusic(sc.music); } },
+    el('option', { value: '' }, 'no music'),
+    ...[...fits, ...MUSIC.map((m) => m.id).filter((id) => !fits.includes(id))].map((id) =>
+      el('option', { value: id, selected: sc.music === id }, `${id} — ${MUSIC_BY_ID[id].about}${fits.includes(id) ? '  (suggested)' : ''}`)));
+  return el('div', { class: 'field row tight' }, el('span', { class: 'small muted', text: 'Music' }), sel,
+    el('button', { class: 'small', type: 'button', onclick: () => setMusic(currentMusic() ? null : sel.value || fits[0]) }, '▶ / ■'));
+}
+
+// Suggested sound effects for an option, from its words. Tap to hear and add
+// (or remove) a `sound` rule.
+function soundChips(o, rulesEl) {
+  const have = new Set(parseRules(o.rules).sounds);
+  const ideas = [...new Set([...have, ...suggestSounds(`${o.phrase?.text} ${o.result?.text}`, 4)])];
+  if (!ideas.length) return null;
+  return el('div', { class: 'chips' }, el('span', { class: 'small muted', text: 'Sounds' }),
+    ...ideas.map((id) => el('button', { class: 'chip small' + (have.has(id) ? ' on' : ''), type: 'button', title: have.has(id) ? 'Remove' : 'Add', onclick: () => {
+      playSound(id);
+      const lines = (o.rules || '').split('\n').filter((l) => l.trim());
+      const rule = `sound ${id}`;
+      o.rules = (have.has(id) ? lines.filter((l) => l.trim() !== rule) : [...lines, rule]).join('\n');
+      rulesEl.value = o.rules;
+      save();
+      renderMap();
+    } }, (have.has(id) ? '✓ ' : '+ ') + id)));
+}
+
 function renderMap() {
+  const y = window.scrollY;
   const map = $('#map');
   map.replaceChildren();
   const sel = $('#start-select');
@@ -394,6 +438,7 @@ function renderMap() {
       el('button', { class: 'small', onclick: () => { setMode('play'); startPlay(id); } }, 'Play from here'),
       el('button', { class: 'small danger ghost', onclick: () => { if (confirm(`Delete ${sc.name}?`)) { delete world.scenes[id]; save(); renderMap(); } } }, 'Delete')));
     card.append(lineField('Description', sc.description, (l) => (sc.description = l), { rows: 3 }));
+    card.append(musicField(sc));
     sc.options.forEach((o, i) => {
       const also = el('input', { value: (o.also || []).join(', '), placeholder: 'other ways to say it, comma-separated', oninput: (e) => { o.also = e.target.value.split(',').map((s) => s.trim()).filter(Boolean); save(); } });
       const rules = el('textarea', { class: 'rules', rows: 2, placeholder: 'rules, one per line (see cheat sheet)', oninput: (e) => { o.rules = e.target.value; save(); refreshIssues(); } });
@@ -403,9 +448,10 @@ function renderMap() {
           lineField(`Option ${i + 1}: player says`, o.phrase, (l) => (o.phrase = l), { rows: 1 }),
           el('label', { class: 'field' }, el('span', { text: 'also understood as' }), also)),
         lineField('What happens', o.result, (l) => (o.result = l)),
-        parseRules(o.rules).needs.length || parseRules(o.rules).needsNot.length
+        parseRules(o.rules).else != null || o.otherwise
           ? lineField('…if they can’t (recorded “else”)', o.otherwise, (l) => (o.otherwise = l)) : null,
         el('label', { class: 'field' }, el('span', { text: 'rules' }), rules),
+        soundChips(o, rules),
         el('button', { class: 'small danger ghost', onclick: () => { sc.options.splice(i, 1); save(); renderMap(); } }, 'Remove option')));
     });
     card.append(el('div', { class: 'row' }, el('button', { class: 'small', onclick: () => {
@@ -415,10 +461,11 @@ function renderMap() {
     map.append(card);
   }
   refreshIssues();
+  window.scrollTo(0, y);
 }
 
 function refreshIssues() {
-  $('#issues').replaceChildren(...lint(world).map((t) => el('li', { text: t })));
+  $('#issues').replaceChildren(...lint(world, { sounds: SOUND_IDS, music: new Set(Object.keys(MUSIC_BY_ID)) }).map((t) => el('li', { text: t })));
 }
 
 $('#start-select').addEventListener('change', (e) => { world.start = e.target.value; save(); refreshIssues(); });
@@ -445,11 +492,15 @@ $('#new-world').addEventListener('click', async () => {
   await store.putWorld(w);
   await openWorld(w.id, 'author');
 });
-$('#load-sample').addEventListener('click', async () => {
-  const w = structuredClone(SAMPLE_WORLD);
-  if (!(await store.getWorld(w.id))) await store.putWorld(w);
-  openWorld(w.id);
-});
+// Example worlds. A stored copy is replaced only when the example itself has
+// changed (its `version`), so edits to an example survive reloads otherwise.
+async function openExample(ex) {
+  const stored = await store.getWorld(ex.id);
+  if (!stored || (stored.version || 0) < (ex.version || 0)) await store.putWorld(structuredClone(ex));
+  openWorld(ex.id);
+}
+$('#examples').append(...[...EXAMPLES, SAMPLE_WORLD].map((ex) =>
+  el('button', { onclick: () => openExample(ex) }, ex.title)));
 $('#import-file').addEventListener('change', async (e) => {
   const f = e.target.files[0];
   if (!f) return;
@@ -470,6 +521,8 @@ function refreshSettings() {
   $('#asr').value = settings.asr;
   $('#backend').value = settings.backend;
   $('#hybrid').checked = settings.hybrid;
+  $('#music').checked = settings.music;
+  $('#suggest-audio').checked = settings.suggestAudio;
   const vs = voices();
   $('#voice').replaceChildren(...vs.map((v) => el('option', { value: v.name, selected: v.name === settings.voice }, `${v.name}${v.localService ? ' (on device)' : ' (network)'}`)));
   $('#asr-status').textContent = settings.asr === 'whisper' ? `Whisper: ${whisper.status}`
@@ -491,6 +544,8 @@ for (const id of ['asr', 'backend', 'voice']) {
     refreshSettings();
   });
 }
+$('#music').addEventListener('change', (e) => { settings.music = e.target.checked; saveSettings(); if (mode === 'play') sceneMusic(); else setMusic(null); });
+$('#suggest-audio').addEventListener('change', (e) => { settings.suggestAudio = e.target.checked; saveSettings(); });
 $('#hybrid').addEventListener('change', (e) => { settings.hybrid = e.target.checked; saveSettings(); if (settings.hybrid) llm.ready().catch(() => {}); });
 $('#preload').addEventListener('click', async (e) => {
   e.preventDefault();
@@ -501,6 +556,8 @@ $('#preload').addEventListener('click', async (e) => {
   try { await Promise.all(jobs); } catch (err) { alert('Download failed: ' + err.message); }
   refreshSettings();
 });
+
+document.addEventListener('pointerdown', () => audioContext(), { once: true });
 
 // ---- boot ----------------------------------------------------------------------------
 (async function boot() {

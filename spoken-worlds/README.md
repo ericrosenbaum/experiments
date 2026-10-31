@@ -22,6 +22,8 @@ language.
 | `js/author.js` | the spoken authoring conversation (to-do queue of unfinished scenes) |
 | `js/store.js` | IndexedDB storage, export/import file, text-only share links |
 | `js/sample.js` | "Space Adventure", a complete example world |
+| `js/examples.js` | "Rainy Saturday" and "Harbor Morning": exploratory, nothing to win |
+| `js/audio.js` | sound effects (Scratch library clips in `sounds/`), music beds, suggestions from words |
 | `js/app.js` | UI: play, author by voice, map editor, debug panel, settings |
 
 Everything runs in the browser. Model files (Whisper, MiniLM) download once

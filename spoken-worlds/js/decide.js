@@ -49,18 +49,26 @@ export const lexical = {
   name: 'lexical',
   async ready() { return true; },
   async decide(text, choices) {
+    // Weighted word overlap: a word that appears in many choices ("go", "look")
+    // counts for less than one that singles a choice out ("kitchen", "frog").
+    const toks = choices.map((c) => c.phrases.map((p) => new Set(tokens(p))));
+    const df = new Map();
+    for (const sets of toks) for (const w of new Set(sets.flatMap((t) => [...t]))) df.set(w, (df.get(w) || 0) + 1);
+    const weight = (w) => Math.log(1 + choices.length / (df.get(w) || 1)); // unseen words count fully against a match
     const u = new Set(tokens(text));
+    const uw = [...u].reduce((a, w) => a + weight(w), 0);
     const raw = String(text).toLowerCase().trim();
-    const scores = choices.map((c) => {
+    const scores = choices.map((c, ci) => {
       let best = 0;
-      for (const p of c.phrases) {
-        if (raw === p.toLowerCase()) { best = 1; break; }
-        const t = new Set(tokens(p));
-        if (!t.size || !u.size) continue;
+      c.phrases.forEach((p, pi) => {
+        if (raw === p.toLowerCase()) { best = 1; return; }
+        const t = toks[ci][pi];
+        if (!t.size || !uw) return;
         let inter = 0;
-        for (const w of t) if (u.has(w)) inter++;
-        best = Math.max(best, inter / Math.sqrt(t.size * u.size));
-      }
+        let tw = 0;
+        for (const w of t) { tw += weight(w); if (u.has(w)) inter += weight(w); }
+        best = Math.max(best, inter / Math.sqrt(tw * uw));
+      });
       return { id: c.id, score: best };
     });
     return pick(scores, 0.4, 0.05, 'lexical');
