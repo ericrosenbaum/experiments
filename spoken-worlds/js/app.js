@@ -4,7 +4,7 @@ import { playSound, suggestSounds, SOUND_IDS, audioContext } from './audio.js';
 import { setMusic, currentMusic, currentTrack, suggestMusic, MOODS, MOOD_IDS } from './music.js';
 import { newState, choicesFor, describe, step, lint, parseRules } from './engine.js';
 import { decide, lexical, BACKENDS, llm } from './decide.js';
-import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech } from './speech.js';
+import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech, unlockSpeech, ttsStatus } from './speech.js';
 import * as store from './store.js';
 import { authorWorld, AUTHOR_COMMANDS, Signal, summary, newScene } from './author.js';
 
@@ -104,6 +104,7 @@ function log(who, lines) {
 async function speak(lines) {
   log('narrator', lines);
   await playLines(lines.map((l) => (typeof l === 'string' ? { text: l } : l)));
+  renderDebug();
 }
 
 // ---- input: tap to talk / type ------------------------------------------------------
@@ -351,6 +352,7 @@ function renderDebug() {
     rows.push(`visited   ${game.visited.join(', ')}`);
     rows.push(`turn      ${game.turn}${game.ended ? '  ENDED: ' + game.ended : ''}`);
   }
+  rows.push(`speech    ${ttsStatus.started}/${ttsStatus.lines} lines started${ttsStatus.retried ? `, ${ttsStatus.retried} retried` : ''}${ttsStatus.pausesMusic ? ', pausing music to speak' : ''}${ttsStatus.error ? ', last error: ' + ttsStatus.error : ''}`);
   if (currentMusic()) rows.push(`music     ${MOODS[currentMusic()].label}: ${currentTrack() || 'loading…'}`);
   if (mode === 'author') {
     rows.push(summary(world, focus));
@@ -558,7 +560,10 @@ $('#preload').addEventListener('click', async (e) => {
   refreshSettings();
 });
 
-document.addEventListener('pointerdown', () => audioContext(), { once: true });
+// Audio and speech on phones only start from inside a tap: open both on the first one.
+const unlock = () => { audioContext(); unlockSpeech(); };
+document.addEventListener('pointerdown', unlock, { once: true });
+document.addEventListener('keydown', unlock, { once: true });
 
 // ---- boot ----------------------------------------------------------------------------
 (async function boot() {

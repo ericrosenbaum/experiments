@@ -2,7 +2,7 @@
 // a sequence of Lines (recorded clip if there is one, synth voice otherwise).
 
 import { getClip } from './store.js';
-import { playSound, duck } from './audio.js';
+import { playSound, duck, holdMusic } from './audio.js';
 
 const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
@@ -145,17 +145,65 @@ export function pickVoice(preferName) {
 export const voices = () => speechSynthesis.getVoices().filter((v) => v.lang?.startsWith('en'));
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => voice || pickVoice();
 
-export function say(text, { rate = 1 } = {}) {
+// Mobile speech synthesis is fragile:
+// - iOS speaks only after a first speak() inside a tap (unlockSpeech).
+// - An utterance can be garbage-collected mid-speech, so its onend never fires;
+//   keep a reference until it's done.
+// - speak() right after cancel() is sometimes dropped.
+// - On some phones it stays silent while Web Audio (the music) is playing. If an
+//   utterance hasn't started within a moment, pause the music and try again,
+//   and from then on pause it for every synth line.
+let speaking = null;
+let lastCancel = 0;
+let pauseMusicForSpeech = false;
+export const ttsStatus = { lines: 0, started: 0, retried: 0, pausesMusic: false, error: '' };
+
+export function unlockSpeech() {
+  if (!('speechSynthesis' in window) || unlockSpeech.done) return;
+  unlockSpeech.done = true;
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  speechSynthesis.speak(u);
+}
+
+function speakOnce(text, rate, startWithin) {
   return new Promise((res) => {
-    if (!text || !('speechSynthesis' in window)) return res();
     const u = new SpeechSynthesisUtterance(text);
     if (voice || pickVoice()) u.voice = voice;
     u.rate = rate;
+    speaking = u;
+    let started = false;
+    const finish = (ok) => { clearTimeout(noStart); clearTimeout(guard); if (speaking === u) speaking = null; res(ok); };
     // Some engines never fire onend (or have no voices at all); don't hang the game.
-    const guard = setTimeout(res, 3000 + text.length * 90 / rate);
-    u.onend = u.onerror = () => { clearTimeout(guard); res(); };
+    const guard = setTimeout(() => finish(started), 4000 + text.length * 90 / rate);
+    const noStart = startWithin ? setTimeout(() => { if (!started) { speechSynthesis.cancel(); lastCancel = performance.now(); finish(false); } }, startWithin) : null;
+    u.onstart = () => { started = true; ttsStatus.started++; clearTimeout(noStart); };
+    u.onend = () => finish(true);
+    u.onerror = (e) => { ttsStatus.error = e.error || 'error'; finish(started); };
+    speechSynthesis.resume(); // Chrome on Android can get stuck paused
     speechSynthesis.speak(u);
   });
+}
+
+export async function say(text, { rate = 1 } = {}) {
+  if (!text || !('speechSynthesis' in window)) return;
+  ttsStatus.lines++;
+  const since = performance.now() - lastCancel;
+  if (since < 120) await new Promise((r) => setTimeout(r, 120 - since));
+  if (pauseMusicForSpeech) {
+    holdMusic(true);
+    try { await speakOnce(text, rate); } finally { holdMusic(false); }
+    return;
+  }
+  if (await speakOnce(text, rate, 1500)) return;
+  // Didn't start: try once more with the music paused.
+  ttsStatus.retried++;
+  holdMusic(true);
+  try {
+    if (await speakOnce(text, rate, 2500)) pauseMusicForSpeech = ttsStatus.pausesMusic = true;
+  } finally {
+    holdMusic(false);
+  }
 }
 
 // ---- playing a sequence of Lines -----------------------------------------
@@ -164,7 +212,7 @@ let audioEl = null;
 
 export function stopSpeaking() {
   current?.cancel();
-  speechSynthesis?.cancel();
+  if (window.speechSynthesis) { speechSynthesis.cancel(); lastCancel = performance.now(); }
   if (audioEl) { audioEl.pause(); audioEl = null; }
 }
 

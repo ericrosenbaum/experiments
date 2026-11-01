@@ -329,6 +329,13 @@ you switch backends and compare.
   worth benchmarking against whisper-tiny on a mid-range Android and an iPhone.
 - **Autoplay / audio unlock.** iOS needs a user gesture before the first
   `speechSynthesis.speak()` and audio playback. Every flow starts with a tap.
+- **Speech synthesis next to Web Audio.** Some phones won't speak while a
+  page's Web Audio (the music) is playing, and mobile speech has other traps
+  (first speak() must be in a tap, utterances garbage-collected mid-line,
+  speak() right after cancel() dropped). The prototype unlocks speech on the
+  first tap, keeps utterances referenced, and if a line doesn't start within
+  1.5 s it pauses the music, retries, and keeps pausing music under the synth
+  voice from then on. The debug panel's `speech` row shows which happened.
 - **Turn-taking.** Tap-to-talk avoids the mic hearing the narrator and avoids
   needing voice-activity detection. Hands-free (VAD + barge-in) is a nice
   later experiment, not a v1 requirement.
