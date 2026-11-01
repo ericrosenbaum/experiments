@@ -67,7 +67,7 @@ export function audioContext() {
     master = ctx.createGain(); master.gain.value = BASE; master.connect(ctx.destination);
     sfxOut = ctx.createGain(); sfxOut.gain.value = 0.9; sfxOut.connect(ctx.destination);
   }
-  if (ctx.state === 'suspended' && !holds) ctx.resume();
+  if (ctx.state === 'suspended' && !holds) ctx.resume().catch(() => {});
   return ctx;
 }
 
@@ -93,14 +93,32 @@ export async function playSound(id, { maxWait = 1.4 } = {}) {
   } catch { /* missing file: stay silent */ }
 }
 
-// Pause all Web Audio output (music and effects) while synth speech plays, for
-// phones that won't speak over it. Counted, so nested holds are safe.
+// For phones that won't speak while page audio is active: quiet('suspend')
+// pauses the Web Audio context (and waits until it has); quiet('close') closes
+// it, which on some phones is the only way to give the audio back, and the
+// context is rebuilt by the next audioContext() call (music.js restarts its
+// mood then). Counted, so nested holds are safe.
 let holds = 0;
-export function holdMusic(on) {
+const resetListeners = [];
+export const onAudioReset = (fn) => resetListeners.push(fn);
+
+export async function quiet(level) {
+  holds++;
   if (!ctx) return;
-  holds = Math.max(0, holds + (on ? 1 : -1));
-  if (holds && ctx.state === 'running') ctx.suspend();
-  else if (!holds && ctx.state === 'suspended') ctx.resume();
+  if (level === 'close') {
+    const old = ctx;
+    ctx = master = sfxOut = null;
+    resetListeners.forEach((fn) => fn('closed'));
+    await old.close().catch(() => {});
+  } else if (ctx.state === 'running') {
+    await ctx.suspend().catch(() => {});
+  }
+}
+export function unquiet() {
+  holds = Math.max(0, holds - 1);
+  if (holds) return;
+  if (ctx) { if (ctx.state === 'suspended') ctx.resume(); }
+  else resetListeners.forEach((fn) => fn('reopen'));
 }
 
 export function musicOut() {

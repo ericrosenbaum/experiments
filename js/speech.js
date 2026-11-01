@@ -2,7 +2,7 @@
 // a sequence of Lines (recorded clip if there is one, synth voice otherwise).
 
 import { getClip } from './store.js';
-import { playSound, duck, holdMusic } from './audio.js';
+import { playSound, duck, quiet, unquiet } from './audio.js';
 
 const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
@@ -150,13 +150,21 @@ if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => voice |
 // - An utterance can be garbage-collected mid-speech, so its onend never fires;
 //   keep a reference until it's done.
 // - speak() right after cancel() is sometimes dropped.
-// - On some phones it stays silent while Web Audio (the music) is playing. If an
-//   utterance hasn't started within a moment, pause the music and try again,
-//   and from then on pause it for every synth line.
+// - Some phones stay silent while the page's Web Audio (the music) holds the
+//   audio, and a chosen voice can fail where the system default works.
+// So a line that doesn't start gets retried down a ladder of fixes, and the
+// first one that works is kept for the rest of the session:
+//   normal → pause Web Audio + default voice → close Web Audio + default voice
+const LADDER = [
+  { name: 'normal', quiet: null, defaultVoice: false, wait: 1500 },
+  { name: 'pause music, default voice', quiet: 'suspend', defaultVoice: true, wait: 2500 },
+  { name: 'close audio, default voice', quiet: 'close', defaultVoice: true, wait: 3500 },
+];
+let rung = 0;
+let failures = 0; // lines where nothing worked; after two, stop retrying
 let speaking = null;
 let lastCancel = 0;
-let pauseMusicForSpeech = false;
-export const ttsStatus = { lines: 0, started: 0, retried: 0, pausesMusic: false, error: '' };
+export const ttsStatus = { lines: 0, started: 0, retried: 0, way: null, error: '' };
 
 export function unlockSpeech() {
   if (!('speechSynthesis' in window) || unlockSpeech.done) return;
@@ -166,17 +174,21 @@ export function unlockSpeech() {
   speechSynthesis.speak(u);
 }
 
-function speakOnce(text, rate, startWithin) {
+function speakOnce(text, { rate = 1, startWithin = 0, defaultVoice = false } = {}) {
   return new Promise((res) => {
     const u = new SpeechSynthesisUtterance(text);
-    if (voice || pickVoice()) u.voice = voice;
+    let custom = false;
+    if (!defaultVoice && (voice || pickVoice())) { try { u.voice = voice; custom = true; } catch { /* stale voice object */ } }
+    u.lang = (custom && voice.lang) || 'en-US';
     u.rate = rate;
     speaking = u;
     let started = false;
     const finish = (ok) => { clearTimeout(noStart); clearTimeout(guard); if (speaking === u) speaking = null; res(ok); };
     // Some engines never fire onend (or have no voices at all); don't hang the game.
     const guard = setTimeout(() => finish(started), 4000 + text.length * 90 / rate);
-    const noStart = startWithin ? setTimeout(() => { if (!started) { speechSynthesis.cancel(); lastCancel = performance.now(); finish(false); } }, startWithin) : null;
+    const noStart = startWithin ? setTimeout(() => {
+      if (!started) { speechSynthesis.cancel(); lastCancel = performance.now(); finish(false); }
+    }, startWithin) : null;
     u.onstart = () => { started = true; ttsStatus.started++; clearTimeout(noStart); };
     u.onend = () => finish(true);
     u.onerror = (e) => { ttsStatus.error = e.error || 'error'; finish(started); };
@@ -185,25 +197,47 @@ function speakOnce(text, rate, startWithin) {
   });
 }
 
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
 export async function say(text, { rate = 1 } = {}) {
   if (!text || !('speechSynthesis' in window)) return;
   ttsStatus.lines++;
   const since = performance.now() - lastCancel;
-  if (since < 120) await new Promise((r) => setTimeout(r, 120 - since));
-  if (pauseMusicForSpeech) {
-    holdMusic(true);
-    try { await speakOnce(text, rate); } finally { holdMusic(false); }
-    return;
+  if (since < 150) await pause(150 - since);
+  const known = ttsStatus.way != null && failures < 2 ? !ttsStatus.way.startsWith('none') : failures >= 2;
+  for (let r = rung; r < LADDER.length; r++) {
+    const step = LADDER[r];
+    if (r > rung) ttsStatus.retried++;
+    if (step.quiet) await quiet(step.quiet);
+    try {
+      if (r > 0) await pause(150);
+      // Once a way is known to work, don't cut lines off waiting for onstart.
+      const ok = await speakOnce(text, { rate, defaultVoice: step.defaultVoice, startWithin: known && r === rung ? 0 : step.wait });
+      if (ok || (known && r === rung)) { rung = r; ttsStatus.way = step.name; return; }
+    } finally {
+      if (step.quiet) unquiet();
+    }
   }
-  if (await speakOnce(text, rate, 1500)) return;
-  // Didn't start: try once more with the music paused.
-  ttsStatus.retried++;
-  holdMusic(true);
+  ttsStatus.way = 'none worked';
+  if (++failures >= 2) { rung = 0; ttsStatus.way = 'none worked (stopped retrying)'; }
+}
+
+// One spoken test line with no music, for the settings dialog.
+export async function testVoice() {
+  const t0 = performance.now();
+  await quiet('suspend');
   try {
-    if (await speakOnce(text, rate, 2500)) pauseMusicForSpeech = ttsStatus.pausesMusic = true;
+    const chosen = await speakOnce('This is the narrator.', { startWithin: 3000 });
+    const fallback = chosen ? null : await speakOnce('This is the default voice.', { startWithin: 3000, defaultVoice: true });
+    return { chosen, fallback, ms: Math.round(performance.now() - t0) };
   } finally {
-    holdMusic(false);
+    unquiet();
   }
+}
+
+export function voiceInfo() {
+  const all = 'speechSynthesis' in window ? speechSynthesis.getVoices() : [];
+  return { count: all.length, voice: voice ? `${voice.name}${voice.localService ? ' (on device)' : ' (network)'}` : 'system default' };
 }
 
 // ---- playing a sequence of Lines -----------------------------------------

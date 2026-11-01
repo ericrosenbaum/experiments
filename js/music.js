@@ -8,7 +8,7 @@
 // In a world, a scene's mood is `scene.music`. Authoring suggests one from the
 // words of the scene's description, using the lab's weighted keywords.
 
-import { audioContext, musicOut, load } from './audio.js';
+import { audioContext, musicOut, load, onAudioReset } from './audio.js';
 
 // label, nightlight color, character, and weighted keywords ("word:weight";
 // plurals match too). Straight from the lab.
@@ -226,6 +226,15 @@ export function setMusic(id) {
   if (id) voice = makeVoice(id, fade, firstClip(id));
 }
 
+// When the audio context is closed so the synth voice can speak, drop the
+// mood's voice (its nodes died with the context) and start it again after.
+onAudioReset((what) => {
+  if (what === 'closed') { voice?.stop(0); voice = null; return; }
+  const id = currentId;
+  currentId = null;
+  if (id) setMusic(id);
+});
+
 function makeVoice(id, fade, startIdx) {
   const ctx = audioContext();
   const list = CLIPS[id];
@@ -271,9 +280,7 @@ function makeVoice(id, fade, startIdx) {
       stopped = true;
       clearTimeout(timer);
       const n = ctx.currentTime;
-      g.gain.cancelScheduledValues(n);
-      g.gain.setValueAtTime(g.gain.value, n);
-      g.gain.linearRampToValueAtTime(0, n + f);
+      try { g.gain.cancelScheduledValues(n); g.gain.setValueAtTime(g.gain.value, n); g.gain.linearRampToValueAtTime(0, n + f); } catch {}
       setTimeout(() => { srcs.forEach((s) => { try { s.stop(); } catch {} }); g.disconnect(); }, f * 1000 + 300);
     },
   };
