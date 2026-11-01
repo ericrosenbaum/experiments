@@ -67,7 +67,7 @@ export function audioContext() {
     master = ctx.createGain(); master.gain.value = BASE; master.connect(ctx.destination);
     sfxOut = ctx.createGain(); sfxOut.gain.value = 0.9; sfxOut.connect(ctx.destination);
   }
-  if (ctx.state === 'suspended') ctx.resume();
+  if (ctx.state === 'suspended' && !holds) ctx.resume();
   return ctx;
 }
 
@@ -91,6 +91,16 @@ export async function playSound(id, { maxWait = 1.4 } = {}) {
     src.start();
     await new Promise((res) => setTimeout(res, Math.min(buf.duration, maxWait) * 1000));
   } catch { /* missing file: stay silent */ }
+}
+
+// Pause all Web Audio output (music and effects) while synth speech plays, for
+// phones that won't speak over it. Counted, so nested holds are safe.
+let holds = 0;
+export function holdMusic(on) {
+  if (!ctx) return;
+  holds = Math.max(0, holds + (on ? 1 : -1));
+  if (holds && ctx.state === 'running') ctx.suspend();
+  else if (!holds && ctx.state === 'suspended') ctx.resume();
 }
 
 export function musicOut() {
