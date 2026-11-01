@@ -332,10 +332,13 @@ you switch backends and compare.
 - **Speech synthesis next to Web Audio.** Some phones won't speak while a
   page's Web Audio (the music) is playing, and mobile speech has other traps
   (first speak() must be in a tap, utterances garbage-collected mid-line,
-  speak() right after cancel() dropped). The prototype unlocks speech on the
-  first tap, keeps utterances referenced, and if a line doesn't start within
-  1.5 s it pauses the music, retries, and keeps pausing music under the synth
-  voice from then on. The debug panel's `speech` row shows which happened.
+  speak() right after cancel() dropped, a chosen voice silent where the
+  default works). The prototype unlocks speech on the first tap, keeps
+  utterances referenced, and if a line doesn't start it walks a ladder:
+  pause Web Audio and use the default voice, then close Web Audio entirely
+  (music comes back on the next tap). The first fix that works is kept. The
+  debug panel shows which, and Settings has a "Test narrator voice" button.
+  On one phone, simply pausing Web Audio was *not* enough.
 - **Turn-taking.** Tap-to-talk avoids the mic hearing the narrator and avoids
   needing voice-activity detection. Hands-free (VAD + barge-in) is a nice
   later experiment, not a v1 requirement.

@@ -4,7 +4,7 @@ import { playSound, suggestSounds, SOUND_IDS, audioContext } from './audio.js';
 import { setMusic, currentMusic, currentTrack, suggestMusic, MOODS, MOOD_IDS } from './music.js';
 import { newState, choicesFor, describe, step, lint, parseRules } from './engine.js';
 import { decide, lexical, BACKENDS, llm } from './decide.js';
-import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech, unlockSpeech, ttsStatus } from './speech.js';
+import { startCapture, playLines, stopSpeaking, playClip, say, voices, pickVoice, whisper, webspeech, unlockSpeech, ttsStatus, testVoice, voiceInfo } from './speech.js';
 import * as store from './store.js';
 import { authorWorld, AUTHOR_COMMANDS, Signal, summary, newScene } from './author.js';
 
@@ -352,7 +352,9 @@ function renderDebug() {
     rows.push(`visited   ${game.visited.join(', ')}`);
     rows.push(`turn      ${game.turn}${game.ended ? '  ENDED: ' + game.ended : ''}`);
   }
-  rows.push(`speech    ${ttsStatus.started}/${ttsStatus.lines} lines started${ttsStatus.retried ? `, ${ttsStatus.retried} retried` : ''}${ttsStatus.pausesMusic ? ', pausing music to speak' : ''}${ttsStatus.error ? ', last error: ' + ttsStatus.error : ''}`);
+  const vi = voiceInfo();
+  rows.push(`speech    ${ttsStatus.started}/${ttsStatus.lines} lines started${ttsStatus.retried ? `, ${ttsStatus.retried} retried` : ''}${ttsStatus.error ? ', last error: ' + ttsStatus.error : ''}`);
+  rows.push(`          way: ${ttsStatus.way || '—'} · voice: ${vi.voice} · ${vi.count} voices`);
   if (currentMusic()) rows.push(`music     ${MOODS[currentMusic()].label}: ${currentTrack() || 'loading…'}`);
   if (mode === 'author') {
     rows.push(summary(world, focus));
@@ -550,6 +552,14 @@ for (const id of ['asr', 'backend', 'voice']) {
 $('#music').addEventListener('change', (e) => { settings.music = e.target.checked; saveSettings(); if (mode === 'play') sceneMusic(); else setMusic(null); });
 $('#suggest-audio').addEventListener('change', (e) => { settings.suggestAudio = e.target.checked; saveSettings(); });
 $('#hybrid').addEventListener('change', (e) => { settings.hybrid = e.target.checked; saveSettings(); if (settings.hybrid) llm.ready().catch(() => {}); });
+$('#test-voice').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const out = $('#test-voice-result');
+  out.textContent = 'Speaking…';
+  const r = await testVoice();
+  const vi = voiceInfo();
+  out.textContent = `${r.chosen ? 'Chosen voice worked.' : r.fallback ? 'Chosen voice was silent; the default voice worked.' : 'No voice started.'} (${vi.voice}, ${vi.count} voices, ${r.ms} ms) ${navigator.userAgent.match(/(iPhone|iPad|Android)[^;)]*/)?.[0] || ''} ${navigator.userAgent.match(/(CriOS|FxiOS|Chrome|Firefox|Version)\/[\d.]+/)?.[0] || ''}`;
+});
 $('#preload').addEventListener('click', async (e) => {
   e.preventDefault();
   const progress = (p) => { if (p.status === 'progress') $('#backend-status').textContent = `downloading ${p.file || ''} ${Math.round(p.progress || 0)}%`; };
@@ -560,10 +570,11 @@ $('#preload').addEventListener('click', async (e) => {
   refreshSettings();
 });
 
-// Audio and speech on phones only start from inside a tap: open both on the first one.
+// Audio and speech on phones only start from inside a tap. Every tap also
+// re-opens audio, in case it was closed so the narrator could speak.
 const unlock = () => { audioContext(); unlockSpeech(); };
-document.addEventListener('pointerdown', unlock, { once: true });
-document.addEventListener('keydown', unlock, { once: true });
+document.addEventListener('pointerdown', unlock);
+document.addEventListener('keydown', unlock);
 
 // ---- boot ----------------------------------------------------------------------------
 (async function boot() {
