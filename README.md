@@ -12,6 +12,7 @@ deploy workflow.
 | personal website — redesign of ericrosenbaum.com | [`claude/personal-website-design-74h65r`](../../tree/claude/personal-website-design-74h65r) | https://ericrosenbaum.github.io/experiments/personal-website/ |
 | MelodyMorph — web port of the iPad music app | [`melodymorph`](../../tree/melodymorph) | https://ericrosenbaum.github.io/experiments/melodymorph/ |
 | Singing Fingers — web port of the iPad sing-and-draw app | [`singingfingers`](../../tree/singingfingers) | https://ericrosenbaum.github.io/experiments/singingfingers/ |
+| Glowdoodle — minimal web version of the camera light-painting toy | [`glowdoodle`](../../tree/glowdoodle) | https://ericrosenbaum.github.io/experiments/glowdoodle/ |
 
 Landing page: https://ericrosenbaum.github.io/experiments/
 
