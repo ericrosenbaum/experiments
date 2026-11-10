@@ -17,12 +17,13 @@
   #controls button:hover, #controls button:focus-visible, #controls button[aria-expanded=true] { background: rgba(0, 0, 0, .85); border-color: rgba(255, 255, 255, .6); }
   #controls svg { display: block; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-  #panel { position: fixed; right: 10px; bottom: 58px; width: 220px; max-width: calc(100vw - 20px); box-sizing: border-box; padding: 14px; display: grid; gap: 14px; border: 1px solid rgba(255, 255, 255, .2); border-radius: 10px; background: rgba(20, 20, 20, .9); box-shadow: 0 4px 20px rgba(0, 0, 0, .4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  #panel { position: fixed; right: 10px; bottom: 58px; width: 220px; max-width: calc(100vw - 20px); max-height: calc(100vh - 68px); overflow-y: auto; box-sizing: border-box; padding: 14px; display: grid; gap: 14px; border: 1px solid rgba(255, 255, 255, .2); border-radius: 10px; background: rgba(20, 20, 20, .9); box-shadow: 0 4px 20px rgba(0, 0, 0, .4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   #panel label { display: grid; gap: 6px; }
   #panel label.row { display: flex; align-items: center; justify-content: space-between; }
   #panel input[type=range], #panel select { width: 100%; margin: 0; box-sizing: border-box; accent-color: #fff; }
   #panel input[type=checkbox] { margin: 0; width: 16px; height: 16px; accent-color: #fff; }
   #panel fieldset { margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid rgba(255, 255, 255, .15); display: grid; gap: 10px; }
+  #panel .sub { margin-top: -4px; }
   #panel kbd { margin-left: 6px; color: #888; font: inherit; }
   #panel .ends { display: flex; justify-content: space-between; color: #888; font-size: 12px; }
   [hidden] { display: none !important; }
@@ -41,8 +42,17 @@
   <label id="cameraRow" hidden>Camera <select id="camera"></select></label>
   <fieldset>
     <label class="row"><span>Kaleidoscope<kbd>↑</kbd></span> <input id="kaleido" type="checkbox"></label>
+    <select id="slices" class="sub" aria-label="Kaleidoscope shape">
+      <option value="0">4 quadrants</option>
+      <option value="6">6 wedges</option>
+      <option value="8">8 wedges</option>
+      <option value="12">12 wedges</option>
+      <option value="16">16 wedges</option>
+    </select>
     <label class="row"><span>Zoom<kbd>→</kbd></span> <input id="zoom" type="checkbox"></label>
+    <input id="zoomSpeed" class="sub" type="range" min="-3" max="-1.5" step="0.01" aria-label="Zoom speed" title="Zoom speed">
     <label class="row"><span>Hue shift<kbd>←</kbd></span> <input id="hue" type="checkbox"></label>
+    <input id="hueSpeed" class="sub" type="range" min="-2" max="-0.3" step="0.01" aria-label="Hue shift speed" title="Hue shift speed">
     <label class="row"><span>Pause<kbd>↓</kbd></span> <input id="pause" type="checkbox"></label>
   </fieldset>
 </div>
@@ -71,7 +81,8 @@ void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0., 1.); }`;
 const PAINT = `#version 300 es
 precision highp float;
 uniform sampler2D cam, prev;
-uniform float fade;
+uniform float fade, aspect, zoomStep, hueStep;
+uniform int slices; // kaleidoscope wedges; 0 is the original four quadrants
 uniform bool mirror, kaleido, zoom, hue, pause, clear;
 in vec2 uv;
 out vec4 color;
@@ -82,12 +93,22 @@ vec3 hueShift(vec3 c, float a) { // rotate around the gray axis
 }
 void main() {
   vec2 pos = vec2(mirror ? 1. - uv.x : uv.x, uv.y);
-  if (kaleido) pos = abs(pos * 2. - 1.);
+  if (kaleido) {
+    if (slices == 0) {
+      pos = abs(pos * 2. - 1.);
+    } else {
+      // Fold the angle around the center so every wedge shows the same slice of camera.
+      vec2 p = (pos - .5) * vec2(aspect, 1.);
+      float wedge = 6.2831853 / float(slices);
+      float a = abs(mod(atan(p.y, p.x), wedge) - wedge * .5);
+      pos = .5 + length(p) * vec2(cos(a), sin(a)) / vec2(aspect, 1.);
+    }
+  }
   vec3 c = texture(cam, pos).rgb;
 
   // Zoom: each frame the image grows a little from the center.
-  vec3 i = texture(prev, zoom ? (uv - .5) * .995 + .5 : uv).rgb;
-  if (hue) i = hueShift(i, .1);
+  vec3 i = texture(prev, zoom ? (uv - .5) * (1. - zoomStep) + .5 : uv).rgb;
+  if (hue) i = hueShift(i, hueStep);
 
   vec3 o = gray(c) > gray(i) ? c : i * fade;
   if (pause) o = i;
@@ -109,7 +130,11 @@ const gl = canvas.getContext('webgl2');
 
 // ---- Settings -------------------------------------------------------------
 
-const settings = { fade: 1 / 3, mirror: true, camera: '', kaleido: false, zoom: false, hue: false, pause: false };
+const settings = { fade: 1 / 3, mirror: true, camera: '', kaleido: false, zoom: false, hue: false, pause: false,
+  slices: 0,
+  zoomSpeed: Math.log10(0.005), // sliders are log10 of the per-frame step; these are the original's
+  hueSpeed: Math.log10(0.1),
+};
 try { Object.assign(settings, JSON.parse(localStorage.glowdoodle)); } catch {}
 settings.pause = false; // never start frozen
 const save = () => { try { localStorage.glowdoodle = JSON.stringify(settings); } catch {} };
@@ -123,6 +148,10 @@ $('fade').oninput = e => { settings.fade = +e.target.value; save(); };
 for (const name of ['mirror', 'kaleido', 'zoom', 'hue', 'pause']) {
   $(name).checked = settings[name];
   $(name).onchange = e => { settings[name] = e.target.checked; save(); };
+}
+for (const name of ['slices', 'zoomSpeed', 'hueSpeed']) {
+  $(name).value = settings[name];
+  $(name).oninput = e => { settings[name] = +e.target.value; save(); };
 }
 
 // As in the Shadertoy, holding an arrow key turns a variation on for as long
@@ -227,6 +256,9 @@ async function start() {
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
   const camTex = texture(gl.LINEAR);
+  // Kaleidoscope wedges reach past the camera's edge; reflect rather than smear.
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
   // Two image buffers, ping-ponged: read one, write the other.
   let [read, write] = [0, 1].map(() => ({ tex: texture(gl.LINEAR), fbo: gl.createFramebuffer() }));
 
@@ -283,7 +315,7 @@ async function start() {
   gl.uniform1i(gl.getUniformLocation(paint, 'cam'), 0);
   gl.uniform1i(gl.getUniformLocation(paint, 'prev'), 1);
   const loc = {};
-  for (const name of ['fade', 'mirror', 'kaleido', 'zoom', 'hue', 'pause', 'clear']) loc[name] = gl.getUniformLocation(paint, name);
+  for (const name of ['fade', 'aspect', 'zoomStep', 'hueStep', 'slices', 'mirror', 'kaleido', 'zoom', 'hue', 'pause', 'clear']) loc[name] = gl.getUniformLocation(paint, name);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
   msg.textContent = 'click or press space to clear';
@@ -302,6 +334,10 @@ async function start() {
 
     gl.useProgram(paint);
     gl.uniform1f(loc.fade, fadeFactor());
+    gl.uniform1f(loc.aspect, canvas.width / canvas.height);
+    gl.uniform1f(loc.zoomStep, 10 ** settings.zoomSpeed);
+    gl.uniform1f(loc.hueStep, 10 ** settings.hueSpeed);
+    gl.uniform1i(loc.slices, settings.slices);
     for (const name of ['mirror', 'kaleido', 'zoom', 'hue', 'pause']) gl.uniform1i(loc[name], on(name));
     gl.uniform1i(loc.clear, clearing || held.has('clear'));
     gl.bindFramebuffer(gl.FRAMEBUFFER, write.fbo);
