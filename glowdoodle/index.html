@@ -6,19 +6,52 @@
 <title>Glowdoodle</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { font: 14px system-ui, sans-serif; color: #ddd; }
   canvas { display: block; width: 100vw; height: 100vh; object-fit: cover; cursor: pointer; touch-action: none; }
-  #msg { position: fixed; inset: auto 0 1.5em; text-align: center; color: #888; font: 14px system-ui, sans-serif; pointer-events: none; }
+  #msg { position: fixed; inset: auto 0 1.5em; text-align: center; color: #888; pointer-events: none; }
+
+  /* Controls sit dimly in the corner and disappear when the pointer rests. */
+  #controls { position: fixed; right: 10px; bottom: 10px; display: flex; gap: 2px; transition: opacity .4s; }
+  body.idle #controls { opacity: 0; pointer-events: none; }
+  #controls button { width: 40px; height: 40px; padding: 10px; border: 0; border-radius: 8px; background: none; color: #fff; opacity: .4; cursor: pointer; }
+  #controls button:hover, #controls button:focus-visible, #controls button[aria-expanded=true] { opacity: 1; background: rgba(255, 255, 255, .12); }
+  #controls svg { display: block; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  #panel { position: fixed; right: 10px; bottom: 58px; width: 220px; max-width: calc(100vw - 20px); box-sizing: border-box; padding: 14px; display: grid; gap: 14px; border-radius: 10px; background: rgba(20, 20, 20, .85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  #panel label { display: grid; gap: 6px; }
+  #panel label.row { display: flex; align-items: center; justify-content: space-between; }
+  #panel input[type=range], #panel select { width: 100%; margin: 0; box-sizing: border-box; accent-color: #fff; }
+  #panel input[type=checkbox] { margin: 0; width: 16px; height: 16px; accent-color: #fff; }
+  #panel .ends { display: flex; justify-content: space-between; color: #888; font-size: 12px; }
+  [hidden] { display: none !important; }
 </style>
 </head>
-<body>
+<body class="idle">
 <canvas id="c"></canvas>
 <div id="msg">waiting for camera…</div>
+
+<div id="panel" hidden>
+  <label>Fade
+    <input id="fade" type="range" min="0" max="1" step="0.01">
+    <span class="ends"><span>never</span><span>fast</span></span>
+  </label>
+  <label class="row">Mirror <input id="mirror" type="checkbox"></label>
+  <label id="cameraRow" hidden>Camera <select id="camera"></select></label>
+</div>
+
+<div id="controls">
+  <button id="settingsBtn" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="panel">
+    <svg viewBox="0 0 20 20"><path d="M3 6h14M3 14h14"/><circle cx="7" cy="6" r="2" fill="#000"/><circle cx="13" cy="14" r="2" fill="#000"/></svg>
+  </button>
+  <button id="fullscreenBtn" title="Full screen" aria-label="Full screen">
+    <svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>
+  </button>
+</div>
+
 <script>
 // Glowdoodle: paint with light. Each pixel keeps whichever is brighter, the
 // camera or what is already there, and the picture fades very slowly.
 // Port of https://www.shadertoy.com/view/wlXcW4
-
-const FADE = 0.999; // per frame
 
 const VERT = `#version 300 es
 in vec2 p;
@@ -26,16 +59,17 @@ out vec2 uv;
 void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0., 1.); }`;
 
 // Shadertoy's Buffer A and Buffer B folded into one pass:
-// image = brighter of (mirrored camera, previous image * fade)
+// image = brighter of (camera, previous image * fade)
 const PAINT = `#version 300 es
 precision highp float;
 uniform sampler2D cam, prev;
 uniform float fade; // 0 clears
+uniform bool mirror;
 in vec2 uv;
 out vec4 color;
 float gray(vec3 rgb) { return dot(rgb, vec3(0.2125, 0.7154, 0.0721)); }
 void main() {
-  vec3 c = texture(cam, vec2(1. - uv.x, uv.y)).rgb;
+  vec3 c = texture(cam, vec2(mirror ? 1. - uv.x : uv.x, uv.y)).rgb;
   vec3 i = texture(prev, uv).rgb * fade;
   color = vec4(gray(c) > gray(i) ? c : i, 1.);
 }`;
@@ -47,9 +81,67 @@ in vec2 uv;
 out vec4 color;
 void main() { color = vec4(texture(img, uv).rgb, 1.); }`;
 
-const msg = document.getElementById('msg');
-const canvas = document.getElementById('c');
+const $ = id => document.getElementById(id);
+const msg = $('msg');
+const canvas = $('c');
 const gl = canvas.getContext('webgl2');
+
+// ---- Settings -------------------------------------------------------------
+
+const settings = { fade: 1 / 3, mirror: true, camera: '' };
+try { Object.assign(settings, JSON.parse(localStorage.glowdoodle)); } catch {}
+const save = () => { try { localStorage.glowdoodle = JSON.stringify(settings); } catch {} };
+
+// Slider position -> how much of the image survives each frame.
+// 0 never fades; 1/3 is the original's 0.999; 1 is 0.9.
+const fadeFactor = () => settings.fade <= 0 ? 1 : 1 - 10 ** (3 * settings.fade - 4);
+
+$('fade').value = settings.fade;
+$('fade').oninput = e => { settings.fade = +e.target.value; save(); };
+$('mirror').checked = settings.mirror;
+$('mirror').onchange = e => { settings.mirror = e.target.checked; save(); };
+
+// ---- Controls -------------------------------------------------------------
+
+const panel = $('panel'), settingsBtn = $('settingsBtn'), fullscreenBtn = $('fullscreenBtn');
+
+function showPanel(open) {
+  panel.hidden = !open;
+  settingsBtn.setAttribute('aria-expanded', open);
+}
+settingsBtn.onclick = () => showPanel(panel.hidden);
+addEventListener('keydown', e => { if (e.key === 'Escape') showPanel(false); });
+
+const root = document.documentElement;
+const enterFullscreen = root.requestFullscreen || root.webkitRequestFullscreen;
+const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+if (!enterFullscreen) fullscreenBtn.hidden = true; // e.g. iPhone
+fullscreenBtn.onclick = () => {
+  if (document.fullscreenElement || document.webkitFullscreenElement) exitFullscreen.call(document);
+  else enterFullscreen.call(root);
+};
+
+// Hide the controls when the pointer rests, unless the panel is open.
+let idleTimer;
+function wake() {
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { if (panel.hidden) document.body.classList.add('idle'); }, 2500);
+}
+addEventListener('pointermove', wake);
+addEventListener('pointerdown', wake);
+addEventListener('keydown', wake);
+
+// Hold on the picture to clear it (or, with the panel open, just close the panel).
+let clearing = false;
+canvas.addEventListener('pointerdown', () => {
+  if (panel.hidden) clearing = true;
+  else showPanel(false);
+});
+addEventListener('pointerup', () => { clearing = false; });
+addEventListener('pointercancel', () => { clearing = false; });
+
+// ---- Rendering ------------------------------------------------------------
 
 function program(fragSrc) {
   const prog = gl.createProgram();
@@ -81,10 +173,6 @@ async function start() {
   const video = document.createElement('video');
   video.muted = true;
   video.playsInline = true;
-  video.srcObject = await navigator.mediaDevices.getUserMedia({ video: true });
-  await video.play();
-  const w = canvas.width = video.videoWidth;
-  const h = canvas.height = video.videoHeight;
 
   // The slow fade needs float buffers: at 8 bits, x * 0.999 rounds back to x.
   const float = gl.getExtension('EXT_color_buffer_float');
@@ -99,35 +187,73 @@ async function start() {
 
   const camTex = texture(gl.LINEAR);
   // Two image buffers, ping-ponged: read one, write the other.
-  let [read, write] = [0, 1].map(() => {
-    const tex = texture(gl.NEAREST);
-    if (float) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
-    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    const fbo = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  let [read, write] = [0, 1].map(() => ({ tex: texture(gl.NEAREST), fbo: gl.createFramebuffer() }));
+
+  // Size the canvas and both buffers to the camera, starting from black.
+  function resize(w, h) {
+    canvas.width = w;
+    canvas.height = h;
+    gl.viewport(0, 0, w, h);
     gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    return { tex, fbo };
-  });
+    for (const { tex, fbo } of [read, write]) {
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      if (float) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
+      else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+  }
+
+  async function useCamera(deviceId) {
+    const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true };
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (e) {
+      if (!deviceId) throw e;
+      stream = await navigator.mediaDevices.getUserMedia({ video: true }); // remembered camera is gone
+    }
+    video.srcObject?.getTracks().forEach(t => t.stop());
+    video.srcObject = stream;
+    await video.play();
+    if (video.videoWidth !== canvas.width || video.videoHeight !== canvas.height) {
+      resize(video.videoWidth, video.videoHeight);
+    }
+    return stream.getVideoTracks()[0].getSettings().deviceId;
+  }
+
+  const current = await useCamera(settings.camera);
+
+  // Offer a camera choice only when there is one to make.
+  const cameras = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+  if (cameras.length > 1) {
+    const select = $('camera');
+    cameras.forEach((d, i) => select.add(new Option(d.label || `Camera ${i + 1}`, d.deviceId)));
+    select.value = current;
+    select.onchange = async () => {
+      settings.camera = select.value;
+      save();
+      try { await useCamera(select.value); } catch (e) { msg.textContent = e.message; }
+    };
+    $('cameraRow').hidden = false;
+  }
 
   gl.useProgram(paint);
   gl.uniform1i(gl.getUniformLocation(paint, 'cam'), 0);
   gl.uniform1i(gl.getUniformLocation(paint, 'prev'), 1);
   const fadeLoc = gl.getUniformLocation(paint, 'fade');
+  const mirrorLoc = gl.getUniformLocation(paint, 'mirror');
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  gl.viewport(0, 0, w, h);
-
-  // Hold to clear
-  let clearing = false;
-  canvas.addEventListener('pointerdown', () => { clearing = true; });
-  addEventListener('pointerup', () => { clearing = false; });
-  addEventListener('pointercancel', () => { clearing = false; });
 
   msg.textContent = 'click to clear';
   setTimeout(() => { msg.textContent = ''; }, 4000);
+  wake();
 
   function frame() {
+    requestAnimationFrame(frame);
+    if (video.readyState < 2) return; // between cameras
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, camTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
@@ -135,7 +261,8 @@ async function start() {
     gl.bindTexture(gl.TEXTURE_2D, read.tex);
 
     gl.useProgram(paint);
-    gl.uniform1f(fadeLoc, clearing ? 0 : FADE);
+    gl.uniform1f(fadeLoc, clearing ? 0 : fadeFactor());
+    gl.uniform1i(mirrorLoc, settings.mirror);
     gl.bindFramebuffer(gl.FRAMEBUFFER, write.fbo);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -146,7 +273,6 @@ async function start() {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     [read, write] = [write, read];
-    requestAnimationFrame(frame);
   }
   frame();
 }
