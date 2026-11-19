@@ -401,7 +401,8 @@ export class App {
     this.renderBehaviors();
   }
 
-  // What the blocks' menus offer: this thing's parts, the things in the world, the messages in use.
+  // What the blocks' menus and palette offer: this thing's parts, the things in the world, the messages
+  // in use, and what kind of thing it is.
   _blockContext() {
     const a = this.selected;
     const things = [...this.world.things().keys()].filter((id) => id !== a?.key).map((id) => {
@@ -409,7 +410,7 @@ export class App {
       return { id, name: d.name, kind: d.kind };
     }).sort((x, y) => x.name.localeCompare(y.name));
     const messages = worldMessages(this.session.behaviorMap(), () => '').map((m) => m.name);
-    const ctx = { parts: (a?.model?.def.parts ?? []).map((p) => p.name), things, messages };
+    const ctx = { parts: (a?.model?.def.parts ?? []).map((p) => p.name), things, messages, isWorld: !!a?.isWorld, screen: !!a?.members?.some((e) => e.screen) };
     const key = JSON.stringify(ctx);
     if (key === this._blockCtxKey) return;
     this._blockCtxKey = key;

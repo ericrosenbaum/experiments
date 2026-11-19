@@ -14,7 +14,7 @@ for (const w of WORLDS) for (const list of Object.values(w.behaviors)) for (cons
 programs.push('onKey("x", async () => {\n  for (let i = 0; i < 3; i++) { if (i === 1) continue; jump(i); }\n  outer: while (true) { break outer; }\n  const f = () => ({ a: 1 });\n  if (isClone()) return; else play("pop");\n});');
 programs.push(...PROGRAMS);
 
-// (a statement inside a gray block of JavaScript lights up with nothing)
+// (a statement inside a gray block of JavaScript, or the pause inside "wait until", lights up with nothing)
 const checkIds = (code, ids) => {
   const traced = instrument(code);
   const { raws } = codeToBlocks(code);

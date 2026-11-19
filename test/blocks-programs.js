@@ -220,4 +220,19 @@ onKey("x", async () => {
    comment */
 let ready = true; // trailing
 // the end`,
+  // the palette's own sensing and control blocks
+  `onKey("g", async () => {
+  await turn(45);
+  await turn(-45);
+  await turn(-(n + 1));
+  turn(-10);
+  while (!(await touching("tree"))) {
+    await move(1);
+  }
+  while (!is(await look(), "red")) await wait(0.05);
+  if (is(await look(), null) && await distanceTo("tree") < 5) say("close");
+  const far = await distanceTo(thing("tower"));
+  say(\`I am \${await my("height")} up, facing \${await my("direction")}\`);
+  await goTo(place(await my("x"), 0));
+});`,
 ];

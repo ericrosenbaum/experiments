@@ -11,8 +11,15 @@
 //   slots     {NAME: [kind, default]}: what goes in each slot (see SLOT_KINDS)
 //   shape     'stmt' (default), 'reporter', 'boolean', 'hat', 'c', 'cap'
 //   wait      the primitive takes time; awaited unless the block says "and keep going"
+//   optional  the last of `params`, with `more`, its wording: the block shows that
+//             slot only when the code gives the argument ("move 5 studs" or
+//             "move 5 studs at speed 12")
+//   variants  {slot, fns}: a menu on the block that picks another primitive
+//             ("when space key released" is onKeyUp)
 //   awaits    a reporter whose value comes back later (always awaited)
 //   special   a block with its own code (loops, operators, variables...), see blockly.js
+// The palette (blockly.js) offers a small set of these; the rest are there so
+// that any program still draws as blocks.
 // Every event also comes as a C-shaped block (type + "_in") for registering it
 // inside another script, and every menu kind as a shadow block "bb_m_" + kind.
 // Defaults are the sandbox's own defaults (sandbox.worker.js), so a slot left
@@ -67,6 +74,7 @@ export const MENUS = {
   msg: { def: '"go"', options: (ctx) => [...new Set(['go', ...(ctx.messages ?? [])])].filter((m) => !m.endsWith('…')).map((m) => [m, q(m)]) },
   size: { def: '"2x2"', options: () => ['1x1', '2x2', '2x4', '1x4', '4x4'].map((s) => [s, q(s)]) },
   at: { def: '"front"', options: () => ['front', 'back', 'top', 'here'].map((s) => [s, q(s)]) },
+  my: { def: '"x"', options: () => ['x', 'z', 'height', 'direction'].map((s) => [s, q(s)]) },
   shape: { def: '"brick"', options: () => ['brick', 'flower'].map((s) => [s, q(s)]) },
 };
 
@@ -98,30 +106,30 @@ const m = (kind, d) => [kind, d ?? MENUS[kind].def];
 
 export const BLOCKS = [
   // events
-  ['bb_onStart', 'event', 'when it starts', { fn: 'onStart', shape: 'hat' }],
-  ['bb_onKey', 'event', 'when {KEY} key pressed', { fn: 'onKey', params: ['KEY'], slots: { KEY: ['key', ' '] }, shape: 'hat' }],
-  ['bb_onKeyUp', 'event', 'when {KEY} key let go', { fn: 'onKeyUp', params: ['KEY'], slots: { KEY: ['key', ' '] }, shape: 'hat' }],
-  ['bb_whileKey', 'event', 'while {KEY} key is held', { fn: 'whileKey', params: ['KEY'], slots: { KEY: ['key', 'ArrowUp'] }, shape: 'hat' }],
-  ['bb_onTouch', 'event', 'when it bumps {F}', { fn: 'onTouch', params: ['F'], slots: { F: m('filter') }, shape: 'hat' }],
+  ['bb_onStart', 'event', 'when I start', { fn: 'onStart', shape: 'hat' }],
+  ['bb_onKey', 'event', 'when {KEY} key {HOW}', { fn: 'onKey', params: ['KEY'], slots: { KEY: ['key', ' '], HOW: ['how', 'pressed'] }, shape: 'hat', variants: { slot: 'HOW', fns: { released: 'onKeyUp' } } }],
+  ['bb_whileKey', 'event', 'while {KEY} key held', { fn: 'whileKey', params: ['KEY'], slots: { KEY: ['key', 'ArrowUp'] }, shape: 'hat' }],
+  ['bb_onTouch', 'event', 'when I bump {F}', { fn: 'onTouch', params: ['F'], slots: { F: m('filter') }, shape: 'hat' }],
   ['bb_onMessage', 'event', 'when I hear {M}', { fn: 'onMessage', params: ['M'], slots: { M: m('msg') }, shape: 'hat' }],
   ['bb_onClone', 'event', 'when I start as a copy', { fn: 'onClone', shape: 'hat' }],
   ['bb_every', 'event', 'every {N} seconds', { fn: 'every', params: ['N'], slots: { N: n(1) }, shape: 'hat' }],
   ['bb_broadcast', 'event', 'tell everyone {M}', { fn: 'broadcast', params: ['M'], slots: { M: m('msg') } }],
 
   // motion
-  ['bb_drive', 'motion', 'drive at speed {N}', { fn: 'drive', params: ['N'], slots: { N: n(7) } }],
-  ['bb_steer', 'motion', 'keep turning at speed {N}', { fn: 'steer', params: ['N'], slots: { N: n(60) } }],
-  ['bb_rise', 'motion', 'rise at speed {N}', { fn: 'rise', params: ['N'], slots: { N: n(5) } }],
-  ['bb_speedUp', 'motion', 'speed up by {N}', { fn: 'speedUp', params: ['N'], slots: { N: n(3) } }],
+  ['bb_drive', 'motion', 'start driving at speed {N}', { fn: 'drive', params: ['N'], slots: { N: n(7) } }],
+  ['bb_steer', 'motion', 'start turning at speed {N}', { fn: 'steer', params: ['N'], slots: { N: n(60) } }],
+  ['bb_rise', 'motion', 'start rising at speed {N}', { fn: 'rise', params: ['N'], slots: { N: n(5) } }],
+  ['bb_speedUp', 'motion', 'change speed by {N}', { fn: 'speedUp', params: ['N'], slots: { N: n(3) } }],
   ['bb_slowDown', 'motion', 'slow down by {N}', { fn: 'slowDown', params: ['N'], slots: { N: n(3) } }],
   ['bb_stop', 'motion', 'stop moving', { fn: 'stop' }],
-  ['bb_jump', 'motion', 'jump with power {N}', { fn: 'jump', params: ['N'], slots: { N: n(5) } }],
-  ['bb_push', 'motion', 'push {D} with power {N}', { fn: 'push', params: ['D', 'N'], slots: { D: m('dir'), N: n(5) } }],
-  ['bb_move', 'motion', 'move {N} studs at speed {S}', { fn: 'move', params: ['N', 'S'], slots: { N: n(5), S: n(7) }, wait: true }],
-  ['bb_turn', 'motion', 'turn {N} degrees', { fn: 'turn', params: ['N'], slots: { N: n(90) }, wait: true }],
-  ['bb_goTo', 'motion', 'go to {T} at speed {S}', { fn: 'goTo', params: ['T', 'S'], slots: { T: m('target'), S: n(7) }, wait: true }],
-  ['bb_face', 'motion', 'face {T}', { fn: 'face', params: ['T'], slots: { T: m('target') }, wait: true }],
-  ['bb_teleport', 'motion', 'teleport to {T}', { fn: 'teleport', params: ['T'], slots: { T: m('target') }, wait: true }],
+  ['bb_jump', 'motion', 'jump {N}', { fn: 'jump', params: ['N'], slots: { N: n(5) } }],
+  ['bb_push', 'motion', 'push {D} {N}', { fn: 'push', params: ['D', 'N'], slots: { D: m('dir'), N: n(5) } }],
+  ['bb_move', 'motion', 'move {N} studs', { fn: 'move', params: ['N', 'S'], slots: { N: n(5), S: n(7) }, wait: true, optional: 'S', more: 'at speed {S}' }],
+  ['bb_turn', 'motion', 'turn ↺ {N} degrees', { fn: 'turn', params: ['N'], slots: { N: n(90) }, wait: true }],
+  ['bb_turnRight', 'motion', 'turn ↻ {N} degrees', { special: 'turnRight', slots: { N: n(90) }, wait: true }],
+  ['bb_goTo', 'motion', 'drive to {T}', { fn: 'goTo', params: ['T', 'S'], slots: { T: m('target'), S: n(7) }, wait: true, optional: 'S', more: 'at speed {S}' }],
+  ['bb_face', 'motion', 'point towards {T}', { fn: 'face', params: ['T'], slots: { T: m('target') }, wait: true }],
+  ['bb_teleport', 'motion', 'go to {T}', { fn: 'teleport', params: ['T'], slots: { T: m('target') }, wait: true }],
   ['bb_place', 'motion', 'spot {X} , {Z}', { fn: 'place', params: ['X', 'Z'], slots: { X: n(0), Z: n(0) }, shape: 'reporter' }],
 
   // parts
@@ -129,13 +137,12 @@ export const BLOCKS = [
   ['bb_turnTo', 'parts', 'swing {P} to {N} degrees', { part: 'turnTo', params: ['N'], slots: { P: m('part'), N: n(45) }, wait: true }],
   ['bb_slideTo', 'parts', 'slide {P} to {N}', { part: 'slideTo', params: ['N'], slots: { P: m('part'), N: n(1) }, wait: true }],
   ['bb_wiggle', 'parts', 'wiggle {P} {N} times', { part: 'wiggle', params: ['N'], slots: { P: m('part'), N: n(3) }, wait: true }],
-  ['bb_partColor', 'parts', 'color {P} {C}', { part: 'color', params: ['C'], slots: { P: m('part'), C: m('color') } }],
+  ['bb_partColor', 'parts', 'set {P} color to {C}', { part: 'color', params: ['C'], slots: { P: m('part'), C: m('color') } }],
 
   // looks
-  ['bb_color', 'looks', 'change color to {C}', { fn: 'color', params: ['C'], slots: { C: m('color') } }],
+  ['bb_color', 'looks', 'set color to {C}', { fn: 'color', params: ['C'], slots: { C: m('color') } }],
   ['bb_say', 'looks', 'say {T} for {N} seconds', { fn: 'say', params: ['T', 'N'], slots: { T: t('Hello!'), N: n(2) } }],
   ['bb_show', 'looks', 'show {T} on my screen', { fn: 'show', params: ['T'], slots: { T: t('') } }],
-  ['bb_explode', 'looks', 'explode with power {N}', { fn: 'explode', params: ['N'], slots: { N: n(5) } }],
 
   // sound
   ['bb_play', 'sound', 'play sound {S}', { fn: 'play', params: ['S'], slots: { S: m('sound') } }],
@@ -149,15 +156,18 @@ export const BLOCKS = [
 
   // world
   ['bb_spawn', 'world', 'make a brick', { fn: 'spawn', special: 'spawn' }],
-  ['bb_clone', 'world', 'make a copy of {W} at {P}', { fn: 'clone', params: ['W', 'P'], slots: { W: m('copy'), P: m('where') }, wait: true }],
+  ['bb_clone', 'world', 'create copy of {W}', { fn: 'clone', params: ['W', 'P'], slots: { W: m('copy'), P: m('where') }, wait: true, optional: 'P', more: 'at {P}' }],
   ['bb_cloneR', 'world', 'new copy of {W} at {P}', { fn: 'clone', params: ['W', 'P'], slots: { W: m('copy'), P: m('where') }, shape: 'reporter', awaits: true }],
   ['bb_remove', 'world', 'disappear', { fn: 'remove' }],
+  ['bb_explode', 'world', 'explode {N}', { fn: 'explode', params: ['N'], slots: { N: n(5) } }],
   ['bb_gravity', 'world', 'set gravity to {N}', { fn: 'gravity', params: ['N'], slots: { N: n(1) } }],
 
   // control
   ['bb_wait', 'control', 'wait {N} seconds', { fn: 'wait', params: ['N'], slots: { N: n(1) }, wait: true }],
   ['bb_forever', 'control', 'forever', { special: 'forever', shape: 'c' }],
   ['bb_repeat', 'control', 'repeat {N} times', { special: 'repeat', slots: { N: n(10) }, shape: 'c' }],
+  ['bb_until', 'control', 'repeat until {C}', { special: 'until', slots: { C: ['bool'] }, shape: 'c' }],
+  ['bb_waitUntil', 'control', 'wait until {C}', { special: 'waitUntil', slots: { C: ['bool'] } }],
   ['bb_while', 'control', 'repeat while {C}', { special: 'while', slots: { C: ['bool'] }, shape: 'c' }],
   ['bb_forEach', 'control', 'for each {V} in {L}', { special: 'forEach', slots: { V: ['name', 'item'], L: ['any'] }, shape: 'c' }],
   ['bb_if', 'control', 'if {C} then', { special: 'if', slots: { C: ['bool'] }, shape: 'c' }],
@@ -172,6 +182,9 @@ export const BLOCKS = [
   ['bb_look', 'sensing', 'thing ahead within {N}', { fn: 'look', params: ['N'], slots: { N: n(20) }, shape: 'reporter', awaits: true }],
   ['bb_nearest', 'sensing', 'nearest {F}', { fn: 'nearest', params: ['F'], slots: { F: m('filter') }, shape: 'reporter', awaits: true }],
   ['bb_touching', 'sensing', 'touching {F} ?', { fn: 'touching', params: ['F'], slots: { F: m('filter') }, shape: 'boolean', awaits: true }],
+  ['bb_ahead', 'sensing', '{F} ahead?', { special: 'ahead', slots: { F: m('filter') }, shape: 'boolean', awaits: true }],
+  ['bb_distanceTo', 'sensing', 'distance to {T}', { fn: 'distanceTo', params: ['T'], slots: { T: m('target') }, shape: 'reporter', awaits: true }],
+  ['bb_my', 'sensing', 'my {W}', { fn: 'my', params: ['W'], slots: { W: m('my') }, shape: 'reporter', awaits: true }],
   ['bb_position', 'sensing', 'my position', { fn: 'position', shape: 'reporter', awaits: true }],
   ['bb_see', 'sensing', 'what I see, from {L}', { fn: 'see', params: ['L'], slots: { L: ['any'] }, shape: 'reporter', awaits: true }],
   ['bb_is', 'sensing', '{T} is {F} ?', { fn: 'is', params: ['T', 'F'], slots: { T: ['any'], F: m('filter') }, shape: 'boolean' }],
@@ -228,6 +241,9 @@ for (const kind of Object.keys(MENUS)) {
   const type = `bb_m_${kind}`;
   SPEC[type] ??= { type, cat: 'other', msg: '{V}', params: [], slots: {}, special: 'menu', menu: kind, shape: 'reporter' };
 }
+
+// Every primitive that registers an event.
+export const EVENT_FNS = new Set(Object.values(SPEC).filter((s) => s.shape === 'hat' && s.fn).flatMap((s) => [s.fn, ...Object.values(s.variants?.fns ?? {})]));
 
 const HAT_TYPES = Object.values(SPEC).filter((s) => s.shape === 'hat' && s.fn).map((s) => s.type);
 // The same events registered inside another script (a loop, a function).

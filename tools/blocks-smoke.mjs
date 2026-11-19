@@ -166,7 +166,7 @@ const pbox = await page.locator('#palette').boundingBox();
 const ibox = await page.locator('#inspector').boundingBox();
 check(pbox.x + pbox.width <= ibox.x + 1, 'it opens to the left of the inspector');
 const cats = await page.$$eval('.pal-cats button', (b) => b.map((x) => x.dataset.cat));
-check(cats.length === 14, `it has ${cats.length} categories: ${cats.join(', ')}`);
+check(cats.length === 13, `it has ${cats.length} categories: ${cats.join(', ')}`);
 let catsOk = true;
 for (const c of cats) {
   await page.click(`.pal-cats button[data-cat="${c}"]`);
@@ -186,7 +186,7 @@ const palette = await page.evaluate(() => {
     nth: (seen[b.type] = (seen[b.type] ?? -1) + 1), type: b.type, out: !!b.outputConnection, bool: b.outputConnection?.getCheck()?.includes('Boolean') ?? false, hat: !b.outputConnection && !b.previousConnection,
   }));
 });
-check(palette.length > 100, `the palette holds ${palette.length} blocks`);
+check(palette.length >= 55 && palette.length <= 70, `the palette holds ${palette.length} blocks`);
 await page.screenshot({ path: `${out}/blocks-palette.png` });
 
 // screen point to grab a palette block by (scrolled into view)
@@ -330,15 +330,6 @@ await page.waitForTimeout(300);
 const menu = await page.$$eval('.blocklyContextMenu .blocklyMenuItem', (m) => m.map((x) => x.textContent));
 check(menu.some((t) => /Duplicate/i.test(t)) && menu.some((t) => /Delete/i.test(t)) && !menu.some((t) => /Inputs|Collapse|Disable|Comment/i.test(t)), `right-clicking a block offers: ${menu.join(', ')}`);
 await page.keyboard.press('Escape');
-// "and keep going": a block that takes time can be set not to wait
-await dropUnder('bb_wait', "b.type === 'bb_say'", 'NEXT');
-r = await rectOf(T, "b.type === 'bb_wait'");
-await page.mouse.click(r.x + 8, r.y + 8, { button: 'right' });
-await page.waitForTimeout(300);
-await page.locator('.blocklyContextMenu .blocklyMenuItem', { hasText: 'keep going' }).first().click();
-await waitCode(T, "c.includes('\\n  wait(1);')");
-code = await codeOf(T);
-check(code.includes('\n  wait(1);') && !code.includes('await wait'), `"Don't wait for it" drops the await: ${code.split('\n')[2]}`);
 
 // ---- 8. the code view still works, and the blocks follow typed code ----------------------
 await page.evaluate((T) => document.querySelectorAll('.behavior')[T].querySelector('.code').click(), T);

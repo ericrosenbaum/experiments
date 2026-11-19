@@ -118,6 +118,13 @@ room.handle(A, { type: 'teach', key: 'hero', behavior: { text: 'bad', code: 'onK
 assert.ok(sa.last('log')?.text.includes('typo'), 'code that does not parse is refused');
 console.log('ok: a behavior taught over the wire runs for its lock holder');
 
+// ---- sensing: how far a target is, and one number about itself -------------------------
+sa.clear();
+room.handle(A, { type: 'teach', key: 'hero', behavior: { text: 'sense', code: 'onStart(async () => { log("sense", await distanceTo(thing("coin-1")) > 0, await distanceTo(place(await my("x"), await my("z"))), await distanceTo("unicorn") === Infinity, typeof await my("height"), await my("direction") === (await position()).heading); });', summary: ['sense'], title: 'Sense' } });
+await sleep(800);
+assert.ok(sa.of('log').some((m) => m.text.includes('sense true 0 true number true')), `distanceTo and my answer: ${sa.of('log').map((m) => m.text).join(' | ')}`);
+console.log('ok: distanceTo() measures to a thing, a spot and nothing; my() gives one number');
+
 // ---- a coin vanishes when the hero touches it ----------------------------------------
 const coin = w.actor('coin-1');
 assert.ok(coin.alive);

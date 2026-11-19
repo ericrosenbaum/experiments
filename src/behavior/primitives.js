@@ -81,6 +81,8 @@ export const PRIMITIVES = [
   ['await nearest(filter)', 'Nearest thing matching filter (kind, color, or null for anything). Returns {name, kind, color, id, distance, direction} or null. direction is degrees, positive = to the left.', 'sense'],
   ['await touching(filter)', 'true if currently touching something matching filter.', 'sense'],
   ['await see(labels)', 'Take a picture of what is straight ahead, from its own eyes, and ask Claude which label it shows. labels: a list of short descriptions like ["food", "something scary", "a friendly person"]. Returns the matching label, or "none". Takes a second or two, so use it on a key press or a message, never in forever or every.', 'sense'],
+  ['await distanceTo(target)', 'How far away a target is, in studs, measured along the ground: a thing("...") reference, a place(x, z), or a kind like "tree" (the nearest one). Infinity when there is no such thing.', 'sense'],
+  ['await my(what)', 'One number about this thing. what: "x" | "z" | "height" (above the ground) | "direction" (its heading, in degrees).', 'sense'],
   ['await position()', 'This thing\'s {x, y, z, heading}. y is height above the ground.', 'sense'],
 
   // references and helpers
@@ -100,7 +102,7 @@ export const HOST_COMMANDS = new Set([
 
 // Queries the host answers asynchronously (the sandbox awaits a reply).
 export const HOST_QUERIES = new Set([
-  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partSlideTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'clone', 'see',
+  'move', 'turn', 'goTo', 'face', 'teleport', 'partTurnTo', 'partSlideTo', 'partWiggle', 'look', 'nearest', 'touching', 'position', 'distanceTo', 'clone', 'see',
 ]);
 
 export function primitivesReference() {

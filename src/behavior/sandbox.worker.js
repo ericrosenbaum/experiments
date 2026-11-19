@@ -152,6 +152,11 @@ function makeProgram(id) {
     nearest: (filter = null) => query('nearest', ref(filter)),
     touching: (filter = null) => query('touching', ref(filter)),
     position: () => query('position'),
+    distanceTo: async (target) => (await query('distanceTo', ref(target))) ?? Infinity,
+    my: async (what = 'x') => {
+      const p = await query('position');
+      return { x: p?.x, z: p?.z, height: p?.y, direction: p?.heading }[what] ?? 0;
+    },
     see: (labels = []) => query('see', (Array.isArray(labels) ? labels : [labels]).map(String)),
     thing: (id) => ({ __ref: 'thing', id: String(id) }),
     place: (x, z) => ({ __ref: 'place', x: Number(x), z: Number(z) }),

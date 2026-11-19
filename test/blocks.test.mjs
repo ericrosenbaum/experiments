@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { parse } from 'acorn';
 import { codeToBlocks } from '../src/blocks/fromcode.js';
 import { Blockly, toCode, paletteContents, gen } from '../src/blocks/blockly.js';
-import { SPEC } from '../src/blocks/lexicon.js';
+import { SPEC, EVENT_FNS as EVENTS } from '../src/blocks/lexicon.js';
 import { corpus } from '../tools/blocks-corpus.mjs';
 import { PROGRAMS } from './blocks-programs.js';
 
@@ -37,7 +37,6 @@ const lit = ([kind, def]) => {
   const v = JSON.parse(def);
   return { type: 'Literal', value: v };
 };
-const EVENTS = new Set(Object.values(SPEC).filter((s) => s.shape === 'hat' && s.fn).map((s) => s.fn));
 const isFn = (n) => n && (n.type === 'ArrowFunctionExpression' || n.type === 'FunctionExpression');
 
 function normalize(code) {
@@ -175,12 +174,17 @@ for (const p of programs) {
 const missing = Object.keys(SPEC).filter((t) => !seenTypes.has(t) && !t.startsWith('bb_m_') && !t.endsWith('_in'));
 assert.deepEqual(missing, [], 'every block should be used by some test program');
 
-// the palette: every category has blocks, every block type (but menus) is offered, and each one makes code
-const palette = paletteContents();
-const offered = new Set(palette.flatMap((c) => c.blocks.map((b) => b.type)));
-const notOffered = Object.keys(SPEC).filter((t) => !offered.has(t) && !t.startsWith('bb_m_') && !t.endsWith('_in') && t !== 'bb_num' && t !== 'bb_text');
-assert.deepEqual(notOffered, [], 'every block should be in the palette');
-for (const cat of palette) {
+// the palette: a small set of blocks, the ones that fit the selected thing, and each one makes code
+const offeredTo = (ctx) => paletteContents(ctx).flatMap((c) => c.blocks.map((b) => b.type));
+const model = { parts: ['arm'], things: [], messages: [] };
+const palette = paletteContents({ ...model, screen: true });
+assert.ok(offeredTo(model).length <= 70, `the palette should stay small, not ${offeredTo(model).length} blocks`);
+for (const t of offeredTo({ ...model, screen: true })) assert.ok(SPEC[t] && !SPEC[t].inner, `${t} should be a block of the lexicon`);
+assert.ok(!offeredTo(model).includes('bb_show') && offeredTo({ ...model, screen: true }).includes('bb_show'), 'only a thing with a screen is offered "show"');
+assert.ok(!offeredTo(model).includes('bb_gravity') && offeredTo({ isWorld: true }).includes('bb_gravity'), 'only the World is offered gravity');
+assert.ok(!offeredTo({ parts: [] }).includes('bb_spin'), 'a thing without parts is offered no part blocks');
+for (const t of ['bb_move', 'bb_spin', 'bb_onTouch', 'bb_penDown', 'bb_remove', 'bb_touching']) assert.ok(!offeredTo({ isWorld: true }).includes(t), `the World should not be offered ${t}`);
+for (const cat of [...palette, ...paletteContents({ isWorld: true })]) {
   assert.ok(cat.blocks.length, `${cat.name} should have blocks`);
   for (const def of cat.blocks) {
     const ws = new Blockly.Workspace();
@@ -224,7 +228,19 @@ assert.ok(/for \(let i = 0; i < 2; i\+\+\) \{\n {2}for \(let j = 0; j < 3; j\+\+
 }
 // "at the same time" with a stack inside one of its slots
 assert.ok(fromState([{ type: 'bb_together', inputs: { DO: stmts({ type: 'bb_turn', inputs: { N: num(90) } }, { type: 'bb_jump', inputs: { N: num(5) } }) } }]).startsWith('await Promise.all([turn(90), jump(5)]);'));
-// "don't wait": the await goes
-assert.equal(fromState([{ type: 'bb_move', extraState: { noWait: true }, inputs: { N: num(5), S: num(7) } }]), 'move(5, 7);\n');
+// "and keep going": the await goes
+assert.equal(fromState([{ type: 'bb_move', extraState: { noWait: true, more: true }, inputs: { N: num(5), S: num(7) } }]), 'move(5, 7);\n');
+// an optional slot the block doesn't show isn't written
+assert.equal(fromState([{ type: 'bb_move', inputs: { N: num(5) } }]), 'await move(5);\n');
+assert.equal(roundTrip('await goTo("tree");\nawait clone();\n').code, 'await goTo("tree");\nawait clone(null);\n');
+// one key hat, pressed or released
+assert.equal(fromState([{ type: 'bb_onKey', fields: { KEY: 'a', HOW: 'released' } }]), 'onKeyUp("a", async () => {\n});\n');
+// turning right is turning by a negative angle, whatever is in the slot
+assert.equal(fromState([{ type: 'bb_turnRight', inputs: { N: num(90) } }]), 'await turn(-90);\n');
+assert.equal(fromState([{ type: 'bb_turnRight', inputs: { N: num(-90) } }]), 'await turn(-(-90));\n');
+assert.equal(roundTrip('await turn(-(-90));\nawait turn(-n);\n').code, 'await turn(-(-90));\nawait turn(-n);\n');
+// waiting and repeating until something is true; an empty slot never loops
+assert.equal(fromState([{ type: 'bb_waitUntil' }]), 'while (!true) await wait(0.05);\n');
+assert.deepEqual(roundTrip('while (!(a && b)) await wait(0.05);\nwhile (!done) {\n  await wait(0.05);\n}\n').types.filter((t) => /ntil/.test(t)).sort(), ['bb_until', 'bb_waitUntil']);
 
 console.log(`blocks: ${programs.length} programs round-trip, ${seenTypes.size} block types used, ${rawCount} gray blocks in premade programs; all checks passed`);

@@ -5,7 +5,7 @@
 import * as BlocklyNS from 'blockly/core';
 import * as EnNS from 'blockly/msg/en';
 import { SPEC, MENUS, OPS, KEYS, CATEGORIES, COLOR_HEX, menuLabel } from './lexicon.js';
-import { shadowFor, unescText, escText } from './fromcode.js';
+import { shadowFor, unescText, escText, POLL } from './fromcode.js';
 
 // Node (the tests) loads Blockly's CommonJS build, whose namespace has it all under default.
 const unwrap = (ns) => Reflect.get(ns, 'default') ?? ns;
@@ -27,9 +27,10 @@ for (const id of ['blockInline', 'blockCollapseExpand', 'blockDisable', 'blockCo
   if (Blockly.ContextMenuRegistry.registry.getItem(id)) Blockly.ContextMenuRegistry.registry.unregister(id);
 }
 
-// What the menus offer: the selected thing's parts, the things in the world
-// and the messages in use. The app keeps it up to date (setBlockContext).
-export const blockContext = { parts: [], things: [], messages: [] };
+// What the menus and the palette offer: the selected thing's parts, the things
+// in the world, the messages in use, whether the selected thing is the World
+// and whether it has a screen. The app keeps it up to date (setBlockContext).
+export const blockContext = { parts: [], things: [], messages: [], isWorld: false, screen: false };
 export function setBlockContext(ctx) { Object.assign(blockContext, ctx); }
 
 // ---- theme -------------------------------------------------------------------------
@@ -123,10 +124,11 @@ function slotField(kind, def, spec) {
     case 'fn': return new FieldOpen(OPS[spec.special], (v) => v);
     case 'prop': return new FieldOpen(OPS.prop, (v) => v);
     case 'tf': return new Blockly.FieldDropdown([['true', 'true'], ['false', 'false']]);
+    case 'how': return new Blockly.FieldDropdown([['pressed', 'pressed'], ['released', 'released']]);
     default: return null;
   }
 }
-const FIELD_KINDS = new Set(['key', 'name', 'var', 'op', 'fn', 'prop', 'tf']);
+const FIELD_KINDS = new Set(['key', 'name', 'var', 'op', 'fn', 'prop', 'tf', 'how']);
 
 // ---- block types -------------------------------------------------------------------
 const WAIT_LABEL = 'and keep going';
@@ -173,25 +175,22 @@ function connections(block, spec) {
 
 // Shapes that change with the block's extra state.
 const MUTATIONS = {
-  // a primitive that takes time, run without waiting for it to finish
+  // a primitive that takes time: whether the code waits for it to finish, and
+  // whether it gives the optional last argument
   wait: {
-    saveExtraState() { return this.noWait ? { noWait: true } : null; },
-    loadExtraState(s) { this.noWait = !!s?.noWait; this.updateShape_(); },
-    updateShape_() {
-      if (this.getInput('NOWAIT')) this.removeInput('NOWAIT');
-      if (this.noWait) this.appendDummyInput('NOWAIT').appendField(new Blockly.FieldLabel(WAIT_LABEL, 'bb-nowait'));
+    saveExtraState() {
+      const s = { ...(this.noWait ? { noWait: true } : {}), ...(this.more ? { more: true } : {}) };
+      return Object.keys(s).length ? s : null;
     },
-    customContextMenu(options) {
-      if (this.isInFlyout || this.workspace.isReadOnly()) return;
-      options.push({
-        text: this.noWait ? 'Wait until it’s done' : 'Don’t wait for it (keep going)',
-        enabled: true,
-        callback: () => {
-          const old = this.saveExtraState();
-          this.loadExtraState({ noWait: !this.noWait });
-          Blockly.Events.fire(new (Blockly.Events.get(Blockly.Events.BLOCK_CHANGE))(this, 'mutation', null, old, this.saveExtraState()));
-        },
-      });
+    loadExtraState(s) { this.noWait = !!s?.noWait; this.more = !!s?.more; this.updateShape_(); },
+    updateShape_() {
+      const spec = SPEC[this.type];
+      if (this.getInput('NOWAIT')) this.removeInput('NOWAIT');
+      if (spec.optional) {
+        if (this.more && !this.getInput(spec.optional)) build(this, spec, spec.more);
+        if (!this.more && this.getInput(spec.optional)) this.removeInput(spec.optional);
+      }
+      if (this.noWait) this.appendDummyInput('NOWAIT').appendField(new Blockly.FieldLabel(WAIT_LABEL, 'bb-nowait'));
     },
   },
   // the names a hat or a definition hands its script
@@ -376,7 +375,7 @@ const below = (b) => {
   return code ? gen.prefixLines(code, gen.INDENT) : '';
 };
 const mouth = (b, name = 'DO') => gen.statementToCode(b, name);
-const argsOf = (b, spec) => spec.params.map((p) => {
+const argsOf = (b, spec) => spec.params.filter((p) => p !== spec.optional || b.more).map((p) => {
   const [kind] = spec.slots[p];
   if (kind === 'key') return JSON.stringify(b.getFieldValue(p));
   return val(b, p, Order.NONE, kind === 'num' ? '0' : kind === 'text' ? '""' : 'null');
@@ -391,7 +390,7 @@ function needsAwait(first) {
     const b = stack.pop();
     if (!b.isEnabled()) continue;
     const spec = SPEC[b.type];
-    if ((spec.wait && !b.noWait) || spec.awaits || spec.special === 'together') return true;
+    if ((spec.wait && !b.noWait) || spec.awaits || spec.special === 'together' || spec.special === 'waitUntil') return true;
     if ((b.type === 'bb_call' || b.type === 'bb_callR') && !b.noWait) return true;
     if (b.type === 'bb_raw' || b.type === 'bb_rawR') { if (/\bawait\b/.test(b.getFieldValue('CODE'))) return true; continue; }
     if (spec.inner || spec.special === 'forever') {
@@ -411,7 +410,8 @@ function needsAwait(first) {
 function eventCode(b, spec, body) {
   const args = argsOf(b, spec);
   const params = (b.params ?? []).join(', ');
-  return `${spec.fn}(${[...args, `async (${params}) => {\n${body}}`].join(', ')});\n`;
+  const fn = spec.variants?.fns[b.getFieldValue(spec.variants.slot)] ?? spec.fn;
+  return `${fn}(${[...args, `async (${params}) => {\n${body}}`].join(', ')});\n`;
 }
 
 const forBlock = {};
@@ -458,7 +458,7 @@ const counterName = (b) => {
 };
 const inLoop = (b) => {
   for (let p = b.getSurroundParent(); p; p = p.getSurroundParent()) {
-    if (['bb_repeat', 'bb_while', 'bb_forEach'].includes(p.type)) return true;
+    if (['bb_repeat', 'bb_while', 'bb_until', 'bb_forEach'].includes(p.type)) return true;
     if (p.type === 'bb_forever' || p.type === 'bb_together' || SPEC[p.type].inner || !p.previousConnection) return false;
   }
   return false;
@@ -481,6 +481,13 @@ Object.assign(forBlock, {
     const v = counterName(b);
     return `for (let ${v} = 0; ${v} < ${val(b, 'N', Order.RELATIONAL, '0')}; ${v}++) {\n${mouth(b)}}\n`;
   },
+  bb_turnRight: (b) => {
+    const n = val(b, 'N', Order.UNARY_NEGATION, '0');
+    return `${b.noWait ? '' : 'await '}turn(-${n.startsWith('-') ? `(${n})` : n});\n`;
+  },
+  bb_until: (b) => `while (!${val(b, 'C', Order.LOGICAL_NOT, 'true')}) {\n${mouth(b)}}\n`,
+  bb_waitUntil: (b) => `while (!${val(b, 'C', Order.LOGICAL_NOT, 'true')}) await wait(${POLL});\n`,
+  bb_ahead: (b) => [`is(await look(), ${val(b, 'F')})`, Order.FUNCTION_CALL],
   bb_while: (b) => `while (${val(b, 'C', Order.NONE, 'false')}) {\n${mouth(b)}}\n`,
   bb_forEach: (b) => {
     const v = b.getFieldValue('V');
@@ -604,6 +611,7 @@ export function paletteBlock(type, extra = {}) {
   const spec = SPEC[type];
   const fields = {}, inputs = {};
   for (const [name, [kind, def]] of Object.entries(spec.slots)) {
+    if (name === spec.optional && !extra.extraState?.more) continue;
     if (FIELD_KINDS.has(kind)) { if (def != null) fields[name] = def; continue; }
     const sh = shadowFor(kind, def ?? MENUS[kind]?.def);
     if (sh) inputs[name] = { shadow: sh };
@@ -612,64 +620,43 @@ export function paletteBlock(type, extra = {}) {
   return { kind: 'block', type, ...(Object.keys(fields).length ? { fields } : {}), ...(Object.keys(inputs).length ? { inputs } : {}), ...extra };
 }
 
-// Every block, by category, as Blockly flyout contents.
-export function paletteContents() {
+// The blocks on offer, by category, as Blockly flyout contents: the ones that
+// make sense for the selected thing (ctx: see blockContext). The World stays
+// put and has no parts; only a thing with a screen can show words on it.
+export function paletteContents(ctx = blockContext) {
   const p = (type, extra) => paletteBlock(type, extra);
   const text = (s) => ({ shadow: { type: 'bb_text', fields: { TEXT: escText(s) } } });
   const num = (n) => ({ shadow: { type: 'bb_num', fields: { NUM: n } } });
   const menu = (kind, v) => ({ shadow: { type: `bb_m_${kind}`, fields: { V: v } } });
-  const firstThing = blockContext.things?.[0];
+  const thing = !ctx.isWorld;
+  const types = (list) => list.filter(Boolean).map((t) => p(t));
   const byCat = {
-    event: [p('bb_onStart'), p('bb_onKey'), p('bb_onKeyUp'), p('bb_whileKey'), p('bb_onTouch'), p('bb_onMessage'), p('bb_onClone'), p('bb_every'), p('bb_broadcast')],
-    motion: ['bb_drive', 'bb_steer', 'bb_rise', 'bb_speedUp', 'bb_slowDown', 'bb_stop', 'bb_jump', 'bb_push', 'bb_move', 'bb_turn', 'bb_goTo', 'bb_face', 'bb_teleport', 'bb_place'].map((t) => p(t)),
-    parts: ['bb_spin', 'bb_turnTo', 'bb_slideTo', 'bb_wiggle', 'bb_partColor'].map((t) => p(t)),
-    looks: ['bb_color', 'bb_say', 'bb_show', 'bb_explode'].map((t) => p(t)),
+    event: types(['bb_onStart', 'bb_onKey', 'bb_whileKey', thing && 'bb_onTouch', 'bb_onMessage', 'bb_broadcast', thing && 'bb_onClone']),
+    motion: thing ? types(['bb_move', 'bb_turn', 'bb_turnRight', 'bb_face', 'bb_teleport', 'bb_goTo', 'bb_drive', 'bb_speedUp', 'bb_steer', 'bb_rise', 'bb_stop', 'bb_jump', 'bb_push', 'bb_place']) : [],
+    parts: thing && ctx.parts?.length ? types(['bb_spin', 'bb_turnTo', 'bb_slideTo', 'bb_wiggle', 'bb_partColor']) : [],
+    looks: types(['bb_say', 'bb_color', thing && ctx.screen && 'bb_show']),
     sound: [p('bb_play')],
-    pen: ['bb_penDown', 'bb_penUp', 'bb_penColor', 'bb_penSize', 'bb_clearDrawing'].map((t) => p(t)),
+    pen: thing ? types(['bb_penDown', 'bb_penUp', 'bb_penColor', 'bb_penSize', 'bb_clearDrawing']) : [],
     world: [
       p('bb_spawn', { extraState: { keys: ['color', 'size', 'at'] }, inputs: { color: menu('color', '"red"'), size: menu('size', '"2x2"'), at: menu('at', '"front"') } }),
-      p('bb_spawn', { extraState: { keys: ['color', 'launch'] }, inputs: { color: menu('color', '"blue"'), launch: num(18) } }),
-      p('bb_spawn', { extraState: { keys: ['color', 'from'] }, inputs: { color: menu('color', '"yellow"'), from: menu('part', JSON.stringify(blockContext.parts?.[0] ?? 'arm')) } }),
-      p('bb_spawn', { extraState: { keys: ['shape', 'color'] }, inputs: { shape: menu('shape', '"flower"'), color: menu('color', '"pink"') } }),
-      p('bb_clone'), p('bb_cloneR'), p('bb_remove'), p('bb_gravity'),
+      ...types(['bb_clone', thing && 'bb_remove', thing && 'bb_explode', ctx.isWorld && 'bb_gravity']),
     ],
-    control: [
-      p('bb_wait'), p('bb_forever'), p('bb_repeat'), p('bb_while'), p('bb_forEach'), p('bb_if'), p('bb_ifElse'), p('bb_together'),
-      p('bb_return'), p('bb_break'), p('bb_continue'), p('bb_isClone'),
-    ],
-    sensing: [
-      p('bb_look'), p('bb_nearest'), p('bb_touching'), p('bb_position'),
+    control: types(['bb_wait', 'bb_repeat', 'bb_forever', 'bb_if', 'bb_ifElse', 'bb_waitUntil', 'bb_until', 'bb_return']),
+    sensing: thing ? [
+      ...types(['bb_touching', 'bb_ahead', 'bb_distanceTo', 'bb_my']),
       p('bb_see', { inputs: { L: { block: { type: 'bb_list', extraState: { n: 2 }, inputs: { I0: text('food'), I1: text('something scary') } } } } }),
-      p('bb_is', { inputs: { T: { block: { type: 'bb_nearest', inputs: { F: menu('filter', 'null') } } }, F: menu('filter', '"red"') } }),
-      p('bb_prop', { inputs: { O: { block: { type: 'bb_nearest', inputs: { F: menu('filter', 'null') } } } } }),
-      p('bb_m_target', { fields: { V: firstThing ? `thing(${JSON.stringify(firstThing.id)})` : '"tree"' } }),
-      p('bb_thing', { inputs: { ID: text(firstThing?.id ?? 'tree') } }),
-    ],
+    ] : [],
     operator: [
-      p('bb_arith', { fields: { OP: '+' } }), p('bb_arith', { fields: { OP: '-' } }), p('bb_arith', { fields: { OP: '*' } }), p('bb_arith', { fields: { OP: '/' } }), p('bb_arith', { fields: { OP: '%' } }),
-      p('bb_random'),
-      p('bb_compare', { fields: { OP: '<' } }), p('bb_compare', { fields: { OP: '===' } }), p('bb_compare', { fields: { OP: '>' } }),
-      p('bb_logic', { fields: { OP: '&&' } }), p('bb_logic', { fields: { OP: '||' } }), p('bb_not'),
+      p('bb_arith', { fields: { OP: '+' } }), p('bb_random'), p('bb_compare', { fields: { OP: '<' } }), p('bb_logic', { fields: { OP: '&&' } }), p('bb_not'),
       p('bb_join', { extraState: { n: 2 }, inputs: { P0: text('apple '), P1: text('banana') } }),
-      p('bb_length'), p('bb_contains'), p('bb_repeatText'),
-      p('bb_math', { fields: { F: 'round' } }), p('bb_minmax', { fields: { F: 'min' } }), p('bb_fraction'),
-      p('bb_ternary'), p('bb_bool', { fields: { V: 'true' } }), p('bb_null'), p('bb_num', { fields: { NUM: 0 } }), p('bb_text', { fields: { TEXT: 'hello' } }),
+      p('bb_math', { fields: { F: 'round' } }),
     ],
-    variable: [
-      p('bb_varDeclare'), p('bb_varSet'), p('bb_varChange'), p('bb_varGet'),
-    ],
-    list: [
-      p('bb_list', { extraState: { n: 3 }, inputs: { I0: text('red'), I1: text('green'), I2: text('blue') } }),
-      p('bb_item'),
-      p('bb_varDeclare', { fields: { V: 'colors' }, inputs: { X: { shadow: shadowFor('num', 0), block: { type: 'bb_list', extraState: { n: 2 }, inputs: { I0: text('red'), I1: text('blue') } } } } }),
-    ],
+    variable: types(['bb_varDeclare', 'bb_varSet', 'bb_varChange', 'bb_varGet']),
     custom: [
       p('bb_define', { extraState: { name: 'myBlock', style: 'function' } }),
       p('bb_call', { extraState: { name: 'myBlock', args: 0 } }),
-      p('bb_callR', { extraState: { name: 'myBlock', args: 0, noWait: true } }),
-      p('bb_report'),
     ],
-    other: [p('bb_note', { fields: { TEXT: 'a note to myself' } }), p('bb_log'), p('bb_raw', { fields: { CODE: 'log("hi");' } }), p('bb_rawR', { fields: { CODE: 'Math.PI' } })],
+    other: [p('bb_note', { fields: { TEXT: 'a note to myself' } }), p('bb_log')],
   };
-  return CATEGORIES.map(([key, name, color]) => ({ key, name, color, blocks: byCat[key] ?? [] }));
+  return CATEGORIES.map(([key, name, color]) => ({ key, name, color, blocks: byCat[key] ?? [] })).filter((c) => c.blocks.length);
 }

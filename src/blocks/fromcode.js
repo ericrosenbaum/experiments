@@ -5,12 +5,13 @@
 // clicked script is run by). Anything without a block of its own becomes a
 // gray block holding its JavaScript, so nothing is ever lost.
 import { parse } from 'acorn';
-import { SPEC, BY_FN, BY_PART, MENUS, OPS } from './lexicon.js';
+import { SPEC, BY_FN, BY_PART, MENUS, OPS, EVENT_FNS } from './lexicon.js';
 
+// How often "wait until" checks, in seconds.
+export const POLL = 0.05;
 const isFn = (n) => n && (n.type === 'ArrowFunctionExpression' || n.type === 'FunctionExpression');
 const q = (s) => JSON.stringify(s);
 const CAPS = new Set(['bb_return', 'bb_break', 'bb_continue', 'bb_report', 'bb_forever']);
-const EVENT_FNS = new Set(Object.values(SPEC).filter((s) => s.shape === 'hat' && s.fn).map((s) => s.fn));
 const PRIMS = new Set([...Object.keys(BY_FN), 'part', 'thing', 'place', 'forever', 'see', 'look', 'nearest', 'touching', 'position', 'isClone', 'is', 'random', 'clone']);
 
 // Text and notes show "\n" for a new line, since a field is one line.
@@ -52,7 +53,7 @@ export function codeToBlocks(code) {
     const indent = /^[ \t]*/.exec(code.slice(lineStart, n.start))[0].length;
     return src(n).split('\n').map((l, i) => (i ? l.replace(new RegExp(`^[ \\t]{0,${indent}}`), '') : l)).join('\n');
   };
-  const raws = []; // where the gray blocks' code is: [start, end]
+  const raws = []; // code whose statements have no block of their own (a gray block's, the pause in "wait until"): [start, end]
   const raw = (n) => { raws.push([n.start, n.end]); return blk('bb_raw', { fields: { CODE: rawText(n) } }, n.start); };
   const rawR = (n) => blk('bb_rawR', { fields: { CODE: rawText(n) } });
 
@@ -128,8 +129,11 @@ export function codeToBlocks(code) {
     const sh = shadowFor(kind, def);
     return sh ? { shadow: sh, block: expr(n) } : { block: expr(n) };
   }
+  // A call's slots. A block with an optional last slot shows it only when the
+  // code gives that argument.
   const slotsFor = (spec, args, names = spec.params) => {
     const inputs = {}, fields = {};
+    if (spec.optional && names === spec.params && args.length < names.length) names = names.filter((p) => p !== spec.optional);
     names.forEach((name, i) => {
       const [kind, def] = spec.slots[name];
       if (kind === 'key') fields[name] = args[i].value;
@@ -138,7 +142,13 @@ export function codeToBlocks(code) {
         if (s) inputs[name] = s;
       }
     });
-    return { inputs, fields };
+    const more = spec.optional && names.includes(spec.optional);
+    return { inputs, fields, ...(more ? { extraState: { more: true } } : {}) };
+  };
+  // The mutation of a statement block for a primitive that takes time.
+  const timed = (b, spec, awaited) => {
+    if (spec.wait && !awaited) b.extraState = { ...b.extraState, noWait: true };
+    return b;
   };
 
   // ---- expressions -------------------------------------------------------------
@@ -226,6 +236,11 @@ export function codeToBlocks(code) {
         if (args.length === 1) return blk('bb_thing', { inputs: { ID: slot('text', '', args[0]) } });
         return null;
       }
+      // is(await look(), "tree") -> "tree ahead?"
+      if (name === 'is' && args.length === 2 && args[0].type === 'AwaitExpression' && args[0].argument.type === 'CallExpression'
+        && args[0].argument.callee.type === 'Identifier' && args[0].argument.callee.name === 'look' && !args[0].argument.arguments.length) {
+        return blk('bb_ahead', { inputs: { F: slot('filter', MENUS.filter.def, args[1]) } });
+      }
       const s = BY_FN[name];
       if (s) {
         if (s.awaits || (s.shape !== 'reporter' && s.shape !== 'boolean') || args.length > s.params.length) return null;
@@ -285,7 +300,8 @@ export function codeToBlocks(code) {
   // An event: onKey("a", async () => {...}), and the same with a function's name.
   function eventBlock(call, s, inner) {
     const name = call.callee.name;
-    const spec = Object.values(SPEC).find((x) => x.fn === name && x.shape === 'hat' && !x.inner);
+    const variant = (x) => Object.entries(x.variants?.fns ?? {}).find(([, fn]) => fn === name)?.[0];
+    const spec = Object.values(SPEC).find((x) => (x.fn === name || variant(x)) && x.shape === 'hat' && !x.inner);
     const args = call.arguments;
     let fn = args[args.length - 1];
     let given = args.slice(0, -1);
@@ -302,6 +318,7 @@ export function codeToBlocks(code) {
       stmts = [blk('bb_call', { extraState: { name: fn.name, args: 0 } }, fn.start)];
     } else return null;
     const { inputs, fields } = slotsFor(spec, given);
+    if (spec.variants) fields[spec.variants.slot] = variant(spec) ?? spec.slots[spec.variants.slot][1];
     const first = chain(stmts);
     // a hat's script hangs below it; the same event inside a script holds it in its mouth
     if (first && inner) inputs.DO = { block: first };
@@ -326,8 +343,15 @@ export function codeToBlocks(code) {
         inputs.ELSE = stack(s.alternate.type === 'IfStatement' ? [...notesFor(s.alternate), ...stmt(s.alternate)] : body(s.alternate));
         return [withNode(blk('bb_ifElse', { inputs }, s.start), s)];
       }
-      case 'WhileStatement':
+      case 'WhileStatement': {
+        // while (!done) {...} -> "repeat until done"; while (!done) await wait(0.05); -> "wait until done"
+        if (s.test.type === 'UnaryExpression' && s.test.operator === '!') {
+          const C = slot('bool', null, s.test.argument);
+          if (isPoll(s.body)) { raws.push([s.start, s.end]); return [withNode(blk('bb_waitUntil', { inputs: { C } }, s.start), s)]; }
+          return [withNode(blk('bb_until', { inputs: { C, DO: stack(body(s.body)) } }, s.start), s)];
+        }
         return [withNode(blk('bb_while', { inputs: { C: slot('bool', null, s.test), DO: stack(body(s.body)) } }, s.start), s)];
+      }
       case 'ForStatement': {
         const counted = countedLoop(s);
         if (!counted) return [raw(s)];
@@ -346,6 +370,11 @@ export function codeToBlocks(code) {
       default: return [raw(s)];
     }
   }
+
+  // The body of "wait until": await wait(0.05), without braces.
+  const isPoll = (b) => b.type === 'ExpressionStatement' && b.expression.type === 'AwaitExpression' && b.expression.argument.type === 'CallExpression'
+    && b.expression.argument.callee.type === 'Identifier' && b.expression.argument.callee.name === 'wait'
+    && b.expression.argument.arguments.length === 1 && b.expression.argument.arguments[0].value === POLL;
 
   // for (let i = 0; i < N; i++) -> "repeat N times", counting with i if the body uses it
   function countedLoop(s) {
@@ -397,12 +426,15 @@ export function codeToBlocks(code) {
         return b ? [withNode(b, s)] : null;
       }
       if (name === 'spawn') return spawnBlock(e, s);
+      // turn(-90) -> "turn ↻ 90 degrees"
+      if (name === 'turn' && args.length === 1 && args[0].type === 'UnaryExpression' && args[0].operator === '-') {
+        const right = SPEC.bb_turnRight;
+        return [withNode(timed(blk(right.type, { inputs: { N: slot('num', right.slots.N[1], args[0].argument) } }, s.start), right, awaited), s)];
+      }
       const spec = BY_FN[name];
       if (spec) {
         if (spec.shape !== 'stmt' || args.length > spec.params.length) return null;
-        const b = blk(spec.type, slotsFor(spec, args), s.start);
-        if (spec.wait && !awaited) b.extraState = { noWait: true };
-        return [withNode(b, s)];
+        return [withNode(timed(blk(spec.type, slotsFor(spec, args), s.start), spec, awaited), s)];
       }
       if (PRIMS.has(name)) return null;
       const b = callBlock('bb_call', e, awaited);
@@ -417,9 +449,7 @@ export function codeToBlocks(code) {
         if (!spec || args.length > spec.params.length) return null;
         const { inputs, fields } = slotsFor(spec, args);
         inputs.P = slot('part', spec.slots.P[1], o.arguments[0]);
-        const b = blk(spec.type, { inputs, fields }, s.start);
-        if (spec.wait && !awaited) b.extraState = { noWait: true };
-        return [withNode(b, s)];
+        return [withNode(timed(blk(spec.type, { inputs, fields }, s.start), spec, awaited), s)];
       }
       // await Promise.all([a(), b()]) -> "at the same time"
       if (awaited && o.type === 'Identifier' && o.name === 'Promise' && c.property.name === 'all' && args.length === 1 && args[0].type === 'ArrayExpression') {

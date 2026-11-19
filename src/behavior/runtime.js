@@ -777,6 +777,13 @@ export class Program {
     return { x: Math.round(p.x * 10) / 10, y: Math.round(y * 10) / 10, z: Math.round(p.z * 10) / 10, heading: Math.round(a.heading()) };
   }
 
+  q_distanceTo(target) {
+    const tgt = this.rt.resolveTarget(this.actor, target);
+    if (!tgt) return null;
+    const d = tgt.pos.clone().setY(0).distanceTo(this.actor.position.clone().setY(0));
+    return Math.round(d * 10) / 10;
+  }
+
   q_clone(what, where) {
     const now = performance.now();
     this.cloneTimes = this.cloneTimes.filter((t) => now - t < 1000);
