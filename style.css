@@ -1,0 +1,40 @@
+:root { color-scheme: dark; --bg: #0b0b0f; --panel: #16161d; --line: #2a2a35; --text: #ececf1; --dim: #8d8d9c; --accent: #7cc4ff; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+
+#stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+#world { max-width: 100%; max-height: 100%; aspect-ratio: 16 / 9; display: block; }
+
+#lobby { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); padding: 16px; }
+#lobby[hidden] { display: none; }
+#join { width: min(420px, 100%); display: flex; flex-direction: column; gap: 10px; }
+#join h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+#join p { margin: 0 0 6px; color: var(--dim); }
+#join label { font-size: 13px; color: var(--dim); }
+#join .fine { font-size: 12.5px; margin-top: 6px; }
+
+input, button { font: inherit; color: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); padding: 9px 12px; }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button { cursor: pointer; white-space: nowrap; }
+button:hover { border-color: #444455; }
+#join button { background: var(--accent); border-color: var(--accent); color: #06121c; font-weight: 600; }
+
+#bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--panel); border-top: 1px solid var(--line); }
+#bar[hidden] { display: none; }
+#lines { flex: 1; min-width: 0; }
+#status, #heard { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#status[data-kind="building"], #status[data-kind="fixing"] { color: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+#status[data-kind="error"] { color: var(--bad); }
+#heard { font-size: 12.5px; color: var(--dim); min-height: 1.4em; }
+#heard .interim { opacity: 0.6; font-style: italic; }
+#ask { flex: 0 1 280px; display: flex; }
+#ask input { width: 100%; }
+#mic[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+@keyframes pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { #status { animation: none !important; } }
+@media (max-width: 720px) { #bar { flex-wrap: wrap; } #lines { flex-basis: 100%; } #ask { flex: 1; } }
+
+/* The <video> elements only feed frames to the canvas and play audio. */
+#videos { position: fixed; left: -10px; top: -10px; width: 2px; height: 2px; overflow: hidden; opacity: 0; pointer-events: none; }
+#videos video { width: 2px; height: 2px; }

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>worldchat</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%277%27 fill=%27%237cc4ff%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main id="stage"></main>
+
+  <section id="lobby">
+    <form id="join">
+      <h1>worldchat</h1>
+      <p>A video call in a world you change by talking. Say what you want to see: "make my video a circle", "put us on a soccer field", "give everyone sunglasses".</p>
+      <label for="name">Your name</label>
+      <input id="name" maxlength="20" autocomplete="off" required>
+      <button type="submit">Join with camera and mic</button>
+      <p class="fine">Everything said in the room is transcribed and sent to Claude so it can hear requests. Works in Chrome. Share this page's address to invite friends.</p>
+    </form>
+  </section>
+
+  <footer id="bar" hidden>
+    <div id="lines">
+      <div id="status" data-kind="idle">Say what you want to change.</div>
+      <div id="heard"></div>
+    </div>
+    <form id="ask">
+      <input id="text" placeholder="or type a change" autocomplete="off" maxlength="400">
+    </form>
+    <button id="mic" type="button" title="Stop or start listening for requests" aria-pressed="false">Not listening</button>
+    <button id="undo" type="button" title="Take back the last change">Undo</button>
+    <button id="invite" type="button" title="Copy the link to this room">Copy invite</button>
+  </footer>
+
+  <div id="videos" aria-hidden="true"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
