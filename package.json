@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local server/index.js",
+    "dev:cc": "USE_CLAUDE_CODE=1 node --env-file-if-exists=.env.local server/index.js",
     "dev:mock": "MOCK_CLAUDE=1 node server/index.js",
     "dev:remote": "node tools/remote.mjs",
+    "dev:remote:cc": "USE_CLAUDE_CODE=1 node tools/remote.mjs",
     "build": "vite build",
     "start": "NODE_ENV=production node server/index.js",
     "test": "node test/e2e.mjs"

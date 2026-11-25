@@ -1,12 +1,26 @@
 // The two Claude calls: triage (is this utterance a request?) and codegen
 // (edit the world's modules). MOCK_CLAUDE=1 swaps both for canned answers so
-// the end-to-end test needs no key and is deterministic.
+// the end-to-end test needs no key and is deterministic. USE_CLAUDE_CODE=1
+// sends both through the local `claude` CLI instead of the API, so prototyping
+// runs on your Claude Code login with no key.
+import { spawn } from 'node:child_process';
+import os from 'node:os';
 import Anthropic from '@anthropic-ai/sdk';
 import { SYSTEM_PROMPT, RESPONSE_SCHEMA, TRIAGE_PROMPT, TRIAGE_SCHEMA, buildUserMessage } from './prompt.js';
 
 const MOCK = process.env.MOCK_CLAUDE === '1';
 const CODE_MODEL = process.env.CODE_MODEL ?? 'claude-opus-5-5';
+// What the room's model menu offers. CODE_MODEL picks the one a room starts on.
+export const MODELS = [
+  { id: 'claude-opus-5-5', label: 'Opus: most capable' },
+  { id: 'claude-sonnet-5-5', label: 'Sonnet: faster' },
+  { id: 'claude-haiku-5-5', label: 'Haiku: fastest' },
+];
+if (!MODELS.some((m) => m.id === CODE_MODEL)) MODELS.unshift({ id: CODE_MODEL, label: CODE_MODEL });
+export const DEFAULT_MODEL = CODE_MODEL;
 const TRIAGE_MODEL = process.env.TRIAGE_MODEL ?? 'claude-haiku-5-5';
+const CLI = process.env.USE_CLAUDE_CODE === '1';
+const CLI_TIMEOUT_MS = 180_000;
 
 let client = null;
 function getClient() {
@@ -15,8 +29,8 @@ function getClient() {
   return client;
 }
 
-export const available = () => MOCK || !!getClient();
-export const mode = () => (MOCK ? 'mock' : getClient() ? 'claude' : 'none');
+export const available = () => MOCK || CLI || !!getClient();
+export const mode = () => (MOCK ? 'mock' : CLI ? 'claude-code' : getClient() ? 'claude' : 'none');
 
 function jsonFrom(response) {
   if (response.stop_reason === 'refusal') throw new Error('Claude declined this request.');
@@ -24,29 +38,59 @@ function jsonFrom(response) {
   return JSON.parse(response.content.filter((b) => b.type === 'text').map((b) => b.text).join(''));
 }
 
+// One headless Claude Code run: no tools, no settings, hooks, MCP servers or
+// saved session, so it behaves like a plain API call that returns JSON.
+function viaClaudeCode({ model, system, schema, user }) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.env.CLAUDE_BIN ?? 'claude', [
+      '-p', '--model', model, '--effort', 'low', '--tools', '', '--strict-mcp-config', '--setting-sources', '',
+      '--disable-slash-commands', '--no-session-persistence', '--output-format', 'json',
+      '--system-prompt', system, '--json-schema', JSON.stringify(schema),
+    ], { cwd: os.tmpdir(), stdio: ['pipe', 'pipe', 'pipe'] });
+    let out = '', err = '';
+    const timer = setTimeout(() => { child.kill(); reject(new Error('Claude Code took too long.')); }, CLI_TIMEOUT_MS);
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { err += d; });
+    child.on('error', (e) => { clearTimeout(timer); reject(new Error(e.code === 'ENOENT' ? 'The `claude` command was not found on the server.' : e.message)); });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      let result;
+      try { result = JSON.parse(out); } catch { return reject(new Error(err.trim().slice(0, 300) || `claude exited with code ${code}`)); }
+      if (result.is_error) return reject(new Error(String(result.result ?? result.subtype).slice(0, 300)));
+      if (result.structured_output) return resolve(result.structured_output);
+      try { resolve(JSON.parse(result.result)); } catch { reject(new Error('Claude Code did not return JSON.')); }
+    });
+    child.stdin.on('error', () => {});
+    child.stdin.end(user);
+  });
+}
+
 // -> {kind: 'change' | 'undo' | 'none', request}
 export async function triage({ transcript, utterance }) {
   if (MOCK) return mockTriage(utterance.text);
+  const earlier = transcript.length ? transcript.map((u) => `${u.name}: ${u.text}`).join('\n') : '(nothing yet)';
+  const user = `Earlier lines:\n${earlier}\n\nNewest line:\n${utterance.name}: ${utterance.text}`;
+  if (CLI) return viaClaudeCode({ model: TRIAGE_MODEL, system: TRIAGE_PROMPT, schema: TRIAGE_SCHEMA, user });
   const c = getClient();
   if (!c) return { kind: 'none', request: '' };
-  const earlier = transcript.length ? transcript.map((u) => `${u.name}: ${u.text}`).join('\n') : '(nothing yet)';
   const response = await c.messages.create({
     model: TRIAGE_MODEL,
     max_tokens: 2000,
     output_config: { effort: 'low', format: { type: 'json_schema', schema: TRIAGE_SCHEMA } },
     system: TRIAGE_PROMPT,
-    messages: [{ role: 'user', content: `Earlier lines:\n${earlier}\n\nNewest line:\n${utterance.name}: ${utterance.text}` }],
+    messages: [{ role: 'user', content: user }],
   });
   return jsonFrom(response);
 }
 
 // -> {say, ops: [{op, name, code}]}
-export async function generate(input) {
+export async function generate(input, model = CODE_MODEL) {
   if (MOCK) return mockGenerate(input);
+  if (CLI) return viaClaudeCode({ model, system: SYSTEM_PROMPT, schema: RESPONSE_SCHEMA, user: buildUserMessage(input) });
   const c = getClient();
   if (!c) throw new Error('No ANTHROPIC_API_KEY on the server.');
   const response = await c.beta.messages.create({
-    model: CODE_MODEL,
+    model,
     max_tokens: 16000,
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',

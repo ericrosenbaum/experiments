@@ -1,5 +1,6 @@
 // Drives two pages against the real Claude and saves a screenshot after each
 // request, to eyeball what the prompt produces.
+// USE_CLAUDE_CODE=1 runs it on your Claude Code login instead of a key.
 // Run: node tools/try.mjs <dir-for-screenshots> ["request" ...]   (prefix a request with "b:" to have the second person ask)
 import { spawn } from 'node:child_process';
 import path from 'node:path';

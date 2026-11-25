@@ -15,11 +15,27 @@ npm run dev                   # http://localhost:8787
 
 Open the page in Chrome, join, and open the same address (it now includes
 `?room=...`) in a second window or send it to a friend on your network. To try
-it with someone elsewhere, `npm run dev:remote` opens a temporary public https
-link (needs `cloudflared`).
+it with someone elsewhere, host the call from your computer:
+
+```sh
+brew install cloudflared      # once
+npm run dev:remote            # or dev:remote:cc to use your Claude Code login
+```
+
+It prints an https link to one room. Open it yourself and send it to your
+friend. The link works until you press Ctrl+C, and anyone who has it can spend
+your Claude usage while it is up.
 
 Speak a change, or type it in the box. "Undo" (spoken, typed or the button)
-takes back the last change.
+takes back the last change. The menu in the bar picks which Claude writes the
+changes for the room: Opus is the most capable, Sonnet and Haiku answer sooner.
+`CODE_MODEL` sets the one a room starts on.
+
+`npm run dev:cc` needs no key: it sends each request through the `claude`
+command on your machine, so it runs on your Claude Code login and usage. It is
+for prototyping on your own computer; each answer takes a few seconds longer.
+If it says your Claude Code is too old for the model, run `claude update` or
+start it with `CODE_MODEL=opus`.
 
 `npm run dev:mock` runs without a key, with a few canned answers (circle,
 field, walk, ball). `npm test` drives two Chrome pages through that mode.

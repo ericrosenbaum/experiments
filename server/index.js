@@ -100,5 +100,5 @@ function connect(ws, id) {
 
 server.listen(PORT, () => {
   const ai = mode();
-  console.log(`worldchat on http://localhost:${PORT}  (${ai === 'claude' ? 'Claude ready' : ai === 'mock' ? 'mock Claude' : 'no ANTHROPIC_API_KEY: the world cannot be changed'})`);
+  console.log(`worldchat on http://localhost:${PORT}  (${ai === 'claude' ? 'Claude ready' : ai === 'claude-code' ? 'Claude via your Claude Code login' : ai === 'mock' ? 'mock Claude' : 'no ANTHROPIC_API_KEY: the world cannot be changed'})`);
 });

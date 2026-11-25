@@ -8,6 +8,7 @@ export const MAX_PLAYERS = 6;
 const MAX_HISTORY = 30;
 const MAX_REQUESTS = 300; // Claude code requests per room, so a leaked link has a ceiling
 const MAX_QUEUE = 5;
+const MAX_TRIAGE = 4; // utterances being checked at once
 const TRANSCRIPT = 12;
 const MAX_MODULES = 40;
 const MAX_CODE = 40_000;
@@ -28,6 +29,8 @@ export class Room {
     this.recent = []; // for echo suppression
     this.chain = Promise.resolve();
     this.queued = 0;
+    this.triaging = 0;
+    this.model = claude.DEFAULT_MODEL;
     this.requests = 0;
     this.last = null; // the change most recently applied, kept until it proves itself
     this.errorSeen = 0;
@@ -51,6 +54,7 @@ export class Room {
     send(ws, {
       type: 'welcome', id: client.id, slot, peers, players: this.roster(), hostId: this.hostId,
       program: { version: this.version, modules: this.modules }, shared: this.shared, states, ai: claude.mode(),
+      model: this.model, models: claude.mode() === 'mock' ? [] : claude.MODELS,
     });
     this.broadcast({ type: 'roster', players: this.roster(), hostId: this.hostId }, client);
     return client;
@@ -82,6 +86,11 @@ export class Room {
       case 'ask': this.heard(client, m.text, true); break;
       case 'undo': this.enqueue(() => this.undo()); break;
       case 'error': this.onError(m); break;
+      case 'model':
+        if (m.model === this.model || !claude.MODELS.some((x) => x.id === m.model)) break;
+        this.model = m.model;
+        this.broadcast({ type: 'model', model: this.model });
+        break;
     }
   }
 
@@ -115,12 +124,14 @@ export class Room {
       return;
     }
     if (text.split(/\s+/).length < 2) return;
-    this.enqueue(async () => {
-      let verdict;
-      try { verdict = await claude.triage({ transcript: earlier, utterance }); } catch (err) { console.error(`[${this.id}] triage:`, err.message); return; }
-      if (verdict.kind === 'undo') await this.undo();
-      else if (verdict.kind === 'change' && verdict.request) await this.change(speaker, verdict.request);
-    });
+    // Checked right away, not in the queue, so talk during a build is not
+    // held up behind it; only a real request waits its turn.
+    if (this.triaging >= MAX_TRIAGE) return;
+    this.triaging++;
+    claude.triage({ transcript: earlier, utterance }).then((verdict) => {
+      if (verdict.kind === 'undo') this.enqueue(() => this.undo());
+      else if (verdict.kind === 'change' && verdict.request) this.enqueue(() => this.change(speaker, verdict.request));
+    }, (err) => console.error(`[${this.id}] triage:`, err.message)).finally(() => { this.triaging--; });
   }
 
   enqueue(job) {
@@ -135,11 +146,14 @@ export class Room {
     if (++this.requests > MAX_REQUESTS) { this.status('error', 'This room has used up its changes. Start a new room to keep going.'); return; }
     this.status(failure ? 'fixing' : 'building', request, speaker.name);
     let out;
+    const model = this.model;
+    const started = Date.now();
     try {
       out = await claude.generate({
         players: this.roster(), speaker, modules: this.modules,
         transcript: this.transcript.slice(-TRANSCRIPT), request, failure,
-      });
+      }, model);
+      console.log(`[${this.id}] ${model} answered in ${((Date.now() - started) / 1000).toFixed(1)}s`);
     } catch (err) {
       console.error(`[${this.id}] generate:`, err.message);
       this.status('error', `Claude could not answer: ${err.message}`);

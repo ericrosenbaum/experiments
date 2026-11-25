@@ -150,6 +150,9 @@ function connect(name) {
         });
         for (const id of m.peers) mesh.call(id);
         state.players = m.players.length;
+        $('model').replaceChildren(...(m.models ?? []).map((x) => new Option(x.label, x.id)));
+        $('model').value = m.model;
+        $('model').hidden = !m.models?.length;
         if (m.ai === 'none') setStatus('error', 'The server has no Claude key, so the world cannot change yet.');
         else if (m.ai === 'mock') setStatus('idle', 'Mock mode: canned answers only.');
         break;
@@ -164,6 +167,7 @@ function connect(name) {
       case 'state': host.send({ type: 'state', id: m.id, s: m.s }); break;
       case 'shared': host.setShared(m.s); break;
       case 'program': state.version = m.version; host.setProgram({ version: m.version, modules: m.modules }); break;
+      case 'model': $('model').value = m.model; break;
       case 'heard': setHeard(`${m.name}: ${m.text}`); break;
       case 'status':
         if (m.kind === 'building') setStatus('building', `Making it for ${m.by}: ${m.text}`);
@@ -208,6 +212,7 @@ $('ask').addEventListener('submit', (ev) => {
   $('text').value = '';
   $('text').blur(); // so arrow keys go back to the world
 });
+$('model').addEventListener('change', () => { send({ type: 'model', model: $('model').value }); $('model').blur(); });
 $('undo').addEventListener('click', () => send({ type: 'undo' }));
 $('mic').addEventListener('click', () => { if ($('mic').getAttribute('aria-pressed') === 'true') speech?.stop(); else speech?.start(); });
 $('invite').addEventListener('click', async () => {
